@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Servicios · Panel{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">Servicios</h1>
+  <div>
+    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('panel.dashboard') }}">← Panel</a>
+    <a class="btn btn-primary btn-sm" href="{{ url_for('servicios.nuevo') }}">+ Servicio</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    {% if servicios %}
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th></th><th>Servicio</th><th>Duración</th><th>Precio</th>
+              <th>Recursos</th><th>Estado</th><th class="text-end">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in servicios %}
+              <tr class="{{ '' if s.activo else 'text-muted' }}">
+                <td>
+                  <span class="d-inline-block rounded-circle" title="{{ s.color }}"
+                        style="width:14px;height:14px;background:{{ s.color }}"></span>
+                </td>
+                <td class="fw-semibold">{{ s.nombre }}</td>
+                <td>{{ s.duracion_legible }}</td>
+                <td>${{ '%.2f'|format(s.precio) }}</td>
+                <td>
+                  {% if s.recursos %}
+                    <span class="badge bg-light text-dark">{{ s.recursos|length }}</span>
+                    <small class="text-muted">{{ s.recursos|map(attribute='nombre')|join(', ') }}</small>
+                  {% else %}
+                    <small class="text-warning">sin recursos</small>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if s.activo %}
+                    <span class="badge bg-success">Activo</span>
+                  {% else %}
+                    <span class="badge bg-secondary">Inactivo</span>
+                  {% endif %}
+                </td>
+                <td class="text-end">
+                  <a class="btn btn-sm btn-outline-secondary"
+                     href="{{ url_for('servicios.editar', servicio_id=s.id) }}">Editar</a>
+                  <form method="post" action="{{ url_for('servicios.toggle', servicio_id=s.id) }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="btn btn-sm btn-outline-{{ 'warning' if s.activo else 'success' }}">
+                      {{ 'Desactivar' if s.activo else 'Activar' }}
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="text-muted mb-0">Todavía no hay servicios. Creá uno con “+ Servicio”.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% from "_macros.html" import render_field, render_checkbox %}
+
+{% block title %}{{ titulo }} · Panel{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h4 mb-4">{{ titulo }}</h1>
+        <form method="post" novalidate>
+          {{ form.hidden_tag() }}
+
+          {{ render_field(form.nombre, placeholder="Ej: Corte de pelo, Turno pádel 90'") }}
+
+          <div class="row">
+            <div class="col-md-4">{{ render_field(form.duracion_minutos) }}</div>
+            <div class="col-md-4">{{ render_field(form.precio, placeholder="0.00") }}</div>
+            <div class="col-md-4">
+              <div class="mb-3">
+                {{ form.color.label(class="form-label") }}
+                {{ form.color(class="form-control form-control-color" ~ (" is-invalid" if form.color.errors else ""), type="color") }}
+                {% if form.color.errors %}
+                  <div class="invalid-feedback">{{ form.color.errors[0] }}</div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            {{ form.recursos.label(class="form-label") }}
+            {{ form.recursos(class="form-select", size=5) }}
+            <small class="text-muted">
+              Mantené Ctrl (Cmd en Mac) para elegir varios. Si no hay recursos,
+              creá alguno primero en la sección Recursos.
+            </small>
+          </div>
+
+          {{ render_field(form.descripcion, placeholder="Opcional") }}
+          {{ render_checkbox(form.activo) }}
+
+          <div class="d-flex justify-content-between">
+            <a class="btn btn-outline-secondary" href="{{ url_for('servicios.listar') }}">Cancelar</a>
+            {{ form.submit(class="btn btn-primary") }}
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

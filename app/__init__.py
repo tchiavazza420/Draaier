@@ -68,10 +68,12 @@ def register_blueprints(app):
     from app.auth.routes import auth_bp
     from app.panel.routes import panel_bp
     from app.recursos.routes import recursos_bp
+    from app.servicios.routes import servicios_bp
     from app.publico.routes import publico_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(panel_bp, url_prefix="/panel")
     app.register_blueprint(recursos_bp, url_prefix="/panel/recursos")
+    app.register_blueprint(servicios_bp, url_prefix="/panel/servicios")
     app.register_blueprint(publico_bp)  # catch-all /<slug>: SIEMPRE el último

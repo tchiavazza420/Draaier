@@ -18,6 +18,7 @@ from app.models.rol import Rol, RolEnum
 from app.models.usuario import Usuario
 from app.models.tipo_recurso import TipoRecurso
 from app.models.recurso import Recurso
+from app.models.servicio import Servicio, servicio_recurso
 
 __all__ = [
     "Negocio",
@@ -29,4 +30,6 @@ __all__ = [
     "Usuario",
     "TipoRecurso",
     "Recurso",
+    "Servicio",
+    "servicio_recurso",
 ]

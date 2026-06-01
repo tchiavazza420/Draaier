@@ -7,6 +7,7 @@
   <h1 class="h3 mb-0">Panel de {{ negocio.nombre }}</h1>
   <div>
     <a class="btn btn-primary btn-sm" href="{{ url_for('recursos.listar') }}">Recursos</a>
+    <a class="btn btn-primary btn-sm" href="{{ url_for('servicios.listar') }}">Servicios</a>
     <a class="btn btn-outline-secondary btn-sm"
        href="{{ url_for('publico.perfil_negocio', slug=negocio.slug) }}" target="_blank">
       Ver página pública ↗

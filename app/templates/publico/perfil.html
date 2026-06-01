@@ -14,8 +14,30 @@
 
     <hr class="my-4">
 
+    {% if servicios %}
+      <h2 class="h6 text-muted mb-3 text-start">Servicios</h2>
+      <div class="row g-3 text-start mb-4">
+        {% for s in servicios %}
+          <div class="col-md-6">
+            <a class="text-decoration-none text-reset"
+               href="{{ url_for('publico.perfil_servicio', slug=negocio.slug, servicio_slug=s.slug) }}">
+              <div class="border rounded p-3 h-100 d-flex justify-content-between align-items-center">
+                <div>
+                  <span class="d-inline-block rounded-circle me-1"
+                        style="width:10px;height:10px;background:{{ s.color }}"></span>
+                  <span class="fw-semibold">{{ s.nombre }}</span>
+                  <div><small class="text-muted">{{ s.duracion_legible }}</small></div>
+                </div>
+                <span class="fw-semibold">${{ '%.2f'|format(s.precio) }}</span>
+              </div>
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
     {% if recursos %}
-      <h2 class="h6 text-muted mb-3">Disponible para reservar</h2>
+      <h2 class="h6 text-muted mb-3 text-start">Recursos</h2>
       <div class="row g-3 text-start">
         {% for r in recursos %}
           <div class="col-md-6">
@@ -29,7 +51,9 @@
           </div>
         {% endfor %}
       </div>
-    {% else %}
+    {% endif %}
+
+    {% if not servicios and not recursos %}
       <p class="text-muted mb-0">
         Página pública en construcción. Pronto vas a poder reservar acá.
       </p>

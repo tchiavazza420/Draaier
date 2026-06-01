@@ -17,6 +17,7 @@ from flask import Blueprint, render_template, abort
 
 from app.tenant import cargar_negocio_por_slug
 from app.models.recurso import Recurso
+from app.models.servicio import Servicio
 
 publico_bp = Blueprint("publico", __name__)
 
@@ -31,7 +32,28 @@ def perfil_negocio(slug):
         .order_by(Recurso.nombre)
         .all()
     )
-    return render_template("publico/perfil.html", negocio=negocio, recursos=recursos)
+    servicios = (
+        Servicio.query
+        .filter_by(negocio_id=negocio.id, activo=True)
+        .order_by(Servicio.nombre)
+        .all()
+    )
+    return render_template(
+        "publico/perfil.html",
+        negocio=negocio, recursos=recursos, servicios=servicios,
+    )
+
+
+@publico_bp.route("/<slug>/servicio/<servicio_slug>")
+def perfil_servicio(slug, servicio_slug):
+    """Perfil público de un servicio: /slug-negocio/servicio/slug-servicio."""
+    negocio = cargar_negocio_por_slug(slug)
+    servicio = Servicio.query.filter_by(
+        negocio_id=negocio.id, slug=servicio_slug, activo=True
+    ).first()
+    if servicio is None:
+        abort(404)
+    return render_template("publico/servicio.html", negocio=negocio, servicio=servicio)
 
 
 @publico_bp.route("/<slug>/recurso/<recurso_slug>")
