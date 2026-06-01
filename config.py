@@ -44,6 +44,18 @@ class BaseConfig:
     # URL base pública del sitio (para back_urls y webhooks de Mercado Pago).
     SITE_URL = os.environ.get("SITE_URL", "http://127.0.0.1:5000")
 
+    # --- Email (Flask-Mail) ---
+    # Sin MAIL_SERVER, las notificaciones van a una bandeja de desarrollo
+    # (no se envían de verdad, pero se registran y son testeables).
+    MAIL_SERVER = os.environ.get("MAIL_SERVER")
+    MAIL_PORT = int(os.environ.get("MAIL_PORT", 587))
+    MAIL_USE_TLS = os.environ.get("MAIL_USE_TLS", "true").lower() == "true"
+    MAIL_USERNAME = os.environ.get("MAIL_USERNAME")
+    MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")
+    MAIL_DEFAULT_SENDER = os.environ.get(
+        "MAIL_DEFAULT_SENDER", "Reservas SaaS <no-reply@reservas.local>"
+    )
+
 
 class DevelopmentConfig(BaseConfig):
     """Entorno local de desarrollo."""

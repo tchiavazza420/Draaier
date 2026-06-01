@@ -157,6 +157,10 @@ def reservar_crear(slug):
         flash(str(exc), "warning")
         return redirect(url_for("publico.perfil_servicio", slug=slug, servicio_slug=servicio.slug))
 
+    from app.notificaciones.service import (
+        notificar_reserva_confirmada, notificar_reserva_pendiente,
+    )
+
     if requiere_sena:
         from app.pagos.service import iniciar_pago_sena, PagoError
         try:
@@ -164,8 +168,10 @@ def reservar_crear(slug):
         except PagoError as exc:
             flash(str(exc), "warning")
             return redirect(url_for("publico.reserva_confirmacion", slug=slug, codigo=reserva.codigo))
+        notificar_reserva_pendiente(reserva, url_pago=url_checkout)
         return redirect(url_checkout)
 
+    notificar_reserva_confirmada(reserva)
     return redirect(url_for("publico.reserva_confirmacion", slug=slug, codigo=reserva.codigo))
 
 

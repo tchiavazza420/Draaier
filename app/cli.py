@@ -7,6 +7,8 @@ Comandos de línea de comandos personalizados (flask <comando>).
   podés correrlo varias veces sin duplicar nada.
 """
 
+from datetime import datetime, timedelta, date
+
 import click
 
 from app.extensions import db
@@ -37,3 +39,30 @@ def register_commands(app):
                 creados += 1
         db.session.commit()
         click.echo(f"Roles del sistema asegurados. Nuevos creados: {creados}")
+
+    @app.cli.command("enviar-recordatorios")
+    @click.option("--dias", default=1, help="Días de anticipación (default: 1 = mañana).")
+    def enviar_recordatorios(dias):
+        """
+        Envía recordatorios de las reservas confirmadas que ocurren dentro de
+        N días. Pensado para correrse una vez por día (cron/Celery beat).
+        """
+        from app.models.reserva import Reserva, EstadoReservaEnum
+        from app.notificaciones.service import notificar_recordatorio
+
+        objetivo = date.today() + timedelta(days=dias)
+        ini = datetime.combine(objetivo, datetime.min.time())
+        fin = ini + timedelta(days=1)
+
+        reservas = (
+            Reserva.query
+            .filter(Reserva.estado == EstadoReservaEnum.CONFIRMADO)
+            .filter(Reserva.inicio >= ini, Reserva.inicio < fin)
+            .all()
+        )
+        enviados = 0
+        for r in reservas:
+            if r.cliente and r.cliente.email:
+                notificar_recordatorio(r)
+                enviados += 1
+        click.echo(f"Recordatorios enviados: {enviados} (para {objetivo.isoformat()}).")

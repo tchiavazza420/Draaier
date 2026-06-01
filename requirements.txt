@@ -17,5 +17,8 @@ email-validator==2.2.0
 # ===== Pagos =====
 requests==2.32.3             # cliente HTTP para la API de Mercado Pago
 
+# ===== Notificaciones =====
+Flask-Mail==0.10.0           # envío de emails (confirmaciones, recordatorios)
+
 # ===== Utilidades =====
 python-dotenv==1.0.1         # carga de variables desde .env

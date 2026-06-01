@@ -1,0 +1,17 @@
+{# Bloque reutilizable con el detalle de la reserva. #}
+{% macro detalle_reserva(reserva) %}
+<table style="width:100%;border-collapse:collapse;margin:16px 0">
+  <tr><td style="padding:6px 0;color:#6b7280">Código</td>
+      <td style="padding:6px 0;text-align:right"><strong>{{ reserva.codigo }}</strong></td></tr>
+  <tr><td style="padding:6px 0;color:#6b7280">Servicio</td>
+      <td style="padding:6px 0;text-align:right">{{ reserva.servicio.nombre }}</td></tr>
+  <tr><td style="padding:6px 0;color:#6b7280">Fecha</td>
+      <td style="padding:6px 0;text-align:right">{{ reserva.inicio.strftime('%d/%m/%Y') }}</td></tr>
+  <tr><td style="padding:6px 0;color:#6b7280">Hora</td>
+      <td style="padding:6px 0;text-align:right">{{ reserva.inicio.strftime('%H:%M') }}–{{ reserva.fin.strftime('%H:%M') }}</td></tr>
+  <tr><td style="padding:6px 0;color:#6b7280">Recurso</td>
+      <td style="padding:6px 0;text-align:right">{{ reserva.recurso.nombre }}</td></tr>
+  <tr><td style="padding:6px 0;color:#6b7280">Precio</td>
+      <td style="padding:6px 0;text-align:right"><strong>${{ '%.2f'|format(reserva.precio) }}</strong></td></tr>
+</table>
+{% endmacro %}

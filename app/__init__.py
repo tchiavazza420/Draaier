@@ -16,7 +16,7 @@ registrará como blueprint dentro de register_blueprints().
 from flask import Flask
 
 from config import get_config
-from app.extensions import db, migrate, login_manager, csrf
+from app.extensions import db, migrate, login_manager, csrf, mail
 
 
 def create_app(config_class=None):
@@ -31,6 +31,7 @@ def create_app(config_class=None):
     migrate.init_app(app, db)
     login_manager.init_app(app)
     csrf.init_app(app)
+    mail.init_app(app)
 
     # 3) Modelos: se importan para que Flask-Migrate los detecte.
     #    (Vacío por ahora; se completa en el Paso 2.)

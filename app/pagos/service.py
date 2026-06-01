@@ -106,7 +106,11 @@ def procesar_notificacion_mp(payment_id):
         return None
 
     if estado_mp == "approved":
+        ya_confirmada = pago.estado == PagoEstadoEnum.APROBADO
         aprobar_pago(pago, external_id=payment_id)
+        if not ya_confirmada:
+            from app.notificaciones.service import notificar_reserva_confirmada
+            notificar_reserva_confirmada(pago.reserva)
     elif estado_mp in ("rejected", "cancelled"):
         rechazar_pago(pago, external_id=payment_id)
     return pago

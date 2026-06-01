@@ -1,0 +1,8 @@
+{% extends "emails/_base_email.html" %}
+{% from "emails/_detalle.html" import detalle_reserva %}
+{% block cuerpo %}
+  <h2 style="margin-top:0">Recordatorio de tu turno ⏰</h2>
+  <p>Hola {{ reserva.cliente.nombre }}, te recordamos tu próximo turno:</p>
+  {{ detalle_reserva(reserva) }}
+  <p style="color:#6b7280;font-size:13px">¡Te esperamos!</p>
+{% endblock %}

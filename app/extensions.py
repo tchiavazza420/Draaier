@@ -12,6 +12,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_wtf import CSRFProtect
+from flask_mail import Mail
 
 
 # ORM. Se vincula a la app en create_app().
@@ -24,6 +25,10 @@ migrate = Migrate()
 # como los formularios HTML manuales que incluyan {{ csrf_token() }}.
 # Además registra el global csrf_token() en las plantillas de forma confiable.
 csrf = CSRFProtect()
+
+# Envío de emails. En dev (sin MAIL_SERVER) las notificaciones no se envían
+# realmente: el módulo de notificaciones cae a una bandeja de desarrollo.
+mail = Mail()
 
 # Gestión de sesiones de usuario. Se configura en el Paso 3 (autenticación).
 login_manager = LoginManager()

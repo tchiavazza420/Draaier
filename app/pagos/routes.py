@@ -82,6 +82,8 @@ def simular(pago_id):
     resultado = request.form.get("resultado")
     if resultado == "aprobado":
         service.aprobar_pago(pago, external_id=f"SIM-{pago.id}")
+        from app.notificaciones.service import notificar_reserva_confirmada
+        notificar_reserva_confirmada(pago.reserva)
         flash("Pago aprobado (simulado). ¡Reserva confirmada!", "success")
     else:
         service.rechazar_pago(pago, external_id=f"SIM-{pago.id}")

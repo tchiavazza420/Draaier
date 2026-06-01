@@ -171,5 +171,7 @@ def nueva_crear():
         flash(str(exc), "danger")
         return redirect(url_for("reservas.nueva"))
 
+    from app.notificaciones.service import notificar_reserva_confirmada
+    notificar_reserva_confirmada(reserva)
     flash(f"Reserva {reserva.codigo} creada.", "success")
     return redirect(url_for("reservas.detalle", reserva_id=reserva.id))
