@@ -20,6 +20,8 @@ from app.models.tipo_recurso import TipoRecurso
 from app.models.recurso import Recurso
 from app.models.servicio import Servicio, servicio_recurso
 from app.models.horario import HorarioAtencion, Bloqueo, DIAS_SEMANA
+from app.models.cliente import Cliente
+from app.models.reserva import Reserva, EstadoReservaEnum, ESTADOS_QUE_OCUPAN
 
 __all__ = [
     "Negocio",
@@ -36,4 +38,8 @@ __all__ = [
     "HorarioAtencion",
     "Bloqueo",
     "DIAS_SEMANA",
+    "Cliente",
+    "Reserva",
+    "EstadoReservaEnum",
+    "ESTADOS_QUE_OCUPAN",
 ]

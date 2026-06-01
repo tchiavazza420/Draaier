@@ -1,0 +1,35 @@
+{# Parcial HTMX: datos del cliente para confirmar la reserva del slot elegido. #}
+{% set inicio_dt = inicio.replace('T', ' ') %}
+<div class="card border-success">
+  <div class="card-body">
+    <h3 class="h6 mb-3">
+      Reservar <strong>{{ servicio.nombre }}</strong>
+      el <strong>{{ inicio[8:10] }}/{{ inicio[5:7] }} {{ inicio[11:16] }}</strong>
+      con {{ recurso.nombre }}
+    </h3>
+    <form method="post" action="{{ url_for('publico.reservar_crear', slug=negocio.slug) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="servicio" value="{{ servicio.slug }}">
+      <input type="hidden" name="recurso" value="{{ recurso.id }}">
+      <input type="hidden" name="inicio" value="{{ inicio }}">
+
+      <div class="row g-2">
+        <div class="col-md-12">
+          <label class="form-label">Nombre y apellido *</label>
+          <input type="text" name="nombre" class="form-control" required maxlength="120">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Email</label>
+          <input type="email" name="email" class="form-control" maxlength="120">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Teléfono</label>
+          <input type="text" name="telefono" class="form-control" maxlength="40">
+        </div>
+      </div>
+      <small class="text-muted d-block my-2">Dejá email o teléfono para confirmarte el turno.</small>
+
+      <button class="btn btn-success">Confirmar reserva · ${{ '%.2f'|format(servicio.precio) }}</button>
+    </form>
+  </div>
+</div>

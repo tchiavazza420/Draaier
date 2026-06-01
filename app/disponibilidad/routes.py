@@ -206,8 +206,12 @@ def slots():
 
     slots = []
     if servicio and fecha and not error:
+        from app.reservas.service import ocupados_por_servicio
         ahora = datetime.now() if fecha == date.today() else None
-        slots = calcular_slots_servicio(servicio, fecha, ahora=ahora)
+        slots = calcular_slots_servicio(
+            servicio, fecha, ahora=ahora,
+            ocupados_por_recurso=ocupados_por_servicio(servicio, fecha),
+        )
 
     return render_template(
         "disponibilidad/_slots.html",

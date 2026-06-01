@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% from "reservas/_estado.html" import badge_estado %}
+
+{% block title %}Actividad · Panel{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">Actividad</h1>
+  <div>
+    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('panel.dashboard') }}">← Panel</a>
+    <a class="btn btn-primary btn-sm" href="{{ url_for('reservas.nueva') }}">+ Reserva manual</a>
+  </div>
+</div>
+
+<form class="row g-2 align-items-end mb-3" method="get">
+  <div class="col-auto">
+    <label class="form-label small mb-0">Estado</label>
+    <select name="estado" class="form-select form-select-sm">
+      <option value="">Todos</option>
+      {% for e in estados %}
+        <option value="{{ e.value }}" {{ 'selected' if filtro_estado == e.value }}>
+          {{ e.value.replace('_',' ') }}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-auto">
+    <label class="form-label small mb-0">Fecha</label>
+    <input type="date" name="fecha" value="{{ filtro_fecha or '' }}" class="form-control form-control-sm">
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-sm btn-outline-primary">Filtrar</button>
+    <a class="btn btn-sm btn-link" href="{{ url_for('reservas.listar') }}">Limpiar</a>
+  </div>
+</form>
+
+<div class="card">
+  <div class="card-body">
+    {% if reservas %}
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr><th>Código</th><th>Fecha/Hora</th><th>Servicio</th><th>Recurso</th>
+                <th>Cliente</th><th>Estado</th><th class="text-end">Precio</th></tr>
+          </thead>
+          <tbody>
+            {% for r in reservas %}
+              <tr style="cursor:pointer" onclick="location.href='{{ url_for('reservas.detalle', reserva_id=r.id) }}'">
+                <td class="font-monospace">{{ r.codigo }}</td>
+                <td>{{ r.inicio.strftime('%d/%m %H:%M') }}</td>
+                <td>{{ r.servicio.nombre }}</td>
+                <td>{{ r.recurso.nombre }}</td>
+                <td>{{ r.cliente.nombre }}</td>
+                <td>{{ badge_estado(r.estado) }}</td>
+                <td class="text-end">${{ '%.2f'|format(r.precio) }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="text-muted mb-0">No hay reservas con esos filtros.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

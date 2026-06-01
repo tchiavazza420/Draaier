@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% from "reservas/_estado.html" import badge_estado %}
+
+{% block title %}Reserva {{ reserva.codigo }} · Panel{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">Reserva <span class="font-monospace">{{ reserva.codigo }}</span></h1>
+  <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('reservas.listar') }}">← Actividad</a>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-7">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex justify-content-between mb-3">
+          <h2 class="h5 mb-0">{{ reserva.servicio.nombre }}</h2>
+          {{ badge_estado(reserva.estado) }}
+        </div>
+        <ul class="list-unstyled mb-0">
+          <li class="d-flex justify-content-between py-1 border-bottom">
+            <span class="text-muted">Fecha</span><span>{{ reserva.inicio.strftime('%d/%m/%Y') }}</span></li>
+          <li class="d-flex justify-content-between py-1 border-bottom">
+            <span class="text-muted">Horario</span>
+            <span>{{ reserva.inicio.strftime('%H:%M') }}–{{ reserva.fin.strftime('%H:%M') }}</span></li>
+          <li class="d-flex justify-content-between py-1 border-bottom">
+            <span class="text-muted">Recurso</span><span>{{ reserva.recurso.nombre }}</span></li>
+          <li class="d-flex justify-content-between py-1 border-bottom">
+            <span class="text-muted">Cliente</span><span>{{ reserva.cliente.nombre }}</span></li>
+          <li class="d-flex justify-content-between py-1 border-bottom">
+            <span class="text-muted">Contacto</span>
+            <span>{{ reserva.cliente.email or '—' }} · {{ reserva.cliente.telefono or '—' }}</span></li>
+          <li class="d-flex justify-content-between py-1">
+            <span class="text-muted">Precio</span><strong>${{ '%.2f'|format(reserva.precio) }}</strong></li>
+        </ul>
+        {% if reserva.notas %}<p class="mt-3 mb-0"><small class="text-muted">Notas:</small> {{ reserva.notas }}</p>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-5">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="h6 text-muted mb-3">Cambiar estado</h2>
+        <div class="d-flex flex-wrap gap-2">
+          {% for e in estados %}
+            {% if e != reserva.estado %}
+              <form method="post" action="{{ url_for('reservas.estado', reserva_id=reserva.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="estado" value="{{ e.value }}">
+                <button class="btn btn-sm btn-outline-primary">{{ e.value.replace('_',' ') }}</button>
+              </form>
+            {% endif %}
+          {% endfor %}
+        </div>
+        <p class="text-muted small mt-3 mb-0">
+          Solo se permiten transiciones válidas (ej: confirmado → en proceso → finalizado).
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Reserva confirmada · {{ negocio.nombre }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card shadow-sm border-success">
+      <div class="card-body p-5 text-center">
+        <div class="display-4 mb-2">✅</div>
+        <h1 class="h4 mb-1">¡Reserva confirmada!</h1>
+        <p class="text-muted">Código <strong>{{ reserva.codigo }}</strong></p>
+
+        <hr class="my-4">
+        <ul class="list-unstyled text-start mx-auto" style="max-width:320px">
+          <li class="d-flex justify-content-between py-1">
+            <span class="text-muted">Servicio</span><span>{{ reserva.servicio.nombre }}</span>
+          </li>
+          <li class="d-flex justify-content-between py-1">
+            <span class="text-muted">Fecha</span><span>{{ reserva.inicio.strftime('%d/%m/%Y') }}</span>
+          </li>
+          <li class="d-flex justify-content-between py-1">
+            <span class="text-muted">Hora</span>
+            <span>{{ reserva.inicio.strftime('%H:%M') }}–{{ reserva.fin.strftime('%H:%M') }}</span>
+          </li>
+          <li class="d-flex justify-content-between py-1">
+            <span class="text-muted">Recurso</span><span>{{ reserva.recurso.nombre }}</span>
+          </li>
+          <li class="d-flex justify-content-between py-1">
+            <span class="text-muted">Cliente</span><span>{{ reserva.cliente.nombre }}</span>
+          </li>
+          <li class="d-flex justify-content-between py-1 border-top mt-2 pt-2">
+            <span class="text-muted">Precio</span><strong>${{ '%.2f'|format(reserva.precio) }}</strong>
+          </li>
+        </ul>
+
+        <a class="btn btn-outline-secondary mt-3"
+           href="{{ url_for('publico.perfil_negocio', slug=negocio.slug) }}">Volver</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

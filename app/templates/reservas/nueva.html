@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Nueva reserva · Panel{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">Nueva reserva manual</h1>
+  <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('reservas.listar') }}">← Actividad</a>
+</div>
+
+{% if servicios %}
+<div class="row g-4">
+  <!-- Paso 1: elegir servicio + fecha -> slots -->
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="h6 text-muted mb-3">1 · Servicio y fecha</h2>
+        <form hx-get="{{ url_for('reservas.nueva_slots') }}" hx-target="#slots-panel"
+              hx-trigger="change">
+          <div class="mb-3">
+            <label class="form-label">Servicio</label>
+            <select name="servicio_id" class="form-select" required>
+              <option value="">Elegí…</option>
+              {% for s in servicios %}
+                <option value="{{ s.id }}">{{ s.nombre }} ({{ s.duracion_legible }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Fecha</label>
+            <input type="date" name="fecha" class="form-control" value="{{ hoy }}" min="{{ hoy }}">
+          </div>
+        </form>
+        <div id="slots-panel" class="mt-2">
+          <p class="text-muted small mb-0">Elegí servicio y fecha para ver turnos.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Paso 2: datos del cliente -->
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="h6 text-muted mb-3">2 · Cliente</h2>
+        <form method="post" action="{{ url_for('reservas.nueva_crear') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="servicio_id" id="f-servicio">
+          <input type="hidden" name="recurso_id" id="f-recurso">
+          <input type="hidden" name="inicio" id="f-inicio">
+
+          <div class="alert alert-light border" id="slot-elegido">
+            <small class="text-muted">Todavía no elegiste un turno.</small>
+          </div>
+
+          <div class="mb-2">
+            <label class="form-label">Nombre *</label>
+            <input type="text" name="nombre" class="form-control" required>
+          </div>
+          <div class="row g-2">
+            <div class="col-6"><label class="form-label">Email</label>
+              <input type="email" name="email" class="form-control"></div>
+            <div class="col-6"><label class="form-label">Teléfono</label>
+              <input type="text" name="telefono" class="form-control"></div>
+          </div>
+          <div class="mb-3 mt-2">
+            <label class="form-label">Notas</label>
+            <input type="text" name="notas" class="form-control">
+          </div>
+          <button class="btn btn-success" id="btn-crear" disabled>Crear reserva</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% else %}
+  <p class="text-muted">No hay servicios activos. Creá uno en
+    <a href="{{ url_for('servicios.listar') }}">Servicios</a>.</p>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Al hacer click en un slot, completa los campos ocultos del formulario.
+  function seleccionarSlot(servicioId, recursoId, inicio, etiqueta) {
+    document.getElementById('f-servicio').value = servicioId;
+    document.getElementById('f-recurso').value = recursoId;
+    document.getElementById('f-inicio').value = inicio;
+    document.getElementById('slot-elegido').innerHTML =
+      '<strong>Turno:</strong> ' + etiqueta;
+    document.getElementById('btn-crear').disabled = false;
+  }
+</script>
+{% endblock %}

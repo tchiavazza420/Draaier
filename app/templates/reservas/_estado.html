@@ -1,0 +1,13 @@
+{# Macro: badge de color según el estado de la reserva. #}
+{% macro badge_estado(estado) %}
+  {% set mapa = {
+    'pendiente_pago': 'warning',
+    'confirmado': 'primary',
+    'en_proceso': 'info',
+    'finalizado': 'success',
+    'cancelado': 'secondary',
+    'ausente': 'dark',
+    'reprogramado': 'secondary'
+  } %}
+  <span class="badge bg-{{ mapa.get(estado.value, 'light') }}">{{ estado.value.replace('_',' ') }}</span>
+{% endmacro %}
