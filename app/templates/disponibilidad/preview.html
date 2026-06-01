@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Vista previa de turnos · Panel{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">Vista previa de turnos</h1>
+  <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('disponibilidad.index') }}">← Disponibilidad</a>
+</div>
+
+<p class="text-muted">
+  Elegí un servicio y una fecha: los turnos disponibles se calculan en tiempo real
+  (horarios − bloqueos) y se cargan sin recargar la página.
+</p>
+
+<div class="card">
+  <div class="card-body">
+    {% if servicios %}
+      <form class="row g-3 align-items-end"
+            hx-get="{{ url_for('disponibilidad.slots') }}"
+            hx-target="#resultado-slots"
+            hx-trigger="change, submit"
+            hx-indicator="#cargando">
+        <div class="col-md-6">
+          <label class="form-label">Servicio</label>
+          <select name="servicio_id" class="form-select" required>
+            <option value="">Elegí un servicio…</option>
+            {% for s in servicios %}
+              <option value="{{ s.id }}">{{ s.nombre }} ({{ s.duracion_legible }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Fecha</label>
+          <input type="date" name="fecha" class="form-control" value="{{ hoy }}" min="{{ hoy }}" required>
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-primary w-100">Ver turnos</button>
+        </div>
+      </form>
+
+      <div id="cargando" class="htmx-indicator text-muted small mt-3">Calculando…</div>
+      <div id="resultado-slots" class="mt-4">
+        <p class="text-muted mb-0">Seleccioná servicio y fecha para ver la disponibilidad.</p>
+      </div>
+    {% else %}
+      <p class="text-muted mb-0">
+        No hay servicios activos. Creá uno en
+        <a href="{{ url_for('servicios.listar') }}">Servicios</a> y asignale recursos con horarios.
+      </p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block head_extra %}
+<style>
+  .htmx-indicator { display: none; }
+  .htmx-request #cargando, #cargando.htmx-request { display: block; }
+</style>
+{% endblock %}

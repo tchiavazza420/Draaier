@@ -1,0 +1,24 @@
+{# Parcial HTMX: resultado del cálculo de slots. Se inyecta en #resultado-slots. #}
+{% if error %}
+  <div class="alert alert-danger mb-0">{{ error }}</div>
+{% elif not servicio or not fecha %}
+  <p class="text-muted mb-0">Seleccioná servicio y fecha para ver la disponibilidad.</p>
+{% elif slots %}
+  <p class="text-muted small mb-2">
+    {{ slots|length }} turno(s) para <strong>{{ servicio.nombre }}</strong> el {{ fecha.strftime('%d/%m/%Y') }}:
+  </p>
+  <div class="d-flex flex-wrap gap-2">
+    {% for slot in slots %}
+      <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle p-2"
+            title="{{ slot.recursos|map(attribute='nombre')|join(', ') }}">
+        {{ slot.inicio.strftime('%H:%M') }}
+        <small class="opacity-75">· {{ slot.recursos|length }} disp.</small>
+      </span>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="alert alert-warning mb-0">
+    No hay turnos disponibles para esa fecha. Revisá los horarios del recurso,
+    los bloqueos, o que el servicio tenga recursos asignados.
+  </div>
+{% endif %}

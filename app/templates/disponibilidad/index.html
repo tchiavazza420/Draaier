@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Disponibilidad · Panel{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">Disponibilidad</h1>
+  <div>
+    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('panel.dashboard') }}">← Panel</a>
+    <a class="btn btn-primary btn-sm" href="{{ url_for('disponibilidad.preview') }}">Vista previa de turnos</a>
+  </div>
+</div>
+
+<p class="text-muted">Configurá los horarios de atención y bloqueos de cada recurso.</p>
+
+<div class="card">
+  <div class="card-body">
+    {% if recursos %}
+      <div class="list-group">
+        {% for r in recursos %}
+          <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+             href="{{ url_for('disponibilidad.recurso', recurso_id=r.id) }}">
+            <span>
+              <span class="fw-semibold">{{ r.nombre }}</span>
+              <small class="text-muted">· {{ r.tipo.nombre }}</small>
+            </span>
+            <span class="badge bg-light text-dark">{{ r.horarios|length }} franjas</span>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-muted mb-0">
+        No hay recursos. Creá uno en <a href="{{ url_for('recursos.listar') }}">Recursos</a>.
+      </p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
