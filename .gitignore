@@ -1,0 +1,47 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# ===== Entornos virtuales =====
+venv/
+.venv/
+env/
+ENV/
+
+# ===== Variables de entorno / secretos =====
+.env
+*.env
+!.env.example
+
+# ===== Flask / SQLAlchemy =====
+instance/
+*.db
+*.sqlite3
+
+# ===== Migraciones (se versionan, pero ignoramos caché) =====
+migrations/__pycache__/
+
+# ===== IDE / Editor =====
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ===== Sistema operativo =====
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# ===== Logs =====
+*.log
+logs/
+
+# ===== Claude =====
+.claude/
