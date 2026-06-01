@@ -58,6 +58,12 @@ class Servicio(TenantMixin, TimestampMixin, db.Model):
     # Color para la agenda/calendario (hex). Mejora la lectura visual.
     color = db.Column(db.String(7), nullable=False, default="#3b82f6")
 
+    # --- Seña (pago anticipado para confirmar la reserva) ---
+    # Si requiere_sena es True y sena_monto > 0, la reserva pública nace
+    # PENDIENTE_PAGO y se confirma al acreditarse el pago de la seña.
+    requiere_sena = db.Column(db.Boolean, nullable=False, default=False)
+    sena_monto = db.Column(db.Numeric(10, 2), nullable=True)
+
     activo = db.Column(db.Boolean, nullable=False, default=True)
 
     # --- Relaciones ---

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout (simulado){% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="card shadow-sm border-warning">
+      <div class="card-body p-4 text-center">
+        <span class="badge bg-warning text-dark mb-3">MODO SIMULACIÓN (sin Mercado Pago)</span>
+        <h1 class="h4 mb-1">Pago de seña</h1>
+        <p class="text-muted">Reserva {{ pago.reserva.codigo }}</p>
+        <div class="display-6 my-3">${{ '%.2f'|format(pago.monto) }}</div>
+
+        <p class="text-muted small">
+          En producción acá iría el checkout real de Mercado Pago.
+          Para desarrollo, elegí el resultado:
+        </p>
+
+        <form method="post" action="{{ url_for('pagos.simular', pago_id=pago.id) }}" class="d-grid gap-2">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button name="resultado" value="aprobado" class="btn btn-success">✅ Simular pago aprobado</button>
+          <button name="resultado" value="rechazado" class="btn btn-outline-danger">❌ Simular pago rechazado</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -140,18 +140,31 @@ def reservar_crear(slug):
         flash("Horario inválido.", "danger")
         return redirect(url_for("publico.perfil_servicio", slug=slug, servicio_slug=servicio.slug))
 
+    # Si el servicio pide seña, la reserva nace PENDIENTE_PAGO y se confirma
+    # al acreditarse el pago. Si no, se confirma directo.
+    requiere_sena = servicio.requiere_sena and servicio.sena_monto and servicio.sena_monto > 0
+    estado_inicial = (
+        EstadoReservaEnum.PENDIENTE_PAGO if requiere_sena else EstadoReservaEnum.CONFIRMADO
+    )
+
     try:
         cliente = obtener_o_crear_cliente(negocio.id, nombre, email, telefono)
-        # Sin módulo de pagos todavía: confirmamos directo. Con señas/Mercado
-        # Pago, esto nacería como PENDIENTE_PAGO hasta acreditar el pago.
         reserva = crear_reserva(
-            negocio.id, servicio, recurso, cliente, inicio,
-            estado=EstadoReservaEnum.CONFIRMADO,
+            negocio.id, servicio, recurso, cliente, inicio, estado=estado_inicial,
         )
     except ReservaError as exc:
         db.session.rollback()
         flash(str(exc), "warning")
         return redirect(url_for("publico.perfil_servicio", slug=slug, servicio_slug=servicio.slug))
+
+    if requiere_sena:
+        from app.pagos.service import iniciar_pago_sena, PagoError
+        try:
+            _, url_checkout = iniciar_pago_sena(reserva, servicio)
+        except PagoError as exc:
+            flash(str(exc), "warning")
+            return redirect(url_for("publico.reserva_confirmacion", slug=slug, codigo=reserva.codigo))
+        return redirect(url_checkout)
 
     return redirect(url_for("publico.reserva_confirmacion", slug=slug, codigo=reserva.codigo))
 

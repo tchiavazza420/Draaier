@@ -35,6 +35,15 @@ class BaseConfig:
     # --- Redis (se utilizará desde el módulo de notificaciones/Celery) ---
     REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
 
+    # --- Mercado Pago ---
+    # Si no hay access token, el módulo de pagos funciona en MODO SIMULACIÓN
+    # (checkout interno para desarrollo). Con token, usa Checkout Pro real.
+    MERCADOPAGO_ACCESS_TOKEN = os.environ.get("MERCADOPAGO_ACCESS_TOKEN")
+    MERCADOPAGO_PUBLIC_KEY = os.environ.get("MERCADOPAGO_PUBLIC_KEY")
+
+    # URL base pública del sitio (para back_urls y webhooks de Mercado Pago).
+    SITE_URL = os.environ.get("SITE_URL", "http://127.0.0.1:5000")
+
 
 class DevelopmentConfig(BaseConfig):
     """Entorno local de desarrollo."""

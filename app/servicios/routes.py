@@ -80,6 +80,8 @@ def nuevo():
             duracion_minutos=form.duracion_minutos.data,
             precio=form.precio.data,
             color=form.color.data,
+            requiere_sena=form.requiere_sena.data,
+            sena_monto=form.sena_monto.data if form.requiere_sena.data else None,
             activo=form.activo.data,
         )
         servicio.recursos = _resolver_recursos(form.recursos.data)
@@ -111,6 +113,8 @@ def editar(servicio_id):
         servicio.duracion_minutos = form.duracion_minutos.data
         servicio.precio = form.precio.data
         servicio.color = form.color.data
+        servicio.requiere_sena = form.requiere_sena.data
+        servicio.sena_monto = form.sena_monto.data if form.requiere_sena.data else None
         servicio.activo = form.activo.data
         servicio.recursos = _resolver_recursos(form.recursos.data)
         db.session.commit()

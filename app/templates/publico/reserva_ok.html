@@ -7,9 +7,15 @@
   <div class="col-md-6">
     <div class="card shadow-sm border-success">
       <div class="card-body p-5 text-center">
-        <div class="display-4 mb-2">✅</div>
-        <h1 class="h4 mb-1">¡Reserva confirmada!</h1>
-        <p class="text-muted">Código <strong>{{ reserva.codigo }}</strong></p>
+        {% if reserva.estado.value == 'pendiente_pago' %}
+          <div class="display-4 mb-2">⏳</div>
+          <h1 class="h4 mb-1">Reserva pendiente de pago</h1>
+          <p class="text-muted">Código <strong>{{ reserva.codigo }}</strong> · se confirma al acreditarse la seña</p>
+        {% else %}
+          <div class="display-4 mb-2">✅</div>
+          <h1 class="h4 mb-1">¡Reserva confirmada!</h1>
+          <p class="text-muted">Código <strong>{{ reserva.codigo }}</strong></p>
+        {% endif %}
 
         <hr class="my-4">
         <ul class="list-unstyled text-start mx-auto" style="max-width:320px">

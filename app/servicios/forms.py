@@ -13,7 +13,9 @@ from wtforms import (
     StringField, TextAreaField, IntegerField, DecimalField,
     SelectMultipleField, BooleanField, SubmitField,
 )
-from wtforms.validators import DataRequired, Length, NumberRange, Optional, Regexp
+from wtforms.validators import (
+    DataRequired, Length, NumberRange, Optional, Regexp, ValidationError,
+)
 
 
 class ServicioForm(FlaskForm):
@@ -45,12 +47,22 @@ class ServicioForm(FlaskForm):
         coerce=int,
         validators=[Optional()],
     )
+    requiere_sena = BooleanField("Requiere seña para reservar", default=False)
+    sena_monto = DecimalField(
+        "Monto de la seña",
+        places=2,
+        validators=[Optional(), NumberRange(min=0)],
+    )
     descripcion = TextAreaField(
         "Descripción",
         validators=[Optional(), Length(max=2000)],
     )
     activo = BooleanField("Activo", default=True)
     submit = SubmitField("Guardar")
+
+    def validate_sena_monto(self, field):
+        if self.requiere_sena.data and not field.data:
+            raise ValidationError("Indicá el monto de la seña o desactivá la opción.")
 
     def __init__(self, recursos_disponibles=None, *args, **kwargs):
         """`recursos_disponibles`: lista de Recurso del negocio (define opciones)."""

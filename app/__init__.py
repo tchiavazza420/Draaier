@@ -71,6 +71,7 @@ def register_blueprints(app):
     from app.servicios.routes import servicios_bp
     from app.disponibilidad.routes import disponibilidad_bp
     from app.reservas.routes import reservas_bp
+    from app.pagos.routes import pagos_bp
     from app.publico.routes import publico_bp
 
     app.register_blueprint(main_bp)
@@ -80,4 +81,5 @@ def register_blueprints(app):
     app.register_blueprint(servicios_bp, url_prefix="/panel/servicios")
     app.register_blueprint(disponibilidad_bp, url_prefix="/panel/disponibilidad")
     app.register_blueprint(reservas_bp, url_prefix="/panel/reservas")
+    app.register_blueprint(pagos_bp, url_prefix="/pagos")
     app.register_blueprint(publico_bp)  # catch-all /<slug>: SIEMPRE el último

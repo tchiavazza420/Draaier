@@ -14,5 +14,8 @@ Flask-WTF==1.2.2              # formularios + protección CSRF
 WTForms==3.2.1
 email-validator==2.2.0
 
+# ===== Pagos =====
+requests==2.32.3             # cliente HTTP para la API de Mercado Pago
+
 # ===== Utilidades =====
 python-dotenv==1.0.1         # carga de variables desde .env

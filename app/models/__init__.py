@@ -22,6 +22,7 @@ from app.models.servicio import Servicio, servicio_recurso
 from app.models.horario import HorarioAtencion, Bloqueo, DIAS_SEMANA
 from app.models.cliente import Cliente
 from app.models.reserva import Reserva, EstadoReservaEnum, ESTADOS_QUE_OCUPAN
+from app.models.pago import Pago, PagoEstadoEnum, ProveedorPagoEnum
 
 __all__ = [
     "Negocio",
@@ -42,4 +43,7 @@ __all__ = [
     "Reserva",
     "EstadoReservaEnum",
     "ESTADOS_QUE_OCUPAN",
+    "Pago",
+    "PagoEstadoEnum",
+    "ProveedorPagoEnum",
 ]

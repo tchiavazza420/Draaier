@@ -37,6 +37,15 @@
             </small>
           </div>
 
+          <div class="border rounded p-3 mb-3 bg-light">
+            {{ render_checkbox(form.requiere_sena) }}
+            {{ render_field(form.sena_monto, placeholder="Ej: 2000.00") }}
+            <small class="text-muted">
+              Si está activo, la reserva pública pedirá pagar esta seña (Mercado Pago)
+              y se confirma al acreditarse el pago.
+            </small>
+          </div>
+
           {{ render_field(form.descripcion, placeholder="Opcional") }}
           {{ render_checkbox(form.activo) }}
 
