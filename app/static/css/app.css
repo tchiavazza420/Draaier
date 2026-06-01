@@ -1,0 +1,11 @@
+/* app.css — estilos propios. Por ahora mínimos; el tema por negocio
+   (colores, tipografía) se inyectará desde la base de datos más adelante. */
+
+body {
+  min-height: 100vh;
+}
+
+.card {
+  border: none;
+  border-radius: .75rem;
+}

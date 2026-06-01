@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Reservas SaaS · Sistema de turnos y reservas{% endblock %}
+
+{% block content %}
+<div class="text-center py-5">
+  <h1 class="display-5 fw-bold">Tu sistema de reservas, para cualquier rubro</h1>
+  <p class="lead text-muted col-lg-8 mx-auto">
+    Manicuras, peluquerías, canchas, consultorios, coworking y más.
+    Gestioná tu agenda, cobrá señas y recibí reservas online.
+  </p>
+  <div class="mt-4">
+    {% if current_user.is_authenticated %}
+      <a class="btn btn-primary btn-lg" href="{{ url_for('panel.dashboard') }}">Ir a mi panel</a>
+    {% else %}
+      <a class="btn btn-primary btn-lg" href="{{ url_for('auth.registro') }}">Empezar gratis</a>
+      <a class="btn btn-outline-secondary btn-lg" href="{{ url_for('auth.login') }}">Ingresar</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

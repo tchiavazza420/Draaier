@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% from "_macros.html" import render_field, render_checkbox %}
+
+{% block title %}Ingresar · Reservas SaaS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h4 mb-4 text-center">Iniciar sesión</h1>
+
+        <form method="post" novalidate>
+          {{ form.hidden_tag() }}
+          {{ render_field(form.email, placeholder="tu@email.com", autocomplete="email") }}
+          {{ render_field(form.password, placeholder="Tu contraseña", autocomplete="current-password") }}
+          {{ render_checkbox(form.remember) }}
+          <div class="d-grid">
+            {{ form.submit(class="btn btn-primary") }}
+          </div>
+        </form>
+
+        <hr class="my-4">
+        <p class="text-center mb-0">
+          ¿No tenés cuenta?
+          <a href="{{ url_for('auth.registro') }}">Creá tu negocio</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

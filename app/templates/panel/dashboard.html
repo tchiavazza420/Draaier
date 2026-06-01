@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Panel · {{ negocio.nombre }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">Panel de {{ negocio.nombre }}</h1>
+  <a class="btn btn-outline-secondary btn-sm"
+     href="{{ url_for('publico.perfil_negocio', slug=negocio.slug) }}" target="_blank">
+    Ver página pública ↗
+  </a>
+</div>
+
+{% if negocio.estado_suscripcion.value == 'trial' and dias_trial_restantes is not none %}
+  <div class="alert alert-info">
+    Estás en período de prueba: <strong>{{ dias_trial_restantes }} días restantes</strong>.
+  </div>
+{% elif not negocio.puede_operar %}
+  <div class="alert alert-warning">
+    Tu suscripción está <strong>{{ negocio.estado_suscripcion.value }}</strong>.
+    Podés consultar tus datos, pero no crear nuevas reservas hasta regularizar el pago.
+  </div>
+{% endif %}
+
+<div class="row g-3">
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h2 class="h6 text-muted">Rubro</h2>
+        <p class="h5 mb-0">{{ negocio.rubro.value.replace('_',' ').title() }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h2 class="h6 text-muted">Plan</h2>
+        <p class="h5 mb-0">{{ (negocio.plan.value if negocio.plan else '—').title() }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h2 class="h6 text-muted">Estado</h2>
+        <p class="h5 mb-0">{{ negocio.estado_suscripcion.value.title() }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-body">
+    <h2 class="h6 text-muted mb-3">Próximamente en tu panel</h2>
+    <ul class="mb-0 text-muted">
+      <li>Recursos (personas, canchas, salas, consultorios)</li>
+      <li>Servicios y precios</li>
+      <li>Agenda y reservas</li>
+      <li>Clientes y reseñas</li>
+    </ul>
+  </div>
+</div>
+{% endblock %}

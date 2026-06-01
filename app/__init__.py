@@ -57,10 +57,18 @@ def register_models():
 
 
 def register_blueprints(app):
-    """Registra todos los blueprints de la aplicación."""
-    from app.main.routes import main_bp
-    app.register_blueprint(main_bp)
+    """
+    Registra todos los blueprints de la aplicación.
 
-    # En próximos pasos:
-    # from app.auth.routes import auth_bp
-    # app.register_blueprint(auth_bp, url_prefix="/auth")
+    El orden importa: 'publico' usa una ruta catch-all /<slug> y debe ir
+    ÚLTIMO para que /auth, /panel y /health tengan prioridad.
+    """
+    from app.main.routes import main_bp
+    from app.auth.routes import auth_bp
+    from app.panel.routes import panel_bp
+    from app.publico.routes import publico_bp
+
+    app.register_blueprint(main_bp)
+    app.register_blueprint(auth_bp, url_prefix="/auth")
+    app.register_blueprint(panel_bp, url_prefix="/panel")
+    app.register_blueprint(publico_bp)  # catch-all /<slug>: SIEMPRE el último

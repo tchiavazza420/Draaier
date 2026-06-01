@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}{{ negocio.nombre }}{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-body p-5 text-center">
+    <h1 class="h2 mb-2">{{ negocio.nombre }}</h1>
+    <p class="text-muted mb-1">
+      {{ negocio.rubro.value.replace('_',' ').title() }}
+      {% if negocio.ciudad %}· {{ negocio.ciudad }}{% endif %}
+    </p>
+    <span class="badge bg-secondary">/{{ negocio.slug }}</span>
+
+    <hr class="my-4">
+    <p class="text-muted mb-0">
+      Página pública en construcción. Pronto vas a poder reservar acá.
+    </p>
+  </div>
+</div>
+{% endblock %}

@@ -8,7 +8,7 @@ ejecutando un "SELECT 1". Sirve para diagnóstico local y, más adelante,
 para los health checks de producción (load balancer, Docker, etc.).
 """
 
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, render_template
 from sqlalchemy import text
 
 from app.extensions import db
@@ -18,15 +18,8 @@ main_bp = Blueprint("main", __name__)
 
 @main_bp.route("/")
 def index():
-    """Página raíz mínima. Se reemplazará por el landing/marketplace más adelante."""
-    return jsonify(
-        {
-            "app": "SaaS de Reservas Multi-Rubro",
-            "status": "online",
-            "version": "0.1.0",
-            "paso": "1 - esqueleto + conexión a base de datos",
-        }
-    )
+    """Landing público. Se ampliará con el marketplace más adelante."""
+    return render_template("home.html")
 
 
 @main_bp.route("/health")
