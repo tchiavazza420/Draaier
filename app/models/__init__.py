@@ -16,6 +16,8 @@ from app.models.negocio import (
 )
 from app.models.rol import Rol, RolEnum
 from app.models.usuario import Usuario
+from app.models.tipo_recurso import TipoRecurso
+from app.models.recurso import Recurso
 
 __all__ = [
     "Negocio",
@@ -25,4 +27,6 @@ __all__ = [
     "Rol",
     "RolEnum",
     "Usuario",
+    "TipoRecurso",
+    "Recurso",
 ]

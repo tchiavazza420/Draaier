@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}{{ recurso.nombre }} · {{ negocio.nombre }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('publico.perfil_negocio', slug=negocio.slug) }}">{{ negocio.nombre }}</a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">{{ recurso.nombre }}</li>
+  </ol>
+</nav>
+
+<div class="card shadow-sm">
+  <div class="card-body p-5">
+    <h1 class="h3 mb-1">{{ recurso.nombre }}</h1>
+    <p class="text-muted">{{ recurso.tipo.nombre }} · capacidad {{ recurso.capacidad }}</p>
+
+    {% if recurso.descripcion %}
+      <p class="mt-3">{{ recurso.descripcion }}</p>
+    {% endif %}
+
+    <hr class="my-4">
+    <button class="btn btn-primary" disabled>Reservar (próximamente)</button>
+    <p class="text-muted small mt-2 mb-0">
+      El flujo de reserva se habilita en el módulo de reservas.
+    </p>
+  </div>
+</div>
+{% endblock %}

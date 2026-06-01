@@ -16,7 +16,7 @@ registrará como blueprint dentro de register_blueprints().
 from flask import Flask
 
 from config import get_config
-from app.extensions import db, migrate, login_manager
+from app.extensions import db, migrate, login_manager, csrf
 
 
 def create_app(config_class=None):
@@ -30,6 +30,7 @@ def create_app(config_class=None):
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
+    csrf.init_app(app)
 
     # 3) Modelos: se importan para que Flask-Migrate los detecte.
     #    (Vacío por ahora; se completa en el Paso 2.)
@@ -66,9 +67,11 @@ def register_blueprints(app):
     from app.main.routes import main_bp
     from app.auth.routes import auth_bp
     from app.panel.routes import panel_bp
+    from app.recursos.routes import recursos_bp
     from app.publico.routes import publico_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(panel_bp, url_prefix="/panel")
+    app.register_blueprint(recursos_bp, url_prefix="/panel/recursos")
     app.register_blueprint(publico_bp)  # catch-all /<slug>: SIEMPRE el último

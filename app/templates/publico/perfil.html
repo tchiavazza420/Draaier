@@ -13,9 +13,27 @@
     <span class="badge bg-secondary">/{{ negocio.slug }}</span>
 
     <hr class="my-4">
-    <p class="text-muted mb-0">
-      Página pública en construcción. Pronto vas a poder reservar acá.
-    </p>
+
+    {% if recursos %}
+      <h2 class="h6 text-muted mb-3">Disponible para reservar</h2>
+      <div class="row g-3 text-start">
+        {% for r in recursos %}
+          <div class="col-md-6">
+            <a class="text-decoration-none"
+               href="{{ url_for('publico.perfil_recurso', slug=negocio.slug, recurso_slug=r.slug) }}">
+              <div class="border rounded p-3 h-100">
+                <div class="fw-semibold">{{ r.nombre }}</div>
+                <small class="text-muted">{{ r.tipo.nombre }}</small>
+              </div>
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-muted mb-0">
+        Página pública en construcción. Pronto vas a poder reservar acá.
+      </p>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

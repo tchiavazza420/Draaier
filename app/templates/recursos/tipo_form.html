@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% from "_macros.html" import render_field, render_checkbox %}
+
+{% block title %}{{ titulo }} · Panel{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h4 mb-4">{{ titulo }}</h1>
+        <form method="post" novalidate>
+          {{ form.hidden_tag() }}
+          {{ render_field(form.nombre, placeholder="Ej: Cancha, Profesional, Sala") }}
+          {{ render_checkbox(form.activo) }}
+          <div class="d-flex justify-content-between">
+            <a class="btn btn-outline-secondary" href="{{ url_for('recursos.listar') }}">Cancelar</a>
+            {{ form.submit(class="btn btn-primary") }}
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
