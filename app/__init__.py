@@ -38,6 +38,10 @@ def create_app(config_class=None):
     # 4) Blueprints (módulos de la aplicación)
     register_blueprints(app)
 
+    # 5) Comandos CLI personalizados (flask seed-roles, etc.)
+    from app.cli import register_commands
+    register_commands(app)
+
     return app
 
 
@@ -45,12 +49,11 @@ def register_models():
     """
     Importa los modelos para que SQLAlchemy/Alembic los registren.
 
-    En el Paso 2 agregaremos aquí los imports de Negocio, Usuario, Rol, etc.
-    Mantener este punto centralizado evita modelos 'huérfanos' que las
-    migraciones no detectan.
+    Basta con importar el paquete app.models (su __init__ trae Negocio,
+    Usuario, Rol, etc.). Centralizar esto evita modelos 'huérfanos' que
+    las migraciones no detectan.
     """
-    # Ejemplo de lo que vendrá:  from app.models import negocio, usuario, rol
-    pass
+    import app.models  # noqa: F401 - import con efecto de registro
 
 
 def register_blueprints(app):

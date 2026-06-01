@@ -1,0 +1,28 @@
+"""
+app/models/__init__.py
+----------------------
+Punto único de importación de modelos.
+
+Importar todos los modelos acá garantiza que SQLAlchemy y Alembic
+(Flask-Migrate) los registren al cargar el paquete. El factory llama a
+register_models(), que importa este paquete.
+"""
+
+from app.models.negocio import (
+    Negocio,
+    RubroEnum,
+    PlanEnum,
+    EstadoSuscripcionEnum,
+)
+from app.models.rol import Rol, RolEnum
+from app.models.usuario import Usuario
+
+__all__ = [
+    "Negocio",
+    "RubroEnum",
+    "PlanEnum",
+    "EstadoSuscripcionEnum",
+    "Rol",
+    "RolEnum",
+    "Usuario",
+]
