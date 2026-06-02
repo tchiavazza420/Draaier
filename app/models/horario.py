@@ -17,12 +17,34 @@ Ninguna disponibilidad se precalcula: el servicio de slots la deriva en
 tiempo real a partir de estas dos tablas (+ las reservas, en el Paso 7).
 """
 
+import enum
+
 from app.extensions import db
 from app.models.mixins import TimestampMixin, TenantMixin
 
 
 # Etiquetas legibles de los días (índice = date.weekday()).
 DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+
+
+class SemanaEnum(enum.Enum):
+    """
+    A qué semana aplica una franja, para horarios que se alternan.
+
+    - TODAS: todas las semanas (lo normal).
+    - A: semanas con número ISO PAR.
+    - B: semanas con número ISO IMPAR.
+
+    Así, cargando una franja como A y otra como B, se intercalan semana a semana.
+    """
+    TODAS = "todas"
+    A = "a"
+    B = "b"
+
+
+def semana_de(fecha):
+    """Devuelve SemanaEnum.A o .B según la paridad de la semana ISO de `fecha`."""
+    return SemanaEnum.A if (fecha.isocalendar()[1] % 2 == 0) else SemanaEnum.B
 
 
 class HorarioAtencion(TenantMixin, TimestampMixin, db.Model):
@@ -41,9 +63,20 @@ class HorarioAtencion(TenantMixin, TimestampMixin, db.Model):
     dia_semana = db.Column(db.SmallInteger, nullable=False)  # 0=lunes ... 6=domingo
     hora_inicio = db.Column(db.Time, nullable=False)
     hora_fin = db.Column(db.Time, nullable=False)
+    # A qué semana aplica (para horarios alternados). Por defecto, TODAS.
+    semana = db.Column(
+        db.Enum(SemanaEnum, native_enum=False, length=10),
+        nullable=False, default=SemanaEnum.TODAS,
+    )
     activo = db.Column(db.Boolean, nullable=False, default=True)
 
     recurso = db.relationship("Recurso", backref=db.backref("horarios", lazy="selectin"))
+
+    def aplica_en(self, fecha):
+        """True si esta franja rige en la fecha dada (según su semana A/B/TODAS)."""
+        if self.semana == SemanaEnum.TODAS:
+            return True
+        return self.semana == semana_de(fecha)
 
     __table_args__ = (
         db.CheckConstraint("dia_semana >= 0 AND dia_semana <= 6", name="ck_horario_dia"),

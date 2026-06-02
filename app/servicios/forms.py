@@ -43,7 +43,7 @@ class ServicioForm(FlaskForm):
         default="#3b82f6",
     )
     recursos = SelectMultipleField(
-        "Recursos que lo prestan",
+        "¿Quién/qué lo realiza?",
         coerce=int,
         validators=[Optional()],
     )

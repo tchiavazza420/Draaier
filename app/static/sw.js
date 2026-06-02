@@ -1,11 +1,11 @@
-/* Service Worker — Reservas SaaS PWA
+/* Service Worker — Draaier PWA
    Estrategia:
    - Precache del "app shell" mínimo (offline básico).
    - Network-first para navegación (HTML siempre fresco; cae a caché si no hay red).
    - Cache-first para estáticos (rápido).
    No cachea peticiones POST ni rutas de panel/pagos (datos sensibles/dinámicos).
 */
-const CACHE = "reservas-v2";
+const CACHE = "draaier-v3";
 const APP_SHELL = [
   "/",
   "/static/css/app.css",

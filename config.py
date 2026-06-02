@@ -86,7 +86,7 @@ class BaseConfig:
     MAIL_USERNAME = os.environ.get("MAIL_USERNAME")
     MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")
     MAIL_DEFAULT_SENDER = os.environ.get(
-        "MAIL_DEFAULT_SENDER", "Reservas SaaS <no-reply@reservas.local>"
+        "MAIL_DEFAULT_SENDER", "Draaier <no-reply@reservas.local>"
     )
 
     # --- WhatsApp (Cloud API de Meta) ---

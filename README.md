@@ -1,4 +1,4 @@
-# Reservas SaaS — Sistema de reservas multi-rubro (multi-tenant)
+# Draaier — Sistema de reservas multi-rubro (multi-tenant)
 
 SaaS de reservas para cualquier negocio que reserve recursos: peluquerías,
 barberías, manicuras, spa, consultorios, canchas, coworking, etc. Multi-tenant

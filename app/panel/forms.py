@@ -34,6 +34,15 @@ class NegocioConfigForm(FlaskForm):
         ]
 
 
+class MensajesForm(FlaskForm):
+    notif_confirmacion = BooleanField("Avisar al cliente cuando reserva")
+    notif_recordatorio = BooleanField("Enviar recordatorio antes del turno")
+    notif_canal_email = BooleanField("Por email")
+    notif_canal_whatsapp = BooleanField("Por WhatsApp")
+    mensaje_firma = StringField("Firma / saludo final", validators=[Optional(), Length(max=280)])
+    submit = SubmitField("Guardar mensajes")
+
+
 class PersonalizacionForm(FlaskForm):
     logo = FileField("Logo", validators=[
         Optional(), FileAllowed(["png", "jpg", "jpeg", "webp", "gif"], "Solo imágenes.")])

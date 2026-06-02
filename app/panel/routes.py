@@ -10,14 +10,15 @@ Se irá ampliando con reservas, recursos, agenda, etc.
 
 from datetime import datetime, timezone
 
-from flask import Blueprint, render_template, redirect, url_for, flash
+from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 
 from app.extensions import db
 from app.auth.decorators import rol_required
-from app.models.negocio import RubroEnum, TemplatePublicoEnum, MetodoPagoEnum
-from app.panel.forms import NegocioConfigForm, PersonalizacionForm
+from app.models.negocio import RubroEnum, TemplatePublicoEnum, MetodoPagoEnum, PlanEnum
+from app.panel.forms import NegocioConfigForm, PersonalizacionForm, MensajesForm
 from app.uploads import guardar_imagen
+from app.planes import PLANES, ORDEN, info_plan
 
 panel_bp = Blueprint("panel", __name__)
 
@@ -39,6 +40,106 @@ def dashboard():
         negocio=negocio,
         dias_trial_restantes=dias_trial_restantes,
     )
+
+
+@panel_bp.route("/plan")
+@login_required
+@rol_required("dueno")
+def plan():
+    """Muestra el plan actual, qué incluye, y permite cambiarlo."""
+    negocio = current_user.negocio
+    return render_template(
+        "panel/plan.html",
+        negocio=negocio, planes=PLANES, orden=ORDEN,
+        plan_actual=info_plan(negocio.plan),
+        plan_actual_key=negocio.plan.value if negocio.plan else None,
+    )
+
+
+@panel_bp.route("/plan/cambiar", methods=["POST"])
+@login_required
+@rol_required("dueno")
+def plan_cambiar():
+    """
+    Cambia el plan del negocio. El cobro real iría por el módulo de pagos;
+    acá se aplica el cambio (en planes pagos quedaría pendiente de pago hasta
+    acreditar, pero lo dejamos efectivo para la demo).
+    """
+    negocio = current_user.negocio
+    elegido = request.form.get("plan")
+    if elegido not in PLANES:
+        flash("Plan inválido.", "danger")
+        return redirect(url_for("panel.plan"))
+    negocio.plan = PlanEnum(elegido)
+    db.session.commit()
+    flash(f"¡Listo! Tu plan ahora es {PLANES[elegido]['nombre']}.", "success")
+    return redirect(url_for("panel.plan"))
+
+
+@panel_bp.route("/galeria", methods=["GET", "POST"])
+@login_required
+@rol_required("dueno")
+def galeria():
+    """Galería de fotos del negocio (subir varias / eliminar)."""
+    from app.models.galeria import GaleriaFoto
+    negocio = current_user.negocio
+
+    if request.method == "POST":
+        archivos = request.files.getlist("fotos")
+        subidas = 0
+        for f in archivos:
+            if not f or not f.filename:
+                continue
+            try:
+                ruta = guardar_imagen(f, negocio.id, "galeria")
+            except ValueError as exc:
+                flash(str(exc), "danger")
+                continue
+            if ruta:
+                db.session.add(GaleriaFoto(negocio_id=negocio.id, filename=ruta, orden=0))
+                subidas += 1
+        db.session.commit()
+        flash(f"{subidas} foto(s) subida(s).", "success")
+        return redirect(url_for("panel.galeria"))
+
+    fotos = (
+        GaleriaFoto.query.filter_by(negocio_id=negocio.id)
+        .order_by(GaleriaFoto.orden, GaleriaFoto.id).all()
+    )
+    return render_template("panel/galeria.html", fotos=fotos, negocio=negocio)
+
+
+@panel_bp.route("/galeria/<int:foto_id>/eliminar", methods=["POST"])
+@login_required
+@rol_required("dueno")
+def galeria_eliminar(foto_id):
+    from app.models.galeria import GaleriaFoto
+    foto = GaleriaFoto.query.filter_by(
+        id=foto_id, negocio_id=current_user.negocio_id
+    ).first_or_404()
+    db.session.delete(foto)
+    db.session.commit()
+    flash("Foto eliminada.", "info")
+    return redirect(url_for("panel.galeria"))
+
+
+@panel_bp.route("/mensajes", methods=["GET", "POST"])
+@login_required
+@rol_required("dueno")
+def mensajes():
+    """Configura los mensajes automáticos (qué se envía y por qué canal)."""
+    negocio = current_user.negocio
+    form = MensajesForm(obj=negocio)
+    if form.validate_on_submit():
+        negocio.notif_confirmacion = form.notif_confirmacion.data
+        negocio.notif_recordatorio = form.notif_recordatorio.data
+        negocio.notif_canal_email = form.notif_canal_email.data
+        negocio.notif_canal_whatsapp = form.notif_canal_whatsapp.data
+        negocio.mensaje_firma = (form.mensaje_firma.data or "").strip() or None
+        db.session.commit()
+        flash("Mensajes automáticos actualizados.", "success")
+        return redirect(url_for("panel.mensajes"))
+    return render_template("panel/mensajes.html", form=form, negocio=negocio)
 
 
 @panel_bp.route("/configuracion", methods=["GET", "POST"])

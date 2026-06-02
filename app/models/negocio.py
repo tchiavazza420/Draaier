@@ -105,6 +105,14 @@ class Negocio(TimestampMixin, db.Model):
         nullable=False, default=MetodoPagoEnum.MERCADOPAGO,
     )
 
+    # --- Mensajes automáticos (qué notificaciones se envían y por qué canal) ---
+    notif_confirmacion = db.Column(db.Boolean, nullable=False, default=True)
+    notif_recordatorio = db.Column(db.Boolean, nullable=False, default=True)
+    notif_canal_email = db.Column(db.Boolean, nullable=False, default=True)
+    notif_canal_whatsapp = db.Column(db.Boolean, nullable=False, default=True)
+    # Texto que se agrega al final de los mensajes (saludo/firma del negocio).
+    mensaje_firma = db.Column(db.String(280), nullable=True)
+
     # --- Personalización / branding ---
     logo_filename = db.Column(db.String(200), nullable=True)
     banner_filename = db.Column(db.String(200), nullable=True)
