@@ -19,7 +19,7 @@
           <thead>
             <tr>
               <th></th><th>Servicio</th><th>Duración</th><th>Precio</th>
-              <th>Recursos</th><th>Estado</th><th class="text-end">Acciones</th>
+              <th>Lo realizan</th><th>Estado</th><th class="text-end">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -37,7 +37,7 @@
                     <span class="badge bg-light text-dark">{{ s.recursos|length }}</span>
                     <small class="text-muted">{{ s.recursos|map(attribute='nombre')|join(', ') }}</small>
                   {% else %}
-                    <small class="text-warning">sin recursos</small>
+                    <small class="text-warning">sin asignar</small>
                   {% endif %}
                 </td>
                 <td>
