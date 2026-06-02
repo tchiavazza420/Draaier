@@ -9,6 +9,11 @@ dist/
 *.egg-info/
 .eggs/
 
+# ===== Pytest =====
+.pytest_cache/
+_pytest_out.txt
+_verify.txt
+
 # ===== Entornos virtuales =====
 venv/
 .venv/

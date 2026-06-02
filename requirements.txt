@@ -22,3 +22,6 @@ Flask-Mail==0.10.0           # envío de emails (confirmaciones, recordatorios)
 
 # ===== Utilidades =====
 python-dotenv==1.0.1         # carga de variables desde .env
+
+# ===== Testing =====
+pytest==8.3.4
