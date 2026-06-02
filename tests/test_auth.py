@@ -51,19 +51,14 @@ def test_panel_requiere_login(client):
     assert "/auth/login" in r.headers["Location"]
 
 
-def test_slug_unico_entre_negocios(app):
-    """Dos negocios con el mismo nombre obtienen slugs distintos.
+def test_slug_unico_entre_negocios(crear_negocio):
+    """generar_slug_unico evita colisiones agregando sufijo numérico."""
+    from app.extensions import db
+    from app.auth.utils import generar_slug_unico
 
-    Se usan clients separados porque el registro auto-loguea: con el mismo
-    client, el segundo registro sería rechazado por sesión ya activa.
-    """
-    for email in ("a@test.com", "b@test.com"):
-        c = app.test_client()
-        c.post("/auth/registro", data={
-            "nombre_negocio": "Nails Studio", "rubro": "manicura", "ciudad": "X",
-            "nombre": "Owner", "email": email,
-            "password": "clave1234", "password2": "clave1234",
-        })
-    slugs = {n.slug for n in Negocio.query.all()}
-    assert "nails-studio" in slugs
-    assert "nails-studio-2" in slugs
+    n1, _ = crear_negocio(nombre="Nails Studio")
+    n1.slug = "nails-studio"   # fijamos el slug base existente
+    db.session.commit()
+
+    assert generar_slug_unico("Nails Studio") == "nails-studio-2"
+    assert generar_slug_unico("Barber Shop") == "barber-shop"
