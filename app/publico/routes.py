@@ -125,7 +125,9 @@ def reservar_crear(slug):
     """Crea la reserva pública validando disponibilidad real."""
     negocio = cargar_negocio_por_slug(slug)
     if not negocio.puede_operar:
-        abort(402)  # negocio con suscripción vencida no recibe reservas
+        # Negocio con suscripción vencida: no recibe reservas (solo lectura).
+        flash("Este negocio no está recibiendo reservas en este momento.", "warning")
+        return redirect(url_for("publico.perfil_negocio", slug=slug))
 
     servicio = _servicio_publico(negocio, request.form.get("servicio", type=str))
     recurso = Recurso.query.filter_by(

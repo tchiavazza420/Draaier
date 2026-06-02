@@ -13,6 +13,7 @@ negocio: "al vencer, el negocio puede leer pero no crear".
 """
 
 import enum
+from datetime import datetime, timezone
 
 from app.extensions import db
 from app.models.mixins import TimestampMixin
@@ -131,16 +132,40 @@ class Negocio(TimestampMixin, db.Model):
     )
 
     @property
+    def vencimiento(self):
+        """Fecha de fin vigente según el estado (trial o suscripción), o None."""
+        if self.estado_suscripcion == EstadoSuscripcionEnum.TRIAL:
+            return self.trial_fin
+        if self.estado_suscripcion == EstadoSuscripcionEnum.ACTIVA:
+            return self.suscripcion_fin
+        return None
+
+    @property
+    def esta_vencido(self):
+        """True si la vigencia (trial o suscripción) ya pasó."""
+        fin = self.vencimiento
+        if fin is None:
+            return False
+        ahora = datetime.now(timezone.utc)
+        # Comparación robusta aunque la fecha venga naive de la DB.
+        if fin.tzinfo is None:
+            fin = fin.replace(tzinfo=timezone.utc)
+        return fin < ahora
+
+    @property
     def puede_operar(self):
         """
-        Regla de negocio del brief: un negocio con suscripción TRIAL o ACTIVA
-        puede crear reservas/clientes/recursos. Si está VENCIDA o CANCELADA,
-        solo puede leer. También exige que el negocio esté activo.
+        Regla del brief: un negocio con suscripción TRIAL o ACTIVA y VIGENTE
+        puede crear reservas/clientes/recursos. Si venció (trial o pago),
+        está VENCIDA/CANCELADA, o está inactivo, solo puede leer.
         """
-        return self.activo and self.estado_suscripcion in (
-            EstadoSuscripcionEnum.TRIAL,
-            EstadoSuscripcionEnum.ACTIVA,
-        )
+        if not self.activo:
+            return False
+        if self.estado_suscripcion not in (
+            EstadoSuscripcionEnum.TRIAL, EstadoSuscripcionEnum.ACTIVA
+        ):
+            return False
+        return not self.esta_vencido
 
     def __repr__(self):
         return f"<Negocio {self.id} {self.slug!r}>"

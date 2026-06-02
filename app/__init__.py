@@ -44,7 +44,34 @@ def create_app(config_class=None):
     from app.cli import register_commands
     register_commands(app)
 
+    # 6) Manejadores de error amigables (402/403/404/500).
+    register_error_handlers(app)
+
     return app
+
+
+def register_error_handlers(app):
+    """Páginas de error con diseño propio."""
+    from flask import render_template
+    from app.errors import PagoRequerido
+
+    _textos = {
+        402: ("Suscripción vencida", "La suscripción del negocio venció. Solo lectura hasta regularizar el pago."),
+        403: ("Acceso denegado", "No tenés permisos para ver esta página."),
+        404: ("No encontrado", "La página que buscás no existe o fue movida."),
+        500: ("Error del servidor", "Algo salió mal. Estamos trabajando en ello."),
+    }
+
+    def _make(codigo):
+        def render(error):
+            titulo, mensaje = _textos[codigo]
+            return render_template("error.html", codigo=codigo, titulo=titulo, mensaje=mensaje), codigo
+        return render
+
+    # 402 se registra por su clase (Werkzeug no reconoce el entero 402).
+    app.register_error_handler(PagoRequerido, _make(402))
+    for code in (403, 404, 500):
+        app.register_error_handler(code, _make(code))
 
 
 def register_models():

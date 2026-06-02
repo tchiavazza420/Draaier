@@ -17,6 +17,8 @@ from functools import wraps
 from flask import abort
 from flask_login import current_user
 
+from app.errors import PagoRequerido
+
 
 def rol_required(*roles_permitidos):
     """
@@ -62,6 +64,6 @@ def negocio_operativo_required(view):
             return view(*args, **kwargs)
         negocio = current_user.negocio
         if negocio is None or not negocio.puede_operar:
-            abort(402)
+            raise PagoRequerido()
         return view(*args, **kwargs)
     return wrapped

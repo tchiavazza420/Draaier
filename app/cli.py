@@ -94,3 +94,25 @@ def register_commands(app):
             accion = "actualizado"
         db.session.commit()
         click.echo(f"Super Admin {accion}: {email}")
+
+    @app.cli.command("vencer-suscripciones")
+    def vencer_suscripciones():
+        """
+        Marca como VENCIDA toda suscripción TRIAL/ACTIVA cuya vigencia ya pasó.
+        Pensado para correrse una vez por día (cron/Celery beat). Tras esto,
+        esos negocios quedan en solo lectura (puede_operar = False).
+        """
+        from app.models.negocio import Negocio, EstadoSuscripcionEnum
+
+        candidatos = Negocio.query.filter(
+            Negocio.estado_suscripcion.in_([
+                EstadoSuscripcionEnum.TRIAL, EstadoSuscripcionEnum.ACTIVA,
+            ])
+        ).all()
+        vencidos = 0
+        for n in candidatos:
+            if n.esta_vencido:
+                n.estado_suscripcion = EstadoSuscripcionEnum.VENCIDA
+                vencidos += 1
+        db.session.commit()
+        click.echo(f"Suscripciones vencidas: {vencidos}.")
