@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Moderación de reseñas · Super Admin{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">Moderación de reseñas</h1>
+  <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('super_admin.dashboard') }}">← Admin</a>
+</div>
+
+{% if resenas %}
+  {% for r in resenas %}
+    <div class="card mb-2 {{ 'border-warning' if r.solicita_ocultar else '' }}"><div class="card-body">
+      <div class="d-flex justify-content-between">
+        <div>
+          <span class="text-warning">{{ '★' * r.calificacion }}{{ '☆' * (5 - r.calificacion) }}</span>
+          <strong class="ms-2">{{ r.cliente.nombre }}</strong>
+          <small class="text-muted">· negocio #{{ r.negocio_id }} · {{ r.created_at.strftime('%d/%m/%Y') }}</small>
+        </div>
+        <div>
+          {% if r.solicita_ocultar %}<span class="badge bg-warning text-dark me-2">Ocultar solicitado</span>{% endif %}
+          {% if r.oculta %}<span class="badge bg-dark">Oculta</span>{% endif %}
+        </div>
+      </div>
+      {% if r.comentario %}<p class="mt-2 mb-2">{{ r.comentario }}</p>{% endif %}
+      {% if r.respuesta %}<div class="bg-light rounded p-2 mb-2"><small class="text-muted">Respuesta:</small> {{ r.respuesta }}</div>{% endif %}
+      <form method="post" action="{{ url_for('super_admin.resena_ocultar', resena_id=r.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-sm btn-outline-{{ 'success' if r.oculta else 'danger' }}">
+          {{ 'Mostrar' if r.oculta else 'Ocultar' }}
+        </button>
+      </form>
+    </div></div>
+  {% endfor %}
+{% else %}
+  <div class="card"><div class="card-body"><p class="text-muted mb-0">No hay reseñas.</p></div></div>
+{% endif %}
+{% endblock %}

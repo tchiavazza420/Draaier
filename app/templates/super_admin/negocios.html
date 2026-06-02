@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Negocios · Super Admin{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">Negocios</h1>
+  <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('super_admin.dashboard') }}">← Admin</a>
+</div>
+
+<form class="mb-3" method="get">
+  <div class="input-group" style="max-width:400px">
+    <input type="text" name="q" value="{{ buscar }}" class="form-control" placeholder="Nombre, slug o email">
+    <button class="btn btn-outline-primary">Buscar</button>
+  </div>
+</form>
+
+<div class="card"><div class="card-body">
+  {% if negocios %}
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead><tr><th>Negocio</th><th>Rubro</th><th>Plan</th><th>Suscripción</th><th>Activo</th><th>Acciones</th></tr></thead>
+        <tbody>
+          {% for n in negocios %}
+            <tr>
+              <td>
+                <a href="{{ url_for('publico.perfil_negocio', slug=n.slug) }}" target="_blank">{{ n.nombre }}</a>
+                <div><small class="text-muted">/{{ n.slug }} · {{ n.email }}</small></div>
+              </td>
+              <td>{{ n.rubro.value.replace('_',' ').title() }}</td>
+              <td>{{ n.plan.value if n.plan else '—' }}</td>
+              <td>
+                <form method="post" action="{{ url_for('super_admin.negocio_suscripcion', negocio_id=n.id) }}" class="d-flex gap-1">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <select name="estado" class="form-select form-select-sm" style="width:auto">
+                    {% for e in estados %}
+                      <option value="{{ e.value }}" {{ 'selected' if n.estado_suscripcion == e }}>{{ e.value }}</option>
+                    {% endfor %}
+                  </select>
+                  <select name="plan" class="form-select form-select-sm" style="width:auto">
+                    <option value="">plan…</option>
+                    {% for p in planes %}
+                      <option value="{{ p.value }}" {{ 'selected' if n.plan == p }}>{{ p.value }}</option>
+                    {% endfor %}
+                  </select>
+                  <button class="btn btn-sm btn-outline-primary">✓</button>
+                </form>
+              </td>
+              <td>{% if n.activo %}<span class="badge bg-success">Sí</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
+              <td>
+                <form method="post" action="{{ url_for('super_admin.negocio_toggle', negocio_id=n.id) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button class="btn btn-sm btn-outline-{{ 'warning' if n.activo else 'success' }}">
+                    {{ 'Desactivar' if n.activo else 'Activar' }}
+                  </button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="text-muted mb-0">No hay negocios.</p>
+  {% endif %}
+</div></div>
+{% endblock %}

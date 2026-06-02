@@ -132,7 +132,11 @@ def login():
         # Respeta el destino original (?next=...) si es seguro (mismo sitio).
         next_page = request.args.get("next")
         if not next_page or not next_page.startswith("/"):
-            next_page = url_for("panel.dashboard")
+            # El super_admin va a su panel de plataforma; el resto, al panel del negocio.
+            next_page = (
+                url_for("super_admin.dashboard")
+                if usuario.es_super_admin else url_for("panel.dashboard")
+            )
         return redirect(next_page)
 
     return render_template("auth/login.html", form=form)

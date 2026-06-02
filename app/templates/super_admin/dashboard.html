@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Super Admin{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">Plataforma · Super Admin</h1>
+  <div>
+    <a class="btn btn-primary btn-sm" href="{{ url_for('super_admin.negocios') }}">Negocios</a>
+    <a class="btn btn-primary btn-sm" href="{{ url_for('super_admin.resenas') }}">
+      Reseñas {% if m.solicitudes_ocultar %}<span class="badge bg-warning text-dark">{{ m.solicitudes_ocultar }}</span>{% endif %}
+    </a>
+  </div>
+</div>
+
+<div class="row g-3">
+  {% set tarjetas = [
+    ('Negocios', m.negocios), ('Activos', m.activos), ('En marketplace', m.en_marketplace),
+    ('Reservas', m.reservas), ('Usuarios', m.usuarios), ('Reseñas', m.resenas)
+  ] %}
+  {% for titulo, valor in tarjetas %}
+    <div class="col-6 col-md-2">
+      <div class="card text-center h-100"><div class="card-body">
+        <div class="h3 mb-0">{{ valor }}</div>
+        <small class="text-muted">{{ titulo }}</small>
+      </div></div>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="card mt-4"><div class="card-body">
+  <h2 class="h6 text-muted mb-3">Suscripciones por estado</h2>
+  {% for estado, cant in por_estado.items() %}
+    <span class="badge bg-light text-dark me-2">{{ estado.value }}: {{ cant }}</span>
+  {% else %}
+    <span class="text-muted">Sin datos.</span>
+  {% endfor %}
+</div></div>
+{% endblock %}

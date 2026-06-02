@@ -76,10 +76,12 @@ def register_blueprints(app):
     from app.clientes.routes import clientes_bp
     from app.resenas.routes import resenas_bp
     from app.marketplace.routes import marketplace_bp
+    from app.super_admin.routes import super_admin_bp
     from app.publico.routes import publico_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(marketplace_bp)
+    app.register_blueprint(super_admin_bp, url_prefix="/super-admin")
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(panel_bp, url_prefix="/panel")
     app.register_blueprint(recursos_bp, url_prefix="/panel/recursos")

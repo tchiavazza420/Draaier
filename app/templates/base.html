@@ -31,7 +31,11 @@
             {{ current_user.nombre }}
             {% if current_user.negocio %}· {{ current_user.negocio.nombre }}{% endif %}
           </span>
-          <a class="btn btn-outline-light btn-sm" href="{{ url_for('panel.dashboard') }}">Panel</a>
+          {% if current_user.es_super_admin %}
+            <a class="btn btn-outline-light btn-sm" href="{{ url_for('super_admin.dashboard') }}">Admin</a>
+          {% else %}
+            <a class="btn btn-outline-light btn-sm" href="{{ url_for('panel.dashboard') }}">Panel</a>
+          {% endif %}
           <a class="btn btn-outline-warning btn-sm" href="{{ url_for('auth.logout') }}">Salir</a>
         {% else %}
           <a class="btn btn-outline-light btn-sm" href="{{ url_for('auth.login') }}">Ingresar</a>

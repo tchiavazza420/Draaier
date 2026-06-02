@@ -66,3 +66,31 @@ def register_commands(app):
                 notificar_recordatorio(r)
                 enviados += 1
         click.echo(f"Recordatorios enviados: {enviados} (para {objetivo.isoformat()}).")
+
+    @app.cli.command("crear-super-admin")
+    @click.argument("email")
+    @click.argument("password")
+    @click.option("--nombre", default="Super Admin")
+    def crear_super_admin(email, password, nombre):
+        """Crea (o asegura) un usuario Super Admin de la plataforma."""
+        from app.models.usuario import Usuario
+
+        email = email.strip().lower()
+        rol = Rol.query.filter_by(nombre=RolEnum.SUPER_ADMIN.value).first()
+        if rol is None:
+            click.echo("Falta el rol super_admin. Ejecutá primero 'flask seed-roles'.")
+            return
+
+        u = Usuario.query.filter_by(email=email).first()
+        if u is None:
+            u = Usuario(nombre=nombre, email=email, rol_id=rol.id, negocio_id=None, activo=True)
+            u.set_password(password)
+            db.session.add(u)
+            accion = "creado"
+        else:
+            u.rol_id = rol.id
+            u.negocio_id = None
+            u.set_password(password)
+            accion = "actualizado"
+        db.session.commit()
+        click.echo(f"Super Admin {accion}: {email}")
