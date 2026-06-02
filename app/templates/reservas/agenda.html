@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Agenda · Panel{% endblock %}
+
+{% block head_extra %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">Agenda</h1>
+  <div>
+    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('panel.dashboard') }}">← Panel</a>
+    <a class="btn btn-outline-primary btn-sm" href="{{ url_for('reservas.listar') }}">Ver lista</a>
+    <a class="btn btn-primary btn-sm" href="{{ url_for('reservas.nueva') }}">+ Reserva</a>
+  </div>
+</div>
+
+<div class="card"><div class="card-body">
+  <div id="calendario"></div>
+</div></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const el = document.getElementById('calendario');
+    const cal = new FullCalendar.Calendar(el, {
+      locale: 'es',
+      initialView: 'timeGridWeek',
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+      },
+      buttonText: { today: 'hoy', month: 'mes', week: 'semana', day: 'día', list: 'lista' },
+      slotMinTime: '07:00:00',
+      slotMaxTime: '23:00:00',
+      nowIndicator: true,
+      height: 'auto',
+      events: '{{ url_for("reservas.agenda_eventos") }}',
+      eventClick: (info) => {
+        if (info.event.url) { info.jsEvent.preventDefault(); window.location = info.event.url; }
+      },
+      eventDidMount: (info) => {
+        const e = info.event.extendedProps;
+        info.el.title = `${info.event.title}\n${e.recurso} · ${e.estado}`;
+      }
+    });
+    cal.render();
+  });
+</script>
+{% endblock %}

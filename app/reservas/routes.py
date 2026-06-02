@@ -12,7 +12,7 @@ reservas (validación de disponibilidad + anti doble-reserva).
 from datetime import datetime, date
 
 from flask import (
-    Blueprint, render_template, redirect, url_for, flash, request,
+    Blueprint, render_template, redirect, url_for, flash, request, jsonify,
 )
 from flask_login import login_required, current_user
 
@@ -67,6 +67,52 @@ def listar():
         reservas=reservas, estados=EstadoReservaEnum,
         filtro_estado=estado, filtro_fecha=fecha_str,
     )
+
+
+# ======================================================================
+#  AGENDA (calendario)
+# ======================================================================
+@reservas_bp.route("/agenda")
+@login_required
+@rol_required(*_ROLES_PANEL)
+def agenda():
+    """Vista de calendario de las reservas (FullCalendar)."""
+    return render_template("reservas/agenda.html")
+
+
+@reservas_bp.route("/agenda/eventos")
+@login_required
+@rol_required(*_ROLES_PANEL)
+def agenda_eventos():
+    """
+    Devuelve las reservas como eventos JSON para FullCalendar, dentro del
+    rango [start, end] que envía el calendario. Excluye canceladas/ausentes.
+    """
+    q = query_tenant(Reserva, _neg()).filter(
+        Reserva.estado.notin_([EstadoReservaEnum.CANCELADO, EstadoReservaEnum.AUSENTE])
+    )
+    start = request.args.get("start")
+    end = request.args.get("end")
+    try:
+        if start:
+            q = q.filter(Reserva.inicio >= datetime.fromisoformat(start[:19]))
+        if end:
+            q = q.filter(Reserva.inicio <= datetime.fromisoformat(end[:19]))
+    except ValueError:
+        pass
+
+    eventos = []
+    for r in q.limit(1000).all():
+        eventos.append({
+            "id": r.id,
+            "title": f"{r.servicio.nombre} · {r.cliente.nombre}",
+            "start": r.inicio.isoformat(),
+            "end": r.fin.isoformat(),
+            "color": r.servicio.color,
+            "url": url_for("reservas.detalle", reserva_id=r.id),
+            "extendedProps": {"recurso": r.recurso.nombre, "estado": r.estado.value},
+        })
+    return jsonify(eventos)
 
 
 @reservas_bp.route("/<int:reserva_id>")
