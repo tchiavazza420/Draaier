@@ -19,7 +19,7 @@ from app.tenant import query_tenant, obtener_tenant_o_404
 from app.auth.decorators import rol_required, negocio_operativo_required
 from app.models.recurso import Recurso
 from app.models.servicio import Servicio
-from app.models.horario import HorarioAtencion, Bloqueo, DIAS_SEMANA
+from app.models.horario import HorarioAtencion, Bloqueo, DIAS_SEMANA, SemanaEnum
 from app.disponibilidad.forms import HorarioForm, BloqueoForm
 from app.disponibilidad.service import calcular_slots_servicio
 
@@ -93,17 +93,19 @@ def horario_agregar(recurso_id):
     form = HorarioForm()
     if form.validate_on_submit():
         ini, fin = form.hora_inicio_time, form.hora_fin_time
+        semana = (SemanaEnum(form.semana.data)
+                  if form.semana.data in ("todas", "a", "b") else SemanaEnum.TODAS)
         creadas = 0
         for dia in form.dias.data:
-            # Evita duplicar la misma franja exacta en el mismo día.
+            # Evita duplicar la misma franja exacta en el mismo día y semana.
             existe = HorarioAtencion.query.filter_by(
                 negocio_id=_neg(), recurso_id=rec.id, dia_semana=dia,
-                hora_inicio=ini, hora_fin=fin,
+                hora_inicio=ini, hora_fin=fin, semana=semana,
             ).first()
             if existe is None:
                 db.session.add(HorarioAtencion(
                     negocio_id=_neg(), recurso_id=rec.id, dia_semana=dia,
-                    hora_inicio=ini, hora_fin=fin, activo=True,
+                    hora_inicio=ini, hora_fin=fin, semana=semana, activo=True,
                 ))
                 creadas += 1
         db.session.commit()

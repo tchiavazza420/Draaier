@@ -44,7 +44,7 @@ def calcular_slots(recurso, fecha, duracion_minutos,
 
     horarios = [
         h for h in recurso.horarios
-        if h.activo and h.dia_semana == fecha.weekday()
+        if h.activo and h.dia_semana == fecha.weekday() and h.aplica_en(fecha)
     ]
     if not horarios:
         return []

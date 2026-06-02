@@ -24,6 +24,9 @@
                 {% for h in horarios_por_dia[dia] %}
                   <span class="badge bg-light text-dark border me-1 mb-1">
                     {{ '%02d:%02d'|format(h.hora_inicio.hour, h.hora_inicio.minute) }}–{{ '%02d:%02d'|format(h.hora_fin.hour, h.hora_fin.minute) }}
+                    {% if h.semana.value != 'todas' %}
+                      <span class="badge bg-primary ms-1">Sem {{ h.semana.value.upper() }}</span>
+                    {% endif %}
                     <form method="post" action="{{ url_for('disponibilidad.horario_eliminar', horario_id=h.id) }}" class="d-inline">
                       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                       <button class="btn btn-sm btn-link text-danger p-0 ms-1" title="Eliminar">×</button>
@@ -67,13 +70,16 @@
           </div>
 
           <div class="row g-2 align-items-end">
-            <div class="col-sm-5">{{ render_field(horario_form.hora_inicio) }}</div>
-            <div class="col-sm-5">{{ render_field(horario_form.hora_fin) }}</div>
-            <div class="col-sm-2">
-              <div class="mb-3 d-grid">{{ horario_form.submit(class="btn btn-primary") }}</div>
-            </div>
+            <div class="col-sm-4">{{ render_field(horario_form.hora_inicio) }}</div>
+            <div class="col-sm-4">{{ render_field(horario_form.hora_fin) }}</div>
+            <div class="col-sm-4">{{ render_field(horario_form.semana) }}</div>
           </div>
-          <small class="text-muted">Elegí uno o varios días y la franja se agrega a todos.</small>
+          <div class="d-grid">{{ horario_form.submit(class="btn btn-primary") }}</div>
+          <small class="text-muted d-block mt-2">
+            Elegí uno o varios días. Para horarios que rotan, cargá una franja en
+            <strong>Semana A</strong> y otra en <strong>Semana B</strong>: se van a ir
+            intercalando solas semana a semana.
+          </small>
         </form>
       </div>
     </div>

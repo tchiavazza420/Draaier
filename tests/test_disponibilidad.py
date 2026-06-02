@@ -69,6 +69,32 @@ def test_agregar_horario_varios_dias_incluido_lunes(client, crear_negocio):
     assert dias == {0, 1, 2}   # incluye el Lunes (antes fallaba por DataRequired)
 
 
+def test_horario_alternado_semana_ab(crear_negocio, crear_recurso, proximo_lunes):
+    """Una franja de semana A solo rige en semanas ISO pares; B en impares."""
+    from datetime import timedelta
+    from app.models.horario import HorarioAtencion, SemanaEnum, semana_de
+    neg, _ = crear_negocio()
+    rec = crear_recurso(neg, hora_inicio=time(9, 0), hora_fin=time(11, 0))
+    # Quitamos el horario "todas" que crea la factory y dejamos uno solo A.
+    HorarioAtencion.query.filter_by(recurso_id=rec.id).delete()
+    db.session.add(HorarioAtencion(
+        negocio_id=neg.id, recurso_id=rec.id, dia_semana=0,
+        hora_inicio=time(9, 0), hora_fin=time(11, 0),
+        semana=SemanaEnum.A, activo=True))
+    db.session.commit()
+
+    # Buscamos un lunes "semana A" (ISO par) y el siguiente lunes (impar -> B).
+    lunes = proximo_lunes
+    while semana_de(lunes) != SemanaEnum.A:
+        lunes = lunes + timedelta(days=7)
+    lunes_b = lunes + timedelta(days=7)
+    assert semana_de(lunes_b) == SemanaEnum.B
+
+    db.session.refresh(rec)
+    assert len(calcular_slots(rec, lunes, 60)) == 2      # semana A -> hay turnos
+    assert calcular_slots(rec, lunes_b, 60) == []        # semana B -> sin turnos
+
+
 def test_capacidad_y_ocupados(crear_negocio, crear_recurso, proximo_lunes):
     neg, _ = crear_negocio()
     rec = crear_recurso(neg, capacidad=1, hora_inicio=time(9, 0), hora_fin=time(11, 0))

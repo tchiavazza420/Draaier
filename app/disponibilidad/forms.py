@@ -13,7 +13,7 @@ from wtforms import (
 from wtforms.fields import DateTimeLocalField
 from wtforms.validators import DataRequired, InputRequired, Optional, ValidationError
 
-from app.models.horario import DIAS_SEMANA
+from app.models.horario import DIAS_SEMANA, SemanaEnum
 
 
 def _opciones_horas(paso=30):
@@ -41,6 +41,16 @@ class HorarioForm(FlaskForm):
     )
     hora_inicio = SelectField("Desde", choices=_opciones_horas(), validators=[InputRequired()])
     hora_fin = SelectField("Hasta", choices=_opciones_horas(), validators=[InputRequired()])
+    semana = SelectField(
+        "Semana",
+        choices=[
+            (SemanaEnum.TODAS.value, "Todas las semanas"),
+            (SemanaEnum.A.value, "Solo semana A"),
+            (SemanaEnum.B.value, "Solo semana B"),
+        ],
+        default=SemanaEnum.TODAS.value,
+        validators=[Optional()],   # si no viene, se asume TODAS en la ruta
+    )
     submit = SubmitField("Agregar")
 
     def validate_hora_fin(self, field):

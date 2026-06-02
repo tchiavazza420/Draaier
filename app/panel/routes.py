@@ -76,6 +76,53 @@ def plan_cambiar():
     return redirect(url_for("panel.plan"))
 
 
+@panel_bp.route("/galeria", methods=["GET", "POST"])
+@login_required
+@rol_required("dueno")
+def galeria():
+    """Galería de fotos del negocio (subir varias / eliminar)."""
+    from app.models.galeria import GaleriaFoto
+    negocio = current_user.negocio
+
+    if request.method == "POST":
+        archivos = request.files.getlist("fotos")
+        subidas = 0
+        for f in archivos:
+            if not f or not f.filename:
+                continue
+            try:
+                ruta = guardar_imagen(f, negocio.id, "galeria")
+            except ValueError as exc:
+                flash(str(exc), "danger")
+                continue
+            if ruta:
+                db.session.add(GaleriaFoto(negocio_id=negocio.id, filename=ruta, orden=0))
+                subidas += 1
+        db.session.commit()
+        flash(f"{subidas} foto(s) subida(s).", "success")
+        return redirect(url_for("panel.galeria"))
+
+    fotos = (
+        GaleriaFoto.query.filter_by(negocio_id=negocio.id)
+        .order_by(GaleriaFoto.orden, GaleriaFoto.id).all()
+    )
+    return render_template("panel/galeria.html", fotos=fotos, negocio=negocio)
+
+
+@panel_bp.route("/galeria/<int:foto_id>/eliminar", methods=["POST"])
+@login_required
+@rol_required("dueno")
+def galeria_eliminar(foto_id):
+    from app.models.galeria import GaleriaFoto
+    foto = GaleriaFoto.query.filter_by(
+        id=foto_id, negocio_id=current_user.negocio_id
+    ).first_or_404()
+    db.session.delete(foto)
+    db.session.commit()
+    flash("Foto eliminada.", "info")
+    return redirect(url_for("panel.galeria"))
+
+
 @panel_bp.route("/mensajes", methods=["GET", "POST"])
 @login_required
 @rol_required("dueno")

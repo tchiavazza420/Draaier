@@ -54,16 +54,22 @@ def perfil_negocio(slug):
         .order_by(Servicio.nombre).all()
     )
     from app.models.resena import Resena
+    from app.models.galeria import GaleriaFoto
     from app.resenas.service import rating_negocio
     promedio, cantidad = rating_negocio(negocio.id)
     resenas = (
         Resena.query.filter_by(negocio_id=negocio.id, oculta=False)
         .order_by(Resena.created_at.desc()).limit(10).all()
     )
+    galeria = (
+        GaleriaFoto.query.filter_by(negocio_id=negocio.id)
+        .order_by(GaleriaFoto.orden, GaleriaFoto.id).limit(12).all()
+    )
     return render_template(
         "publico/perfil.html",
         negocio=negocio, recursos=recursos, servicios=servicios,
         rating_promedio=promedio, rating_cantidad=cantidad, resenas=resenas,
+        galeria=galeria,
     )
 
 
