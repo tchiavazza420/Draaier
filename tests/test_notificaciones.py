@@ -35,6 +35,28 @@ def test_confirmacion_email_y_whatsapp(crear_negocio, crear_recurso, crear_servi
     assert BANDEJA_WA[-1]["to"] == "5491122334455"  # normalizado (sin +)
 
 
+def test_toggles_apagan_envios(crear_negocio, crear_recurso, crear_servicio, proximo_lunes):
+    """Si el negocio desactiva confirmación o un canal, no se envía por ahí."""
+    neg, _ = crear_negocio()
+    neg.notif_confirmacion = False          # confirmaciones apagadas
+    db.session.commit()
+    rec = crear_recurso(neg)
+    serv = crear_servicio(neg, rec)
+    r = _reserva(neg, rec, serv, proximo_lunes)
+
+    BANDEJA_DEV.clear(); BANDEJA_WA.clear()
+    notificar_reserva_confirmada(r)
+    assert len(BANDEJA_DEV) == 0 and len(BANDEJA_WA) == 0   # nada (confirmación off)
+
+    # Reactivar confirmación pero solo canal email
+    neg.notif_confirmacion = True
+    neg.notif_canal_whatsapp = False
+    db.session.commit()
+    BANDEJA_DEV.clear(); BANDEJA_WA.clear()
+    notificar_reserva_confirmada(r)
+    assert len(BANDEJA_DEV) == 1 and len(BANDEJA_WA) == 0   # solo email
+
+
 def test_sin_telefono_no_manda_whatsapp(crear_negocio, crear_recurso, crear_servicio, proximo_lunes):
     neg, _ = crear_negocio()
     rec = crear_recurso(neg)

@@ -67,8 +67,10 @@
                 <a href="{{ url_for('super_admin.dashboard') }}"><span class="menu-emoji">🛡️</span> Panel admin</a>
               {% else %}
                 <a href="{{ url_for('panel.dashboard') }}"><span class="menu-emoji">🏠</span> Mi panel</a>
+                <a href="{{ url_for('panel.plan') }}"><span class="menu-emoji">💎</span> Mi plan</a>
                 <a href="{{ url_for('panel.configuracion') }}"><span class="menu-emoji">⚙️</span> Configuración</a>
                 <a href="{{ url_for('panel.personalizacion') }}"><span class="menu-emoji">🎨</span> Personalización</a>
+                <a href="{{ url_for('panel.mensajes') }}"><span class="menu-emoji">💬</span> Mensajes automáticos</a>
               {% endif %}
               <div class="menu-sep"></div>
               <a href="{{ url_for('auth.logout') }}"><span class="menu-emoji">🚪</span> Cerrar sesión</a>

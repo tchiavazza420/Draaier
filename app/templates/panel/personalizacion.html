@@ -1,18 +1,30 @@
 {% extends "base.html" %}
 {% from "_macros.html" import render_field %}
-{% block title %}Personalización · Panel{% endblock %}
+{% block title %}Personalización · Draaier{% endblock %}
+
+{% block head_extra %}
+<!-- Precargamos las fuentes disponibles para que el preview cambie al instante -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto:wght@400;700&family=Poppins:wght@400;600;700&family=Montserrat:wght@400;600;700&family=Lora:wght@400;600;700&family=Nunito:wght@400;600;700&display=swap">
+{% endblock %}
+
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
   <h1 class="h3 mb-0">Personalización</h1>
-  <div>
-    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('panel.dashboard') }}">← Panel</a>
-    <a class="btn btn-outline-primary btn-sm" target="_blank"
-       href="{{ url_for('publico.perfil_negocio', slug=negocio.slug) }}">Ver página pública ↗</a>
-  </div>
+  <a class="btn btn-outline-primary btn-sm" target="_blank"
+     href="{{ url_for('publico.perfil_negocio', slug=negocio.slug) }}">Ver página real ↗</a>
 </div>
 
-<div class="row justify-content-center">
-  <div class="col-md-9">
+<div class="row g-4"
+     x-data="{
+       primario: '{{ negocio.color_primario }}',
+       secundario: '{{ negocio.color_secundario }}',
+       fuente: '{{ negocio.tipografia }}',
+       plantilla: '{{ negocio.template_publico.value }}',
+       desc: {{ (negocio.descripcion_publica or '')|tojson }}
+     }">
+
+  <!-- ===== FORMULARIO ===== -->
+  <div class="col-lg-7">
     <div class="card"><div class="card-body p-4">
       <form method="post" enctype="multipart/form-data" novalidate>
         {{ form.hidden_tag() }}
@@ -34,21 +46,28 @@
         </div>
 
         <h2 class="h6 text-uppercase text-muted mt-3">Colores y tipografía</h2>
-        <div class="row">
-          <div class="col-md-3">
-            <label class="form-label">Color primario</label>
-            {{ form.color_primario(class="form-control form-control-color", type="color") }}
+        <div class="row g-2">
+          <div class="col-6 col-md-3">
+            <label class="form-label">Primario</label>
+            {{ form.color_primario(class="form-control form-control-color", type="color", **{"x-model":"primario"}) }}
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label">Secundario</label>
+            {{ form.color_secundario(class="form-control form-control-color", type="color", **{"x-model":"secundario"}) }}
           </div>
           <div class="col-md-3">
-            <label class="form-label">Color secundario</label>
-            {{ form.color_secundario(class="form-control form-control-color", type="color") }}
+            <label class="form-label">Tipografía</label>
+            {{ form.tipografia(class="form-select", **{"x-model":"fuente"}) }}
           </div>
-          <div class="col-md-3">{{ render_field(form.tipografia) }}</div>
-          <div class="col-md-3">{{ render_field(form.template_publico) }}</div>
+          <div class="col-md-3">
+            <label class="form-label">Plantilla</label>
+            {{ form.template_publico(class="form-select", **{"x-model":"plantilla"}) }}
+          </div>
         </div>
 
         <h2 class="h6 text-uppercase text-muted mt-3">Descripción y redes</h2>
-        {{ render_field(form.descripcion_publica, placeholder="Contá de qué se trata tu negocio…") }}
+        {{ form.descripcion_publica(class="form-control mb-3", rows="3",
+            placeholder="Contá de qué se trata tu negocio…", **{"x-model":"desc"}) }}
         <div class="row">
           <div class="col-md-4">{{ render_field(form.instagram, placeholder="@usuario") }}</div>
           <div class="col-md-4">{{ render_field(form.facebook, placeholder="URL") }}</div>
@@ -56,8 +75,43 @@
         </div>
 
         {{ form.submit(class="btn btn-primary") }}
+        <small class="text-muted ms-2">Los cambios se ven en vivo a la derecha →</small>
       </form>
     </div></div>
+  </div>
+
+  <!-- ===== VISTA PREVIA EN VIVO ===== -->
+  <div class="col-lg-5">
+    <div class="position-sticky" style="top:90px">
+      <p class="text-muted small mb-2">Vista previa en vivo</p>
+      <div class="card overflow-hidden" :style="`font-family:'${fuente}',sans-serif`">
+        <div :style="`height:90px;background:linear-gradient(135deg, ${primario}, ${secundario})`"></div>
+        <div class="card-body">
+          <h3 class="h5 mb-1" :style="`color:${secundario}`">{{ negocio.nombre }}</h3>
+          <p class="text-muted small" x-text="desc || 'Tu descripción aparecerá acá.'"></p>
+
+          <div class="border rounded-3 p-2 d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <div class="fw-semibold small">Corte de pelo</div>
+              <div class="text-muted" style="font-size:.78rem">30 min</div>
+            </div>
+            <button type="button" class="btn btn-sm text-white" :style="`background:${primario}`">Reservar</button>
+          </div>
+
+          <span class="badge" :style="`background:${primario}`">★ 4.8</span>
+          <span class="badge bg-light text-dark">12 reseñas</span>
+
+          <div class="mt-2">
+            <span class="badge rounded-pill"
+                  :style="`background:${secundario}22;color:${secundario}`"
+                  x-text="'Plantilla: ' + plantilla"></span>
+          </div>
+        </div>
+      </div>
+      <p class="text-muted small mt-2">
+        Así se va a ver tu página pública. Guardá para aplicarlo de verdad.
+      </p>
+    </div>
   </div>
 </div>
 {% endblock %}

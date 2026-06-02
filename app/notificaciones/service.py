@@ -26,11 +26,23 @@ def _negocio(reserva):
     return db.session.get(Negocio, reserva.negocio_id)
 
 
-def _wa(reserva, texto):
-    """Envía un WhatsApp al cliente (si tiene teléfono), tolerante a fallos."""
+def _email(neg, *args, **kwargs):
+    """Envía email solo si el negocio tiene el canal email activo."""
+    if neg is None or neg.notif_canal_email:
+        try:
+            enviar_email(*args, **kwargs)
+        except Exception:
+            current_app.logger.exception("Fallo enviando email")
+
+
+def _wa(reserva, negocio, texto):
+    """Envía WhatsApp si el negocio lo activó y el cliente tiene teléfono."""
+    if negocio is not None and not negocio.notif_canal_whatsapp:
+        return
     try:
         if reserva.cliente and reserva.cliente.telefono:
-            enviar_whatsapp(reserva.cliente.telefono, texto)
+            firma = (negocio.mensaje_firma if negocio and negocio.mensaje_firma else "")
+            enviar_whatsapp(reserva.cliente.telefono, texto + (f"\n{firma}" if firma else ""))
     except Exception:
         current_app.logger.exception("Fallo enviando WhatsApp %s", reserva.codigo)
 
@@ -41,41 +53,37 @@ def _detalle(reserva):
 
 
 # ----------------------------------------------------------------------
-#  Senders reales (corren dentro de la tarea / del worker)
-#  Cada uno envía por email Y por WhatsApp (cada canal degrada solo).
+#  Senders reales (respetan los toggles de mensajes automáticos del negocio).
 # ----------------------------------------------------------------------
 def _enviar_confirmada(reserva):
-    try:
-        enviar_email(reserva.cliente.email,
-                     f"Reserva confirmada · {reserva.servicio.nombre}",
-                     "reserva_confirmada", reserva=reserva, negocio=_negocio(reserva))
-    except Exception:
-        current_app.logger.exception("Fallo notificando confirmada %s", reserva.codigo)
-    _wa(reserva, f"✅ ¡Reserva confirmada! {_detalle(reserva)}. Código {reserva.codigo}.")
+    neg = _negocio(reserva)
+    if neg is not None and not neg.notif_confirmacion:
+        return
+    _email(neg, reserva.cliente.email,
+           f"Reserva confirmada · {reserva.servicio.nombre}",
+           "reserva_confirmada", reserva=reserva, negocio=neg)
+    _wa(reserva, neg, f"✅ ¡Reserva confirmada! {_detalle(reserva)}. Código {reserva.codigo}.")
 
 
 def _enviar_pendiente(reserva, url_pago=None):
-    try:
-        enviar_email(reserva.cliente.email,
-                     f"Tu reserva está pendiente de pago · {reserva.servicio.nombre}",
-                     "reserva_pendiente", reserva=reserva, negocio=_negocio(reserva),
-                     url_pago=url_pago)
-    except Exception:
-        current_app.logger.exception("Fallo notificando pendiente %s", reserva.codigo)
+    neg = _negocio(reserva)
+    _email(neg, reserva.cliente.email,
+           f"Tu reserva está pendiente de pago · {reserva.servicio.nombre}",
+           "reserva_pendiente", reserva=reserva, negocio=neg, url_pago=url_pago)
     msg = f"⏳ Reservá tu turno: {_detalle(reserva)}."
     if url_pago:
         msg += f" Pagá la seña acá: {url_pago}"
-    _wa(reserva, msg)
+    _wa(reserva, neg, msg)
 
 
 def _enviar_recordatorio(reserva):
-    try:
-        enviar_email(reserva.cliente.email,
-                     f"Recordatorio de tu turno · {reserva.servicio.nombre}",
-                     "recordatorio", reserva=reserva, negocio=_negocio(reserva))
-    except Exception:
-        current_app.logger.exception("Fallo enviando recordatorio %s", reserva.codigo)
-    _wa(reserva, f"⏰ Te recordamos tu turno: {_detalle(reserva)}. ¡Te esperamos!")
+    neg = _negocio(reserva)
+    if neg is not None and not neg.notif_recordatorio:
+        return
+    _email(neg, reserva.cliente.email,
+           f"Recordatorio de tu turno · {reserva.servicio.nombre}",
+           "recordatorio", reserva=reserva, negocio=neg)
+    _wa(reserva, neg, f"⏰ Te recordamos tu turno: {_detalle(reserva)}. ¡Te esperamos!")
 
 
 # ----------------------------------------------------------------------
