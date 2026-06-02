@@ -40,6 +40,12 @@
           </li>
         </ul>
 
+        {% if puede_resenar %}
+          <a class="btn btn-warning mt-3"
+             href="{{ url_for('publico.reserva_resena', slug=negocio.slug, codigo=reserva.codigo) }}">
+            ⭐ Dejar una reseña
+          </a>
+        {% endif %}
         <a class="btn btn-outline-secondary mt-3"
            href="{{ url_for('publico.perfil_negocio', slug=negocio.slug) }}">Volver</a>
       </div>

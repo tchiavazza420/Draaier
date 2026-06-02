@@ -12,6 +12,14 @@
     </p>
     <span class="badge bg-secondary">/{{ negocio.slug }}</span>
 
+    {% if rating_cantidad %}
+      <div class="mt-2">
+        <span class="text-warning">★</span>
+        <strong>{{ rating_promedio }}</strong>
+        <small class="text-muted">({{ rating_cantidad }} reseña{{ 's' if rating_cantidad != 1 }})</small>
+      </div>
+    {% endif %}
+
     <hr class="my-4">
 
     {% if servicios %}
@@ -57,6 +65,28 @@
       <p class="text-muted mb-0">
         Página pública en construcción. Pronto vas a poder reservar acá.
       </p>
+    {% endif %}
+
+    {% if resenas %}
+      <hr class="my-4">
+      <h2 class="h6 text-muted mb-3 text-start">Reseñas</h2>
+      <div class="text-start">
+        {% for r in resenas %}
+          <div class="border rounded p-3 mb-2">
+            <div class="d-flex justify-content-between">
+              <strong>{{ r.cliente.nombre }}</strong>
+              <span class="text-warning">{{ '★' * r.calificacion }}{{ '☆' * (5 - r.calificacion) }}</span>
+            </div>
+            {% if r.comentario %}<p class="mb-1 mt-1">{{ r.comentario }}</p>{% endif %}
+            {% if r.respuesta %}
+              <div class="bg-light rounded p-2 mt-2">
+                <small class="text-muted">Respuesta de {{ negocio.nombre }}:</small>
+                <div>{{ r.respuesta }}</div>
+              </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
     {% endif %}
   </div>
 </div>

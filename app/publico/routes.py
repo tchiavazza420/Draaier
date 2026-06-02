@@ -53,9 +53,17 @@ def perfil_negocio(slug):
         Servicio.query.filter_by(negocio_id=negocio.id, activo=True)
         .order_by(Servicio.nombre).all()
     )
+    from app.models.resena import Resena
+    from app.resenas.service import rating_negocio
+    promedio, cantidad = rating_negocio(negocio.id)
+    resenas = (
+        Resena.query.filter_by(negocio_id=negocio.id, oculta=False)
+        .order_by(Resena.created_at.desc()).limit(10).all()
+    )
     return render_template(
         "publico/perfil.html",
         negocio=negocio, recursos=recursos, servicios=servicios,
+        rating_promedio=promedio, rating_cantidad=cantidad, resenas=resenas,
     )
 
 
@@ -182,7 +190,40 @@ def reserva_confirmacion(slug, codigo):
     reserva = Reserva.query.filter_by(negocio_id=negocio.id, codigo=codigo).first()
     if reserva is None:
         abort(404)
-    return render_template("publico/reserva_ok.html", negocio=negocio, reserva=reserva)
+    from app.resenas.service import puede_resenar
+    return render_template(
+        "publico/reserva_ok.html",
+        negocio=negocio, reserva=reserva, puede_resenar=puede_resenar(reserva),
+    )
+
+
+@publico_bp.route("/<slug>/reserva/<codigo>/resena", methods=["GET", "POST"])
+def reserva_resena(slug, codigo):
+    """Permite reseñar una reserva finalizada (acceso por código)."""
+    from app.resenas.service import puede_resenar, crear_resena, ResenaError
+    negocio = cargar_negocio_por_slug(slug)
+    reserva = Reserva.query.filter_by(negocio_id=negocio.id, codigo=codigo).first()
+    if reserva is None:
+        abort(404)
+
+    if not puede_resenar(reserva):
+        flash("Esta reserva no está disponible para reseñar.", "warning")
+        return redirect(url_for("publico.reserva_confirmacion", slug=slug, codigo=codigo))
+
+    if request.method == "POST":
+        try:
+            calificacion = int(request.form.get("calificacion", 0))
+        except (ValueError, TypeError):
+            calificacion = 0
+        try:
+            crear_resena(reserva, calificacion, request.form.get("comentario"))
+        except ResenaError as exc:
+            flash(str(exc), "danger")
+            return redirect(url_for("publico.reserva_resena", slug=slug, codigo=codigo))
+        flash("¡Gracias por tu reseña!", "success")
+        return redirect(url_for("publico.reserva_confirmacion", slug=slug, codigo=codigo))
+
+    return render_template("publico/resena_form.html", negocio=negocio, reserva=reserva)
 
 
 @publico_bp.route("/<slug>/recurso/<recurso_slug>")

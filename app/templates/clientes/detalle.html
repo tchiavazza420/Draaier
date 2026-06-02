@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% from "reservas/_estado.html" import badge_estado %}
+{% block title %}{{ cliente.nombre }} · Clientes{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">{{ cliente.nombre }}</h1>
+  <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('clientes.listar') }}">← Clientes</a>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="card"><div class="card-body">
+      <h2 class="h6 text-muted">Contacto</h2>
+      <p class="mb-1">📧 {{ cliente.email or '—' }}</p>
+      <p class="mb-0">📞 {{ cliente.telefono or '—' }}</p>
+    </div></div>
+  </div>
+  <div class="col-md-8">
+    <div class="card"><div class="card-body">
+      <h2 class="h6 text-muted mb-3">Historial de reservas ({{ reservas|length }})</h2>
+      {% if reservas %}
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0">
+            <thead><tr><th>Fecha</th><th>Servicio</th><th>Estado</th></tr></thead>
+            <tbody>
+              {% for r in reservas %}
+                <tr style="cursor:pointer" onclick="location.href='{{ url_for('reservas.detalle', reserva_id=r.id) }}'">
+                  <td>{{ r.inicio.strftime('%d/%m/%Y %H:%M') }}</td>
+                  <td>{{ r.servicio.nombre }}</td>
+                  <td>{{ badge_estado(r.estado) }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-muted mb-0">Sin reservas.</p>
+      {% endif %}
+    </div></div>
+  </div>
+</div>
+{% endblock %}

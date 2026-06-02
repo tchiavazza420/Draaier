@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Reseñas · Panel{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">Reseñas</h1>
+  <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('panel.dashboard') }}">← Panel</a>
+</div>
+
+{% if resenas %}
+  {% for r in resenas %}
+    <div class="card mb-3"><div class="card-body">
+      <div class="d-flex justify-content-between">
+        <div>
+          <span class="text-warning">{{ '★' * r.calificacion }}{{ '☆' * (5 - r.calificacion) }}</span>
+          <strong class="ms-2">{{ r.cliente.nombre }}</strong>
+          <small class="text-muted">· {{ r.created_at.strftime('%d/%m/%Y') }}</small>
+        </div>
+        {% if r.oculta %}<span class="badge bg-dark">Oculta por admin</span>
+        {% elif r.solicita_ocultar %}<span class="badge bg-warning text-dark">Ocultar solicitado</span>{% endif %}
+      </div>
+      {% if r.comentario %}<p class="mt-2 mb-2">{{ r.comentario }}</p>{% endif %}
+
+      {% if r.respuesta %}
+        <div class="bg-light rounded p-2 mb-2"><small class="text-muted">Tu respuesta:</small><div>{{ r.respuesta }}</div></div>
+      {% endif %}
+
+      <div class="d-flex gap-2 mt-2">
+        <form method="post" action="{{ url_for('resenas.responder', resena_id=r.id) }}" class="flex-grow-1 d-flex gap-2">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="text" name="respuesta" class="form-control form-control-sm"
+                 placeholder="Responder…" value="{{ r.respuesta or '' }}">
+          <button class="btn btn-sm btn-outline-primary">Responder</button>
+        </form>
+        {% if not r.solicita_ocultar and not r.oculta %}
+          <form method="post" action="{{ url_for('resenas.solicitar_ocultar', resena_id=r.id) }}"
+                onsubmit="return confirm('¿Solicitar al administrador ocultar esta reseña? No podés ocultarla por tu cuenta.')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-sm btn-outline-secondary">Solicitar ocultar</button>
+          </form>
+        {% endif %}
+      </div>
+    </div></div>
+  {% endfor %}
+{% else %}
+  <div class="card"><div class="card-body"><p class="text-muted mb-0">Todavía no tenés reseñas.</p></div></div>
+{% endif %}
+{% endblock %}
