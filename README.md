@@ -59,6 +59,27 @@ python run.py                    # http://127.0.0.1:5000
 | 15 | Reportes | Métricas por rango + export CSV |
 | 16 | Suscripciones | Vencimiento (solo lectura), páginas de error |
 
+## Deploy con Docker
+
+Levanta web (gunicorn) + worker + beat (Celery) + Postgres + Redis:
+
+```bash
+cp .env.docker.example .env.docker     # completar SECRET_KEY y secretos
+docker compose up --build              # http://localhost:8000
+```
+
+El servicio `web` aplica migraciones y siembra roles automáticamente al
+arrancar (`RUN_MIGRATIONS=1`). En este stack Celery corre en modo async real
+(`CELERY_EAGER=false`), con el worker procesando tareas y beat agendando
+recordatorios y vencimientos.
+
+## Tests
+
+```bash
+createdb reservas_saas_test    # base de test (o TEST_DATABASE_URL)
+pytest                         # 29 tests
+```
+
 ## Comandos CLI
 
 ```bash
