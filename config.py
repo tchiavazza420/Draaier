@@ -32,8 +32,22 @@ class BaseConfig:
         "pool_recycle": 280,     # recicla conexiones antes del timeout típico de PostgreSQL
     }
 
-    # --- Redis (se utilizará desde el módulo de notificaciones/Celery) ---
+    # --- Redis ---
     REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+
+    # --- Celery (tareas asíncronas y programadas) ---
+    # Por defecto corre en modo EAGER (síncrono, sin Redis) para que la app
+    # funcione sin infraestructura extra. En producción: CELERY_EAGER=false +
+    # levantar Redis y un worker (ver docker-compose).
+    CELERY = {
+        "broker_url": os.environ.get("CELERY_BROKER_URL", REDIS_URL),
+        "result_backend": os.environ.get("CELERY_RESULT_BACKEND", REDIS_URL),
+        "task_always_eager": os.environ.get("CELERY_EAGER", "true").lower() == "true",
+        "task_eager_propagates": False,
+        "task_ignore_result": True,
+        "timezone": "UTC",
+        "broker_connection_retry_on_startup": True,
+    }
 
     # --- Mercado Pago ---
     # Si no hay access token, el módulo de pagos funciona en MODO SIMULACIÓN

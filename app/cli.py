@@ -42,29 +42,11 @@ def register_commands(app):
 
     @app.cli.command("enviar-recordatorios")
     @click.option("--dias", default=1, help="Días de anticipación (default: 1 = mañana).")
-    def enviar_recordatorios(dias):
-        """
-        Envía recordatorios de las reservas confirmadas que ocurren dentro de
-        N días. Pensado para correrse una vez por día (cron/Celery beat).
-        """
-        from app.models.reserva import Reserva, EstadoReservaEnum
-        from app.notificaciones.service import notificar_recordatorio
-
+    def enviar_recordatorios_cmd(dias):
+        """Envía recordatorios de reservas a N días (cron/Celery beat)."""
+        from app.notificaciones.service import enviar_recordatorios
+        enviados = enviar_recordatorios(dias)
         objetivo = date.today() + timedelta(days=dias)
-        ini = datetime.combine(objetivo, datetime.min.time())
-        fin = ini + timedelta(days=1)
-
-        reservas = (
-            Reserva.query
-            .filter(Reserva.estado == EstadoReservaEnum.CONFIRMADO)
-            .filter(Reserva.inicio >= ini, Reserva.inicio < fin)
-            .all()
-        )
-        enviados = 0
-        for r in reservas:
-            if r.cliente and r.cliente.email:
-                notificar_recordatorio(r)
-                enviados += 1
         click.echo(f"Recordatorios enviados: {enviados} (para {objetivo.isoformat()}).")
 
     @app.cli.command("crear-super-admin")
@@ -96,23 +78,7 @@ def register_commands(app):
         click.echo(f"Super Admin {accion}: {email}")
 
     @app.cli.command("vencer-suscripciones")
-    def vencer_suscripciones():
-        """
-        Marca como VENCIDA toda suscripción TRIAL/ACTIVA cuya vigencia ya pasó.
-        Pensado para correrse una vez por día (cron/Celery beat). Tras esto,
-        esos negocios quedan en solo lectura (puede_operar = False).
-        """
-        from app.models.negocio import Negocio, EstadoSuscripcionEnum
-
-        candidatos = Negocio.query.filter(
-            Negocio.estado_suscripcion.in_([
-                EstadoSuscripcionEnum.TRIAL, EstadoSuscripcionEnum.ACTIVA,
-            ])
-        ).all()
-        vencidos = 0
-        for n in candidatos:
-            if n.esta_vencido:
-                n.estado_suscripcion = EstadoSuscripcionEnum.VENCIDA
-                vencidos += 1
-        db.session.commit()
-        click.echo(f"Suscripciones vencidas: {vencidos}.")
+    def vencer_suscripciones_cmd():
+        """Marca como VENCIDA las suscripciones expiradas (cron/Celery beat)."""
+        from app.suscripciones import vencer_suscripciones
+        click.echo(f"Suscripciones vencidas: {vencer_suscripciones()}.")

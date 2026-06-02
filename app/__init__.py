@@ -47,6 +47,15 @@ def create_app(config_class=None):
     # 6) Manejadores de error amigables (402/403/404/500).
     register_error_handlers(app)
 
+    # 7) Celery (tareas async/programadas). Importar el módulo de tareas
+    #    registra las shared_task con la instancia por defecto.
+    #    OJO: usar 'from app import tasks' (NO 'import app.tasks'): esto último
+    #    rebindea la variable local 'app' al paquete y create_app devolvería
+    #    el módulo en vez de la instancia Flask.
+    from app.celery_app import make_celery
+    make_celery(app)
+    from app import tasks as _tasks  # noqa: F401 - registra las shared_task
+
     return app
 
 

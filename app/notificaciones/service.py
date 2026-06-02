@@ -1,12 +1,18 @@
 """
 app/notificaciones/service.py
 -----------------------------
-Composición y envío de notificaciones de negocio (eventos de reservas).
+Notificaciones de negocio (eventos de reservas).
 
-Cada función es tolerante a fallos: si algo del envío falla, se loguea pero
-NO se propaga, para no romper el flujo principal (una reserva válida no debe
-fallar porque el email no salió).
+Diseño con Celery:
+  - Los senders privados (_enviar_*) hacen el trabajo real (componer + enviar),
+    tolerantes a fallos.
+  - Las funciones públicas notificar_* DESPACHAN una tarea Celery por id de
+    reserva. En modo eager (sin Redis) la tarea corre sincrónicamente; con
+    Redis + worker, se procesa en segundo plano.
+  - enviar_recordatorios() es un batch usado por el CLI y por Celery beat.
 """
+
+from datetime import date, datetime, timedelta
 
 from flask import current_app
 
@@ -19,40 +25,77 @@ def _negocio(reserva):
     return db.session.get(Negocio, reserva.negocio_id)
 
 
-def notificar_reserva_confirmada(reserva):
-    """Email al cliente avisando que su reserva quedó confirmada."""
+# ----------------------------------------------------------------------
+#  Senders reales (corren dentro de la tarea / del worker)
+# ----------------------------------------------------------------------
+def _enviar_confirmada(reserva):
     try:
-        enviar_email(
-            reserva.cliente.email,
-            f"Reserva confirmada · {reserva.servicio.nombre}",
-            "reserva_confirmada",
-            reserva=reserva, negocio=_negocio(reserva),
-        )
+        enviar_email(reserva.cliente.email,
+                     f"Reserva confirmada · {reserva.servicio.nombre}",
+                     "reserva_confirmada", reserva=reserva, negocio=_negocio(reserva))
     except Exception:
-        current_app.logger.exception("Fallo al notificar reserva confirmada %s", reserva.codigo)
+        current_app.logger.exception("Fallo notificando confirmada %s", reserva.codigo)
+
+
+def _enviar_pendiente(reserva, url_pago=None):
+    try:
+        enviar_email(reserva.cliente.email,
+                     f"Tu reserva está pendiente de pago · {reserva.servicio.nombre}",
+                     "reserva_pendiente", reserva=reserva, negocio=_negocio(reserva),
+                     url_pago=url_pago)
+    except Exception:
+        current_app.logger.exception("Fallo notificando pendiente %s", reserva.codigo)
+
+
+def _enviar_recordatorio(reserva):
+    try:
+        enviar_email(reserva.cliente.email,
+                     f"Recordatorio de tu turno · {reserva.servicio.nombre}",
+                     "recordatorio", reserva=reserva, negocio=_negocio(reserva))
+    except Exception:
+        current_app.logger.exception("Fallo enviando recordatorio %s", reserva.codigo)
+
+
+# ----------------------------------------------------------------------
+#  API pública: despacha tareas (async con Redis, sync en modo eager)
+# ----------------------------------------------------------------------
+def notificar_reserva_confirmada(reserva):
+    from app.tasks import notificar_reserva
+    notificar_reserva.delay(reserva.id, "confirmada")
 
 
 def notificar_reserva_pendiente(reserva, url_pago=None):
-    """Email al cliente con el detalle de la reserva pendiente de pago."""
-    try:
-        enviar_email(
-            reserva.cliente.email,
-            f"Tu reserva está pendiente de pago · {reserva.servicio.nombre}",
-            "reserva_pendiente",
-            reserva=reserva, negocio=_negocio(reserva), url_pago=url_pago,
-        )
-    except Exception:
-        current_app.logger.exception("Fallo al notificar reserva pendiente %s", reserva.codigo)
+    from app.tasks import notificar_reserva
+    notificar_reserva.delay(reserva.id, "pendiente", url_pago)
 
 
 def notificar_recordatorio(reserva):
-    """Email recordatorio previo al turno."""
-    try:
-        enviar_email(
-            reserva.cliente.email,
-            f"Recordatorio de tu turno · {reserva.servicio.nombre}",
-            "recordatorio",
-            reserva=reserva, negocio=_negocio(reserva),
-        )
-    except Exception:
-        current_app.logger.exception("Fallo al enviar recordatorio %s", reserva.codigo)
+    from app.tasks import notificar_reserva
+    notificar_reserva.delay(reserva.id, "recordatorio")
+
+
+# ----------------------------------------------------------------------
+#  Batch de recordatorios (CLI + Celery beat)
+# ----------------------------------------------------------------------
+def enviar_recordatorios(dias=1):
+    """
+    Envía recordatorios de las reservas confirmadas que ocurren dentro de
+    `dias` días. Devuelve la cantidad enviada.
+    """
+    from app.models.reserva import Reserva, EstadoReservaEnum
+
+    objetivo = date.today() + timedelta(days=dias)
+    ini = datetime.combine(objetivo, datetime.min.time())
+    fin = ini + timedelta(days=1)
+    reservas = (
+        Reserva.query
+        .filter(Reserva.estado == EstadoReservaEnum.CONFIRMADO)
+        .filter(Reserva.inicio >= ini, Reserva.inicio < fin)
+        .all()
+    )
+    enviados = 0
+    for r in reservas:
+        if r.cliente and r.cliente.email:
+            _enviar_recordatorio(r)
+            enviados += 1
+    return enviados

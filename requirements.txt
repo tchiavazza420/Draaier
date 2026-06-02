@@ -20,6 +20,10 @@ requests==2.32.3             # cliente HTTP para la API de Mercado Pago
 # ===== Notificaciones =====
 Flask-Mail==0.10.0           # envío de emails (confirmaciones, recordatorios)
 
+# ===== Tareas asíncronas / programadas =====
+celery==5.4.0                # cola de tareas (emails async, recordatorios)
+redis==5.2.1                 # broker/backend de Celery
+
 # ===== Utilidades =====
 python-dotenv==1.0.1         # carga de variables desde .env
 
