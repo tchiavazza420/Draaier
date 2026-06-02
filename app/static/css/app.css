@@ -1,11 +1,165 @@
-/* app.css — estilos propios. Por ahora mínimos; el tema por negocio
-   (colores, tipografía) se inyectará desde la base de datos más adelante. */
+/* ===========================================================================
+   Reservas SaaS — Design System moderno
+   Eleva los componentes de Bootstrap 5 globalmente: paleta, sombras, radios,
+   tipografía y microinteracciones. Las páginas públicas pueden sobrescribir
+   los colores con el branding de cada negocio (base_publico.html).
+   =========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --marca:        #6d28d9;
+  --marca-2:      #8b5cf6;
+  --marca-rgb:    109, 40, 217;
+  --tinta:        #0f1222;
+  --tinta-suave:  #5b6072;
+  --lienzo:       #f6f7fb;
+  --tarjeta:      #ffffff;
+  --borde:        #eceef4;
+  --radio:        16px;
+  --radio-sm:     12px;
+  --sombra-sm:    0 1px 2px rgba(16,18,34,.06), 0 1px 3px rgba(16,18,34,.04);
+  --sombra:       0 10px 30px rgba(16,18,34,.08);
+  --sombra-lg:    0 24px 60px rgba(16,18,34,.14);
+  --transicion:   .22s cubic-bezier(.4,0,.2,1);
+
+  --bs-primary: var(--marca);
+  --bs-body-color: var(--tinta);
+  --bs-body-bg: var(--lienzo);
+  --bs-border-color: var(--borde);
+  --bs-link-color: var(--marca);
+  --bs-link-hover-color: var(--marca-2);
+}
+
+* { -webkit-font-smoothing: antialiased; }
+[x-cloak] { display: none !important; }
 
 body {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  background:
+    radial-gradient(1200px 600px at 100% -10%, rgba(var(--marca-rgb), .07), transparent 60%),
+    radial-gradient(900px 500px at -10% 10%, rgba(14,165,233,.06), transparent 55%),
+    var(--lienzo);
+  color: var(--tinta);
   min-height: 100vh;
 }
 
-.card {
-  border: none;
-  border-radius: .75rem;
+h1, h2, h3, h4, h5, .fw-bold { letter-spacing: -.02em; }
+
+/* ---------- Navbar ---------- */
+.navbar.bg-dark {
+  background: rgba(15, 18, 34, .82) !important;
+  backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid rgba(255,255,255,.06);
 }
+.navbar .navbar-brand { letter-spacing: -.03em; }
+.brand-dot {
+  display:inline-block; width:.62rem; height:.62rem; border-radius:50%;
+  background: linear-gradient(135deg, var(--marca-2), var(--marca));
+  box-shadow: 0 0 0 4px rgba(var(--marca-rgb), .25); margin-right:.5rem;
+}
+
+/* ---------- Cards ---------- */
+.card {
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  background: var(--tarjeta);
+  box-shadow: var(--sombra-sm);
+  transition: transform var(--transicion), box-shadow var(--transicion);
+}
+.card.hover-lift:hover,
+.list-group-item-action:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--sombra);
+}
+
+/* ---------- Botones ---------- */
+.btn { border-radius: 999px; font-weight: 600; transition: transform var(--transicion), box-shadow var(--transicion), filter var(--transicion); }
+.btn:active { transform: translateY(1px) scale(.99); }
+.btn-primary, .btn-success {
+  background-image: linear-gradient(135deg, var(--marca-2), var(--marca));
+  border: none;
+  box-shadow: 0 8px 20px rgba(var(--marca-rgb), .28);
+}
+.btn-primary:hover, .btn-success:hover { filter: brightness(1.06); box-shadow: 0 12px 26px rgba(var(--marca-rgb), .36); }
+.btn-outline-primary { border-color: var(--marca); color: var(--marca); }
+.btn-outline-primary:hover { background: var(--marca); border-color: var(--marca); }
+.btn-lg { padding: .8rem 1.5rem; }
+
+/* ---------- Badges ---------- */
+.badge { border-radius: 999px; font-weight: 600; padding: .4em .75em; }
+
+/* ---------- Formularios ---------- */
+.form-control, .form-select {
+  border-radius: var(--radio-sm);
+  border-color: var(--borde);
+  padding: .6rem .85rem;
+  transition: border-color var(--transicion), box-shadow var(--transicion);
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--marca);
+  box-shadow: 0 0 0 4px rgba(var(--marca-rgb), .14);
+}
+.form-control-color { padding: .25rem; height: 2.6rem; }
+
+/* ---------- Tablas ---------- */
+.table { --bs-table-bg: transparent; }
+.table > :not(caption) > * > * { padding: .85rem .75rem; }
+.table thead th { font-size: .76rem; text-transform: uppercase; letter-spacing: .04em; color: var(--tinta-suave); border-bottom: 1px solid var(--borde); }
+.table tbody tr { transition: background var(--transicion); }
+.table-hover tbody tr:hover, .table tbody tr[onclick]:hover { background: rgba(var(--marca-rgb), .04); }
+
+/* ---------- Menú dropdown (Alpine) ---------- */
+.menu-pop {
+  position: absolute; right: 0; top: calc(100% + 10px);
+  min-width: 244px; background: #fff; border: 1px solid var(--borde);
+  border-radius: var(--radio); box-shadow: var(--sombra-lg); padding: .5rem;
+  z-index: 1050;
+}
+.menu-pop a {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .58rem .7rem; border-radius: 10px; color: var(--tinta);
+  text-decoration: none; font-weight: 600; font-size: .92rem;
+  transition: background var(--transicion), color var(--transicion);
+}
+.menu-pop a:hover { background: rgba(var(--marca-rgb), .08); color: var(--marca); }
+.menu-pop .menu-emoji { width: 1.4rem; text-align: center; }
+.menu-sep { height:1px; background: var(--borde); margin:.4rem .2rem; }
+
+/* ---------- Animaciones de entrada ---------- */
+@keyframes subir { from { opacity:0; transform: translateY(14px); } to { opacity:1; transform:none; } }
+@keyframes aparecer { from { opacity:0; } to { opacity:1; } }
+.animar  { animation: subir .55s cubic-bezier(.2,.7,.2,1) both; }
+.animar-2 { animation: subir .55s .08s cubic-bezier(.2,.7,.2,1) both; }
+.animar-3 { animation: subir .55s .16s cubic-bezier(.2,.7,.2,1) both; }
+.aparecer { animation: aparecer .8s ease both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, .animar, .animar-2, .animar-3, .aparecer { animation: none !important; transition: none !important; }
+}
+
+/* ---------- Hero del landing ---------- */
+.hero {
+  position: relative; overflow: hidden; border-radius: 28px;
+  background: linear-gradient(135deg, #1b1140 0%, #3b1d7a 45%, #6d28d9 100%);
+  color: #fff; padding: clamp(2.5rem, 6vw, 5rem);
+}
+.hero::after {
+  content:''; position:absolute; inset:0;
+  background:
+    radial-gradient(600px 300px at 90% 10%, rgba(255,255,255,.18), transparent 60%),
+    radial-gradient(500px 300px at 0% 100%, rgba(14,165,233,.25), transparent 60%);
+  pointer-events:none;
+}
+.hero h1 { font-weight: 800; line-height: 1.05; }
+.hero .lead { color: rgba(255,255,255,.85); }
+.chip {
+  display:inline-flex; align-items:center; gap:.4rem;
+  background: rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.18);
+  color:#fff; padding:.35rem .8rem; border-radius:999px; font-size:.82rem; font-weight:600;
+}
+.feature-ico {
+  width: 48px; height: 48px; border-radius: 14px; display:grid; place-items:center;
+  font-size: 1.4rem; background: rgba(var(--marca-rgb), .1);
+}
+.stat-num { font-weight: 800; letter-spacing: -.03em; }

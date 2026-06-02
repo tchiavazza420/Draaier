@@ -3,73 +3,76 @@
 {% block title %}Panel · {{ negocio.nombre }}{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h1 class="h3 mb-0">Panel de {{ negocio.nombre }}</h1>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4 animar">
   <div>
-    <a class="btn btn-success btn-sm" href="{{ url_for('reservas.agenda') }}">Agenda</a>
-    <a class="btn btn-success btn-sm" href="{{ url_for('reservas.listar') }}">Actividad</a>
-    <a class="btn btn-primary btn-sm" href="{{ url_for('recursos.listar') }}">Recursos</a>
-    <a class="btn btn-primary btn-sm" href="{{ url_for('servicios.listar') }}">Servicios</a>
-    <a class="btn btn-primary btn-sm" href="{{ url_for('disponibilidad.index') }}">Disponibilidad</a>
-    <a class="btn btn-primary btn-sm" href="{{ url_for('clientes.listar') }}">Clientes</a>
-    <a class="btn btn-primary btn-sm" href="{{ url_for('resenas.listar') }}">Reseñas</a>
-    <a class="btn btn-primary btn-sm" href="{{ url_for('reportes.index') }}">Reportes</a>
-    <a class="btn btn-outline-primary btn-sm" href="{{ url_for('panel.configuracion') }}">Configuración</a>
-    <a class="btn btn-outline-primary btn-sm" href="{{ url_for('panel.personalizacion') }}">Personalización</a>
-    <a class="btn btn-outline-secondary btn-sm"
-       href="{{ url_for('publico.perfil_negocio', slug=negocio.slug) }}" target="_blank">
-      Ver página pública ↗
-    </a>
+    <h1 class="h3 mb-0">Hola, {{ current_user.nombre }} 👋</h1>
+    <p class="text-muted mb-0">{{ negocio.nombre }}</p>
   </div>
+  <a class="btn btn-outline-primary btn-sm"
+     href="{{ url_for('publico.perfil_negocio', slug=negocio.slug) }}" target="_blank">
+    Ver página pública ↗
+  </a>
 </div>
 
 {% if negocio.estado_suscripcion.value == 'trial' and dias_trial_restantes is not none %}
-  <div class="alert alert-info">
-    Estás en período de prueba: <strong>{{ dias_trial_restantes }} días restantes</strong>.
+  <div class="alert alert-info border-0 rounded-4 animar">
+    🎁 Estás en período de prueba: <strong>{{ dias_trial_restantes }} días restantes</strong>.
   </div>
 {% elif not negocio.puede_operar %}
-  <div class="alert alert-warning">
-    Tu suscripción está <strong>{{ negocio.estado_suscripcion.value }}</strong>.
+  <div class="alert alert-warning border-0 rounded-4 animar">
+    ⚠️ Tu suscripción está <strong>{{ negocio.estado_suscripcion.value }}</strong>.
     Podés consultar tus datos, pero no crear nuevas reservas hasta regularizar el pago.
   </div>
 {% endif %}
 
-<div class="row g-3">
-  <div class="col-md-4">
-    <div class="card h-100">
-      <div class="card-body">
-        <h2 class="h6 text-muted">Rubro</h2>
-        <p class="h5 mb-0">{{ negocio.rubro.value.replace('_',' ').title() }}</p>
+<!-- Resumen -->
+<div class="row g-3 mb-4">
+  {% set resumen = [
+    ('Rubro', negocio.rubro.value.replace('_',' ').title(), '🏷️'),
+    ('Plan', (negocio.plan.value if negocio.plan else '—').title(), '💎'),
+    ('Estado', negocio.estado_suscripcion.value.title(), '✅')
+  ] %}
+  {% for tit, val, ico in resumen %}
+    <div class="col-md-4">
+      <div class="card hover-lift h-100 animar-{{ loop.index }}">
+        <div class="card-body d-flex align-items-center gap-3">
+          <div class="feature-ico">{{ ico }}</div>
+          <div>
+            <div class="text-muted small">{{ tit }}</div>
+            <div class="h5 mb-0 stat-num">{{ val }}</div>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-  <div class="col-md-4">
-    <div class="card h-100">
-      <div class="card-body">
-        <h2 class="h6 text-muted">Plan</h2>
-        <p class="h5 mb-0">{{ (negocio.plan.value if negocio.plan else '—').title() }}</p>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-4">
-    <div class="card h-100">
-      <div class="card-body">
-        <h2 class="h6 text-muted">Estado</h2>
-        <p class="h5 mb-0">{{ negocio.estado_suscripcion.value.title() }}</p>
-      </div>
-    </div>
-  </div>
+  {% endfor %}
 </div>
 
-<div class="card mt-4">
-  <div class="card-body">
-    <h2 class="h6 text-muted mb-3">Próximamente en tu panel</h2>
-    <ul class="mb-0 text-muted">
-      <li>Recursos (personas, canchas, salas, consultorios)</li>
-      <li>Servicios y precios</li>
-      <li>Agenda y reservas</li>
-      <li>Clientes y reseñas</li>
-    </ul>
-  </div>
+<!-- Accesos rápidos -->
+<h2 class="h6 text-muted mb-3">Accesos rápidos</h2>
+<div class="row g-3">
+  {% set accesos = [
+    ('🗓️','Agenda','Calendario de turnos', url_for('reservas.agenda')),
+    ('📋','Actividad','Todas tus reservas', url_for('reservas.listar')),
+    ('🧩','Recursos','Personas, canchas, salas', url_for('recursos.listar')),
+    ('✂️','Servicios','Duración y precios', url_for('servicios.listar')),
+    ('⏰','Disponibilidad','Horarios y bloqueos', url_for('disponibilidad.index')),
+    ('👤','Clientes','Cartera y historial', url_for('clientes.listar')),
+    ('⭐','Reseñas','Opiniones y respuestas', url_for('resenas.listar')),
+    ('📊','Reportes','Ingresos y métricas', url_for('reportes.index')),
+    ('🎨','Personalización','Logo, colores, plantilla', url_for('panel.personalizacion'))
+  ] %}
+  {% for ico, tit, desc, href in accesos %}
+    <div class="col-6 col-md-4">
+      <a class="text-decoration-none text-reset" href="{{ href }}">
+        <div class="card hover-lift h-100">
+          <div class="card-body">
+            <div class="feature-ico mb-2">{{ ico }}</div>
+            <div class="fw-semibold">{{ tit }}</div>
+            <small class="text-muted">{{ desc }}</small>
+          </div>
+        </div>
+      </a>
+    </div>
+  {% endfor %}
 </div>
 {% endblock %}

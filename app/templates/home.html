@@ -1,21 +1,86 @@
 {% extends "base.html" %}
 
-{% block title %}Reservas SaaS · Sistema de turnos y reservas{% endblock %}
+{% block title %}Reservas SaaS · Tu sistema de turnos para cualquier rubro{% endblock %}
 
 {% block content %}
-<div class="text-center py-5">
-  <h1 class="display-5 fw-bold">Tu sistema de reservas, para cualquier rubro</h1>
-  <p class="lead text-muted col-lg-8 mx-auto">
-    Manicuras, peluquerías, canchas, consultorios, coworking y más.
-    Gestioná tu agenda, cobrá señas y recibí reservas online.
-  </p>
-  <div class="mt-4">
-    {% if current_user.is_authenticated %}
-      <a class="btn btn-primary btn-lg" href="{{ url_for('panel.dashboard') }}">Ir a mi panel</a>
-    {% else %}
-      <a class="btn btn-primary btn-lg" href="{{ url_for('auth.registro') }}">Empezar gratis</a>
-      <a class="btn btn-outline-secondary btn-lg" href="{{ url_for('auth.login') }}">Ingresar</a>
-    {% endif %}
+<!-- HERO -->
+<section class="hero animar mb-5">
+  <div class="row align-items-center g-4">
+    <div class="col-lg-7">
+      <span class="chip mb-3">✨ Multi-rubro · Multi-tenant</span>
+      <h1 class="display-4 mb-3">Tu agenda de reservas,<br>en piloto automático.</h1>
+      <p class="lead mb-4 col-lg-11">
+        Peluquerías, barberías, canchas, consultorios, spa, coworking y más.
+        Recibí reservas online 24/7, cobrá señas y reducí los ausentes con
+        recordatorios automáticos.
+      </p>
+      <div class="d-flex flex-wrap gap-2">
+        {% if current_user.is_authenticated %}
+          <a class="btn btn-light btn-lg" href="{{ url_for('panel.dashboard') }}">Ir a mi panel</a>
+        {% else %}
+          <a class="btn btn-light btn-lg" href="{{ url_for('auth.registro') }}">Empezar gratis →</a>
+          <a class="btn btn-outline-light btn-lg" href="{{ url_for('marketplace.index') }}">Explorar negocios</a>
+        {% endif %}
+      </div>
+      <div class="d-flex flex-wrap gap-2 mt-4">
+        <span class="chip">14 días gratis</span>
+        <span class="chip">Sin tarjeta</span>
+        <span class="chip">Instalable (PWA)</span>
+      </div>
+    </div>
+    <div class="col-lg-5">
+      <div class="aparecer" style="animation-delay:.2s">
+        <div class="bg-white text-dark rounded-4 p-3 shadow-lg">
+          <div class="d-flex justify-content-between align-items-center mb-3 px-1">
+            <strong>Hoy</strong><span class="badge bg-success-subtle text-success-emphasis">3 turnos</span>
+          </div>
+          {% for h, s, c, col in [('10:00','Corte','Lucas P.','#7c3aed'), ('11:30','Color','Mara G.','#f59e0b'), ('16:00','Corte + Barba','Tomás R.','#0ea5e9')] %}
+            <div class="d-flex align-items-center gap-3 p-2 mb-2 rounded-3" style="background:#f6f7fb">
+              <span style="width:8px;height:38px;border-radius:6px;background:{{ col }}"></span>
+              <div class="flex-grow-1">
+                <div class="fw-semibold">{{ s }}</div>
+                <small class="text-muted">{{ c }}</small>
+              </div>
+              <span class="badge bg-light text-dark">{{ h }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<div class="row g-3 mb-5">
+  {% set feats = [
+    ('🗓️','Agenda inteligente','Calendario por recurso, con disponibilidad calculada en tiempo real.'),
+    ('💳','Cobrá señas','Mercado Pago, Naranja X y Modo. La reserva se confirma al pagar.'),
+    ('🔔','Recordatorios','Email y WhatsApp automáticos para reducir los ausentes.'),
+    ('🌐','Página propia','Tu mini-sitio con tu logo, colores y reservas online 24/7.'),
+    ('⭐','Reseñas','Calificaciones reales de clientes con reserva finalizada.'),
+    ('📊','Reportes','Ingresos, servicios top y export a CSV.')
+  ] %}
+  {% for ico, tit, desc in feats %}
+    <div class="col-md-4">
+      <div class="card hover-lift h-100">
+        <div class="card-body p-4">
+          <div class="feature-ico mb-3">{{ ico }}</div>
+          <h2 class="h5">{{ tit }}</h2>
+          <p class="text-muted mb-0">{{ desc }}</p>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<!-- CTA -->
+{% if not current_user.is_authenticated %}
+<div class="card text-center hover-lift mb-3">
+  <div class="card-body p-5">
+    <h2 class="h3 mb-2">Empezá hoy, gratis.</h2>
+    <p class="text-muted mb-4">Creá tu negocio en 2 minutos y recibí tu primera reserva.</p>
+    <a class="btn btn-primary btn-lg" href="{{ url_for('auth.registro') }}">Crear mi cuenta →</a>
   </div>
 </div>
+{% endif %}
 {% endblock %}
