@@ -1,8 +1,14 @@
 # ===========================================================================
-#  Render Blueprint — despliega web + worker + beat + Postgres + Redis
+#  Render Blueprint — versión PLAN FREE (web + Postgres)
+#
+#  El plan free de Render no incluye background workers ni preDeployCommand,
+#  así que acá Celery corre en modo EAGER (las tareas se ejecutan dentro del
+#  proceso web, sin worker ni Redis). Las migraciones + seed corren al arrancar.
+#
+#  Para escalar a async real (worker + beat + Redis), descomentá la sección de
+#  más abajo y pasá los servicios a un plan pago (Starter).
+#
 #  Subí el repo a GitHub y en Render: New > Blueprint > seleccioná este repo.
-#  Render lee este archivo y crea todo. Completá las env vars de pagos/email
-#  desde el panel si las necesitás.
 # ===========================================================================
 
 databases:
@@ -11,123 +17,74 @@ databases:
     plan: free
 
 services:
-  # --- Redis (Key Value) para Celery ---
-  - type: keyvalue
-    name: reservas-redis
-    plan: free
-    ipAllowList: []   # solo accesible desde los servicios de Render
-
   # --- Web (gunicorn) ---
   - type: web
     name: reservas-web
     runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    preDeployCommand: flask db upgrade && flask seed-roles
-    startCommand: gunicorn -c gunicorn.conf.py wsgi:app
+    # En free no hay preDeployCommand: migramos + seed al arrancar (idempotente).
+    startCommand: flask db upgrade && flask seed-roles && gunicorn -c gunicorn.conf.py wsgi:app
     envVars:
       - key: FLASK_APP
         value: run.py
       - key: FLASK_ENV
         value: production
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      # Sin worker en free -> Celery corre síncrono (eager).
       - key: CELERY_EAGER
-        value: "false"
+        value: "true"
       - key: SECRET_KEY
         generateValue: true
       - key: DATABASE_URL
         fromDatabase:
           name: reservas-db
           property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: keyvalue
-          name: reservas-redis
-          property: connectionString
-      - key: CELERY_BROKER_URL
-        fromService:
-          type: keyvalue
-          name: reservas-redis
-          property: connectionString
-      - key: CELERY_RESULT_BACKEND
-        fromService:
-          type: keyvalue
-          name: reservas-redis
-          property: connectionString
 
-  # --- Worker de Celery ---
-  - type: worker
-    name: reservas-worker
-    runtime: python
-    plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: celery -A celery_worker.celery worker --loglevel=info
-    envVars:
-      - key: FLASK_APP
-        value: run.py
-      - key: FLASK_ENV
-        value: production
-      - key: CELERY_EAGER
-        value: "false"
-      - key: SECRET_KEY
-        fromService:
-          type: web
-          name: reservas-web
-          envVarKey: SECRET_KEY
-      - key: DATABASE_URL
-        fromDatabase:
-          name: reservas-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: keyvalue
-          name: reservas-redis
-          property: connectionString
-      - key: CELERY_BROKER_URL
-        fromService:
-          type: keyvalue
-          name: reservas-redis
-          property: connectionString
-      - key: CELERY_RESULT_BACKEND
-        fromService:
-          type: keyvalue
-          name: reservas-redis
-          property: connectionString
-
-  # --- Beat (scheduler de Celery) ---
-  - type: worker
-    name: reservas-beat
-    runtime: python
-    plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: celery -A celery_worker.celery beat --loglevel=info
-    envVars:
-      - key: FLASK_APP
-        value: run.py
-      - key: FLASK_ENV
-        value: production
-      - key: CELERY_EAGER
-        value: "false"
-      - key: SECRET_KEY
-        fromService:
-          type: web
-          name: reservas-web
-          envVarKey: SECRET_KEY
-      - key: DATABASE_URL
-        fromDatabase:
-          name: reservas-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: keyvalue
-          name: reservas-redis
-          property: connectionString
-      - key: CELERY_BROKER_URL
-        fromService:
-          type: keyvalue
-          name: reservas-redis
-          property: connectionString
-      - key: CELERY_RESULT_BACKEND
-        fromService:
-          type: keyvalue
-          name: reservas-redis
-          property: connectionString
+# ===========================================================================
+#  ESCALADO A ASYNC (plan pago) — descomentar y poner plan: starter
+# ===========================================================================
+#  - type: keyvalue
+#    name: reservas-redis
+#    plan: starter
+#    ipAllowList: []
+#
+#  - type: worker
+#    name: reservas-worker
+#    runtime: python
+#    plan: starter
+#    buildCommand: pip install -r requirements.txt
+#    startCommand: celery -A celery_worker.celery worker --loglevel=info
+#    envVars:
+#      - key: FLASK_APP
+#        value: run.py
+#      - key: CELERY_EAGER
+#        value: "false"
+#      - key: SECRET_KEY
+#        fromService: { type: web, name: reservas-web, envVarKey: SECRET_KEY }
+#      - key: DATABASE_URL
+#        fromDatabase: { name: reservas-db, property: connectionString }
+#      - key: REDIS_URL
+#        fromService: { type: keyvalue, name: reservas-redis, property: connectionString }
+#
+#  - type: worker
+#    name: reservas-beat
+#    runtime: python
+#    plan: starter
+#    buildCommand: pip install -r requirements.txt
+#    startCommand: celery -A celery_worker.celery beat --loglevel=info
+#    envVars:
+#      - key: FLASK_APP
+#        value: run.py
+#      - key: CELERY_EAGER
+#        value: "false"
+#      - key: SECRET_KEY
+#        fromService: { type: web, name: reservas-web, envVarKey: SECRET_KEY }
+#      - key: DATABASE_URL
+#        fromDatabase: { name: reservas-db, property: connectionString }
+#      - key: REDIS_URL
+#        fromService: { type: keyvalue, name: reservas-redis, property: connectionString }
+#
+#  En la web (para usar Redis/worker): cambiar CELERY_EAGER a "false" y agregar
+#  REDIS_URL / CELERY_BROKER_URL / CELERY_RESULT_BACKEND desde reservas-redis.
