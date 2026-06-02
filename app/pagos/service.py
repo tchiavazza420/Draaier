@@ -16,9 +16,11 @@ from decimal import Decimal
 from flask import current_app, url_for
 
 from app.extensions import db
+from app.models.negocio import Negocio
 from app.models.pago import Pago, PagoEstadoEnum, ProveedorPagoEnum
 from app.models.reserva import EstadoReservaEnum
 from app.pagos import mercadopago
+from app.pagos.gateways import gateway_para
 
 
 class PagoError(Exception):
@@ -29,21 +31,23 @@ def iniciar_pago_sena(reserva, servicio):
     """
     Crea un Pago de seña para la reserva y devuelve (pago, url_checkout).
 
-    - Con Mercado Pago configurado: crea la preferencia y url_checkout es el
-      init_point real.
-    - En modo simulación: url_checkout apunta al checkout interno de desarrollo.
+    Usa la pasarela elegida por el negocio (Mercado Pago / Naranja X / Modo).
+    Si esa pasarela no tiene credenciales, cae a checkout simulado (desarrollo).
     """
     monto = servicio.sena_monto or Decimal("0")
     if monto <= 0:
         raise PagoError("El servicio no tiene un monto de seña válido.")
 
-    simulado = not mercadopago.esta_configurado()
+    negocio = db.session.get(Negocio, reserva.negocio_id)
+    gateway, proveedor = gateway_para(negocio)
+    simulado = not gateway.esta_configurado()
+
     pago = Pago(
         negocio_id=reserva.negocio_id,
         reserva_id=reserva.id,
         monto=monto,
         estado=PagoEstadoEnum.PENDIENTE,
-        proveedor=ProveedorPagoEnum.SIMULADO if simulado else ProveedorPagoEnum.MERCADOPAGO,
+        proveedor=ProveedorPagoEnum.SIMULADO if simulado else proveedor,
         es_sena=True,
     )
     db.session.add(pago)
@@ -55,10 +59,10 @@ def iniciar_pago_sena(reserva, servicio):
         back = current_app.config["SITE_URL"] + url_for("pagos.retorno")
         notif = current_app.config["SITE_URL"] + url_for("pagos.webhook_mercadopago")
         titulo = f"Seña - {servicio.nombre}"
-        pref_id, init_point = mercadopago.crear_preferencia(pago, titulo, back, notif)
-        pago.preference_id = pref_id
-        pago.init_point = init_point
-        url = init_point
+        ref, checkout_url = gateway.crear_preferencia(pago, titulo, back, notif)
+        pago.preference_id = ref
+        pago.init_point = checkout_url
+        url = checkout_url
 
     db.session.commit()
     return pago, url

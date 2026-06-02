@@ -14,6 +14,7 @@ from app.models.negocio import (
     PlanEnum,
     EstadoSuscripcionEnum,
     TemplatePublicoEnum,
+    MetodoPagoEnum,
 )
 from app.models.rol import Rol, RolEnum
 from app.models.usuario import Usuario
@@ -32,6 +33,7 @@ __all__ = [
     "PlanEnum",
     "EstadoSuscripcionEnum",
     "TemplatePublicoEnum",
+    "MetodoPagoEnum",
     "Rol",
     "RolEnum",
     "Usuario",

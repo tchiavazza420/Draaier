@@ -68,6 +68,13 @@ class TemplatePublicoEnum(enum.Enum):
     PREMIUM = "premium"
 
 
+class MetodoPagoEnum(enum.Enum):
+    """Pasarela de pago que el negocio usa para cobrar señas."""
+    MERCADOPAGO = "mercadopago"
+    NARANJA_X = "naranja_x"
+    MODO = "modo"
+
+
 class Negocio(TimestampMixin, db.Model):
     """El tenant. Todo el sistema se aísla por negocio.id."""
 
@@ -91,6 +98,12 @@ class Negocio(TimestampMixin, db.Model):
 
     # --- Marketplace ---
     visible_marketplace = db.Column(db.Boolean, nullable=False, default=False)
+
+    # --- Pasarela de pago preferida (para cobrar señas) ---
+    metodo_pago = db.Column(
+        db.Enum(MetodoPagoEnum, native_enum=False, length=20),
+        nullable=False, default=MetodoPagoEnum.MERCADOPAGO,
+    )
 
     # --- Personalización / branding ---
     logo_filename = db.Column(db.String(200), nullable=True)

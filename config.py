@@ -49,11 +49,13 @@ class BaseConfig:
         "broker_connection_retry_on_startup": True,
     }
 
-    # --- Mercado Pago ---
-    # Si no hay access token, el módulo de pagos funciona en MODO SIMULACIÓN
-    # (checkout interno para desarrollo). Con token, usa Checkout Pro real.
+    # --- Pasarelas de pago ---
+    # Sin access token, cada pasarela cae a MODO SIMULACIÓN (checkout interno
+    # para desarrollo). Con token, usa la API real.
     MERCADOPAGO_ACCESS_TOKEN = os.environ.get("MERCADOPAGO_ACCESS_TOKEN")
     MERCADOPAGO_PUBLIC_KEY = os.environ.get("MERCADOPAGO_PUBLIC_KEY")
+    NARANJA_X_ACCESS_TOKEN = os.environ.get("NARANJA_X_ACCESS_TOKEN")
+    MODO_ACCESS_TOKEN = os.environ.get("MODO_ACCESS_TOKEN")
 
     # URL base pública del sitio (para back_urls y webhooks de Mercado Pago).
     SITE_URL = os.environ.get("SITE_URL", "http://127.0.0.1:5000")
