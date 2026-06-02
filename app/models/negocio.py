@@ -59,6 +59,14 @@ class EstadoSuscripcionEnum(enum.Enum):
     CANCELADA = "cancelada"  # dada de baja
 
 
+class TemplatePublicoEnum(enum.Enum):
+    """Plantilla visual de la página pública del negocio."""
+    MINIMAL = "minimal"
+    ELEGANTE = "elegante"
+    MODERNO = "moderno"
+    PREMIUM = "premium"
+
+
 class Negocio(TimestampMixin, db.Model):
     """El tenant. Todo el sistema se aísla por negocio.id."""
 
@@ -82,6 +90,21 @@ class Negocio(TimestampMixin, db.Model):
 
     # --- Marketplace ---
     visible_marketplace = db.Column(db.Boolean, nullable=False, default=False)
+
+    # --- Personalización / branding ---
+    logo_filename = db.Column(db.String(200), nullable=True)
+    banner_filename = db.Column(db.String(200), nullable=True)
+    color_primario = db.Column(db.String(7), nullable=False, default="#0d6efd")
+    color_secundario = db.Column(db.String(7), nullable=False, default="#111827")
+    tipografia = db.Column(db.String(60), nullable=False, default="Inter")
+    template_publico = db.Column(
+        db.Enum(TemplatePublicoEnum, native_enum=False, length=20),
+        nullable=False, default=TemplatePublicoEnum.MINIMAL,
+    )
+    descripcion_publica = db.Column(db.Text, nullable=True)
+    instagram = db.Column(db.String(120), nullable=True)
+    facebook = db.Column(db.String(120), nullable=True)
+    whatsapp = db.Column(db.String(40), nullable=True)
 
     # --- Estado general ---
     activo = db.Column(db.Boolean, nullable=False, default=True)

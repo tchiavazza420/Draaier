@@ -1,0 +1,51 @@
+{# Base de las páginas públicas: aplica el branding del negocio (colores,
+   tipografía, plantilla) e inserta el banner/logo. Las páginas públicas
+   definen el bloque `publico` en lugar de `content`. #}
+{% extends "base.html" %}
+
+{% block head_extra %}
+<link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family={{ negocio.tipografia|replace(' ', '+') }}:wght@400;600;700&display=swap">
+<style>
+  :root { --marca: {{ negocio.color_primario }}; --marca2: {{ negocio.color_secundario }}; }
+  body { font-family: '{{ negocio.tipografia }}', system-ui, sans-serif; }
+  .btn-primary, .btn-success {
+    background: var(--marca); border-color: var(--marca);
+  }
+  .btn-primary:hover, .btn-success:hover { background: var(--marca); border-color: var(--marca); filter: brightness(.92); }
+  .btn-outline-success { color: var(--marca); border-color: var(--marca); }
+  .btn-outline-success:hover { background: var(--marca); border-color: var(--marca); color:#fff; }
+  a { color: var(--marca); }
+  .marca-titulo { color: var(--marca2); }
+  /* Variantes de plantilla */
+  .tema-premium .card { box-shadow: 0 12px 34px rgba(0,0,0,.10); border-radius: 16px; }
+  .tema-elegante { letter-spacing: .2px; }
+  .tema-moderno .card { border-radius: 14px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="tema-{{ negocio.template_publico.value }}">
+  <div class="d-flex align-items-center gap-3 mb-3">
+    {% if negocio.logo_filename %}
+      <img src="{{ url_for('static', filename=negocio.logo_filename) }}"
+           alt="{{ negocio.nombre }}" style="height:54px;width:54px;object-fit:cover;border-radius:12px">
+    {% endif %}
+  </div>
+
+  {% if negocio.banner_filename %}
+    <div class="rounded mb-4"
+         style="height:180px;background:url('{{ url_for('static', filename=negocio.banner_filename) }}') center/cover;"></div>
+  {% endif %}
+
+  {% block publico %}{% endblock %}
+
+  {% if negocio.instagram or negocio.facebook or negocio.whatsapp %}
+    <div class="text-center text-muted small mt-4">
+      {% if negocio.instagram %}<a href="https://instagram.com/{{ negocio.instagram|replace('@','') }}" class="me-2">Instagram</a>{% endif %}
+      {% if negocio.facebook %}<a href="{{ negocio.facebook }}" class="me-2">Facebook</a>{% endif %}
+      {% if negocio.whatsapp %}<a href="https://wa.me/{{ negocio.whatsapp|replace('+','')|replace(' ','') }}">WhatsApp</a>{% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

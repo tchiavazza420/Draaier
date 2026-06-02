@@ -25,6 +25,9 @@ instance/
 *.db
 *.sqlite3
 
+# ===== Uploads de usuarios (logos, banners) =====
+app/static/uploads/
+
 # ===== Migraciones (se versionan, pero ignoramos caché) =====
 migrations/__pycache__/
 

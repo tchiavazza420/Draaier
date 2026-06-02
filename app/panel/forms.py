@@ -6,10 +6,14 @@ La personalización visual (logo, colores, etc.) se agrega en el Paso 12.
 """
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, BooleanField, SelectField, SubmitField
-from wtforms.validators import DataRequired, Length, Optional, Email
+from flask_wtf.file import FileField, FileAllowed
+from wtforms import StringField, BooleanField, SelectField, SubmitField, TextAreaField
+from wtforms.validators import DataRequired, Length, Optional, Email, Regexp
 
-from app.models.negocio import RubroEnum
+from app.models.negocio import RubroEnum, TemplatePublicoEnum
+
+_HEX = Regexp(r"^#[0-9A-Fa-f]{6}$", message="Color hex, ej: #0d6efd.")
+_FUENTES = ["Inter", "Roboto", "Poppins", "Montserrat", "Lora", "Nunito"]
 
 
 class NegocioConfigForm(FlaskForm):
@@ -24,3 +28,25 @@ class NegocioConfigForm(FlaskForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.rubro.choices = [(r.value, r.value.replace("_", " ").title()) for r in RubroEnum]
+
+
+class PersonalizacionForm(FlaskForm):
+    logo = FileField("Logo", validators=[
+        Optional(), FileAllowed(["png", "jpg", "jpeg", "webp", "gif"], "Solo imágenes.")])
+    banner = FileField("Banner", validators=[
+        Optional(), FileAllowed(["png", "jpg", "jpeg", "webp", "gif"], "Solo imágenes.")])
+    color_primario = StringField("Color primario", validators=[DataRequired(), _HEX], default="#0d6efd")
+    color_secundario = StringField("Color secundario", validators=[DataRequired(), _HEX], default="#111827")
+    tipografia = SelectField("Tipografía", choices=[(f, f) for f in _FUENTES])
+    template_publico = SelectField("Plantilla visual")
+    descripcion_publica = TextAreaField("Descripción pública", validators=[Optional(), Length(max=2000)])
+    instagram = StringField("Instagram", validators=[Optional(), Length(max=120)])
+    facebook = StringField("Facebook", validators=[Optional(), Length(max=120)])
+    whatsapp = StringField("WhatsApp", validators=[Optional(), Length(max=40)])
+    submit = SubmitField("Guardar personalización")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.template_publico.choices = [
+            (t.value, t.value.title()) for t in TemplatePublicoEnum
+        ]

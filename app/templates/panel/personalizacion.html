@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% from "_macros.html" import render_field %}
+{% block title %}Personalización · Panel{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">Personalización</h1>
+  <div>
+    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('panel.dashboard') }}">← Panel</a>
+    <a class="btn btn-outline-primary btn-sm" target="_blank"
+       href="{{ url_for('publico.perfil_negocio', slug=negocio.slug) }}">Ver página pública ↗</a>
+  </div>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-md-9">
+    <div class="card"><div class="card-body p-4">
+      <form method="post" enctype="multipart/form-data" novalidate>
+        {{ form.hidden_tag() }}
+
+        <h2 class="h6 text-uppercase text-muted">Imágenes</h2>
+        <div class="row">
+          <div class="col-md-6">
+            {{ render_field(form.logo) }}
+            {% if negocio.logo_filename %}
+              <img src="{{ url_for('static', filename=negocio.logo_filename) }}" style="height:48px;border-radius:8px" class="mb-2">
+            {% endif %}
+          </div>
+          <div class="col-md-6">
+            {{ render_field(form.banner) }}
+            {% if negocio.banner_filename %}
+              <img src="{{ url_for('static', filename=negocio.banner_filename) }}" style="height:48px;border-radius:8px" class="mb-2">
+            {% endif %}
+          </div>
+        </div>
+
+        <h2 class="h6 text-uppercase text-muted mt-3">Colores y tipografía</h2>
+        <div class="row">
+          <div class="col-md-3">
+            <label class="form-label">Color primario</label>
+            {{ form.color_primario(class="form-control form-control-color", type="color") }}
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Color secundario</label>
+            {{ form.color_secundario(class="form-control form-control-color", type="color") }}
+          </div>
+          <div class="col-md-3">{{ render_field(form.tipografia) }}</div>
+          <div class="col-md-3">{{ render_field(form.template_publico) }}</div>
+        </div>
+
+        <h2 class="h6 text-uppercase text-muted mt-3">Descripción y redes</h2>
+        {{ render_field(form.descripcion_publica, placeholder="Contá de qué se trata tu negocio…") }}
+        <div class="row">
+          <div class="col-md-4">{{ render_field(form.instagram, placeholder="@usuario") }}</div>
+          <div class="col-md-4">{{ render_field(form.facebook, placeholder="URL") }}</div>
+          <div class="col-md-4">{{ render_field(form.whatsapp, placeholder="+54911...") }}</div>
+        </div>
+
+        {{ form.submit(class="btn btn-primary") }}
+      </form>
+    </div></div>
+  </div>
+</div>
+{% endblock %}

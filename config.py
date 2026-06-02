@@ -56,6 +56,11 @@ class BaseConfig:
         "MAIL_DEFAULT_SENDER", "Reservas SaaS <no-reply@reservas.local>"
     )
 
+    # --- Uploads (logo / banner) ---
+    UPLOAD_FOLDER = os.path.join(basedir, "app", "static", "uploads")
+    MAX_CONTENT_LENGTH = 4 * 1024 * 1024  # 4 MB máximo por archivo
+    IMAGENES_PERMITIDAS = {"png", "jpg", "jpeg", "webp", "gif"}
+
 
 class DevelopmentConfig(BaseConfig):
     """Entorno local de desarrollo."""
