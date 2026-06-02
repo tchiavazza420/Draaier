@@ -82,3 +82,90 @@ def register_commands(app):
         """Marca como VENCIDA las suscripciones expiradas (cron/Celery beat)."""
         from app.suscripciones import vencer_suscripciones
         click.echo(f"Suscripciones vencidas: {vencer_suscripciones()}.")
+
+    @app.cli.command("seed-demo")
+    def seed_demo():
+        """Crea un negocio demo con recursos, servicios y reservas de la semana."""
+        from datetime import time
+        from app.models.negocio import Negocio, RubroEnum, PlanEnum, EstadoSuscripcionEnum
+        from app.models.usuario import Usuario
+        from app.models.tipo_recurso import TipoRecurso
+        from app.models.recurso import Recurso
+        from app.models.servicio import Servicio
+        from app.models.horario import HorarioAtencion
+        from app.models.cliente import Cliente
+        from app.models.reserva import Reserva, EstadoReservaEnum
+        from app.reservas.service import _generar_codigo
+
+        # Limpieza previa del demo.
+        existente = Usuario.query.filter_by(email="demo@demo.com").first()
+        if existente:
+            neg = db.session.get(Negocio, existente.negocio_id)
+            db.session.delete(existente)
+            if neg:
+                db.session.delete(neg)
+            db.session.commit()
+
+        rol = Rol.query.filter_by(nombre=RolEnum.DUENO.value).first()
+        neg = Negocio(slug="barberia-demo", nombre="Barbería Demo", rubro=RubroEnum.BARBERIA,
+                      email="demo@demo.com", ciudad="Córdoba", visible_marketplace=True,
+                      plan=PlanEnum.PRO, estado_suscripcion=EstadoSuscripcionEnum.TRIAL,
+                      trial_fin=datetime.now() + timedelta(days=14),
+                      color_primario="#7c3aed", color_secundario="#111827")
+        db.session.add(neg); db.session.flush()
+
+        dueno = Usuario(negocio_id=neg.id, rol_id=rol.id, nombre="Demo", email="demo@demo.com", activo=True)
+        dueno.set_password("demo1234")
+        db.session.add(dueno)
+
+        tipo = TipoRecurso(negocio_id=neg.id, nombre="Profesional", slug="profesional")
+        db.session.add(tipo); db.session.flush()
+        recursos = []
+        for nom, sl in [("Sofía", "sofia"), ("Julián", "julian")]:
+            r = Recurso(negocio_id=neg.id, tipo_recurso_id=tipo.id, nombre=nom, slug=sl, capacidad=1)
+            db.session.add(r); db.session.flush()
+            recursos.append(r)
+            for dia in range(6):  # lun-sáb
+                db.session.add(HorarioAtencion(negocio_id=neg.id, recurso_id=r.id, dia_semana=dia,
+                                               hora_inicio=time(9, 0), hora_fin=time(19, 0)))
+
+        servicios = []
+        for nom, sl, dur, pr, col in [
+            ("Corte", "corte", 30, 4500, "#7c3aed"),
+            ("Corte + Barba", "corte-barba", 45, 6500, "#0ea5e9"),
+            ("Color", "color", 90, 12000, "#f59e0b"),
+        ]:
+            s = Servicio(negocio_id=neg.id, nombre=nom, slug=sl, duracion_minutos=dur, precio=pr, color=col)
+            db.session.add(s); db.session.flush()
+            s.recursos = recursos
+            servicios.append(s)
+
+        clientes = []
+        for nom, em in [("Lucas Pérez", "lucas@x.com"), ("Mara Gómez", "mara@x.com"),
+                        ("Tomás Ruiz", "tomas@x.com"), ("Vale Díaz", "vale@x.com")]:
+            c = Cliente(negocio_id=neg.id, nombre=nom, email=em, telefono="+5493510000000")
+            db.session.add(c); db.session.flush()
+            clientes.append(c)
+
+        # Reservas distribuidas en la semana actual.
+        hoy = date.today()
+        lunes = hoy - timedelta(days=hoy.weekday())
+        plan = [
+            (0, 10, 0, servicios[0], recursos[0], clientes[0], EstadoReservaEnum.CONFIRMADO),
+            (0, 14, 30, servicios[1], recursos[1], clientes[1], EstadoReservaEnum.FINALIZADO),
+            (1, 11, 0, servicios[2], recursos[0], clientes[2], EstadoReservaEnum.CONFIRMADO),
+            (2, 16, 0, servicios[0], recursos[1], clientes[3], EstadoReservaEnum.PENDIENTE_PAGO),
+            (3, 9, 30, servicios[1], recursos[0], clientes[0], EstadoReservaEnum.CONFIRMADO),
+            (4, 17, 0, servicios[2], recursos[1], clientes[1], EstadoReservaEnum.CONFIRMADO),
+            (5, 12, 0, servicios[0], recursos[0], clientes[2], EstadoReservaEnum.CONFIRMADO),
+        ]
+        for dia, h, m, serv, rec, cli, est in plan:
+            ini = datetime.combine(lunes + timedelta(days=dia), time(h, m))
+            db.session.add(Reserva(
+                negocio_id=neg.id, codigo=_generar_codigo(), cliente_id=cli.id,
+                servicio_id=serv.id, recurso_id=rec.id, inicio=ini,
+                fin=ini + timedelta(minutes=serv.duracion_minutos),
+                estado=est, precio=serv.precio))
+
+        db.session.commit()
+        click.echo("Demo creado: login demo@demo.com / demo1234 · /barberia-demo")

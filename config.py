@@ -16,6 +16,23 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 load_dotenv(os.path.join(basedir, ".env"))
 
 
+def _normalizar_db_url(url):
+    """
+    Normaliza la URL de la base para forzar el driver psycopg v3.
+
+    Plataformas como Render/Railway/Heroku entregan 'postgres://' o
+    'postgresql://' (que SQLAlchemy mapearía a psycopg2, no instalado).
+    Reescribimos al esquema 'postgresql+psycopg://'.
+    """
+    if not url:
+        return url
+    if url.startswith("postgres://"):
+        url = "postgresql://" + url[len("postgres://"):]
+    if url.startswith("postgresql://"):
+        url = "postgresql+psycopg://" + url[len("postgresql://"):]
+    return url
+
+
 class BaseConfig:
     """Configuración común a todos los entornos."""
 
@@ -23,7 +40,7 @@ class BaseConfig:
     SECRET_KEY = os.environ.get("SECRET_KEY")
 
     # --- SQLAlchemy ---
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
+    SQLALCHEMY_DATABASE_URI = _normalizar_db_url(os.environ.get("DATABASE_URL"))
     SQLALCHEMY_TRACK_MODIFICATIONS = False  # desactivado: consume memoria sin aportar
 
     # Opciones del pool de conexiones, pensadas para producción.
