@@ -92,16 +92,22 @@ def horario_agregar(recurso_id):
     rec = obtener_tenant_o_404(Recurso, _neg(), recurso_id)
     form = HorarioForm()
     if form.validate_on_submit():
-        db.session.add(HorarioAtencion(
-            negocio_id=_neg(),
-            recurso_id=rec.id,
-            dia_semana=form.dia_semana.data,
-            hora_inicio=form.hora_inicio.data,
-            hora_fin=form.hora_fin.data,
-            activo=True,
-        ))
+        ini, fin = form.hora_inicio_time, form.hora_fin_time
+        creadas = 0
+        for dia in form.dias.data:
+            # Evita duplicar la misma franja exacta en el mismo día.
+            existe = HorarioAtencion.query.filter_by(
+                negocio_id=_neg(), recurso_id=rec.id, dia_semana=dia,
+                hora_inicio=ini, hora_fin=fin,
+            ).first()
+            if existe is None:
+                db.session.add(HorarioAtencion(
+                    negocio_id=_neg(), recurso_id=rec.id, dia_semana=dia,
+                    hora_inicio=ini, hora_fin=fin, activo=True,
+                ))
+                creadas += 1
         db.session.commit()
-        flash("Franja horaria agregada.", "success")
+        flash(f"{creadas} franja(s) horaria(s) agregada(s).", "success")
     else:
         _flashear_errores(form)
     return redirect(url_for("disponibilidad.recurso", recurso_id=rec.id))

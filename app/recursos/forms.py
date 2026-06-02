@@ -16,25 +16,25 @@ from wtforms.validators import DataRequired, Length, NumberRange, Optional
 
 class TipoRecursoForm(FlaskForm):
     nombre = StringField(
-        "Nombre del tipo",
+        "Nombre de la categoría",
         validators=[DataRequired(), Length(min=2, max=60)],
     )
-    activo = BooleanField("Activo", default=True)
+    activo = BooleanField("Activa", default=True)
     submit = SubmitField("Guardar")
 
 
 class RecursoForm(FlaskForm):
     tipo_recurso = SelectField(
-        "Tipo de recurso",
+        "Categoría",
         coerce=int,
-        validators=[DataRequired(message="Elegí un tipo.")],
+        validators=[DataRequired(message="Elegí una categoría.")],
     )
     nombre = StringField(
-        "Nombre del recurso",
+        "Nombre del reservable",
         validators=[DataRequired(), Length(min=1, max=120)],
     )
     capacidad = IntegerField(
-        "Capacidad (cupos simultáneos)",
+        "Cupos por turno",
         validators=[DataRequired(), NumberRange(min=1, max=10000)],
         default=1,
     )

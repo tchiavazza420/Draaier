@@ -48,6 +48,27 @@ def test_dia_sin_horario(crear_negocio, crear_recurso, proximo_lunes):
     assert calcular_slots(rec, martes, 60) == []
 
 
+def test_agregar_horario_varios_dias_incluido_lunes(client, crear_negocio):
+    """El form de horarios crea franjas para varios días, incluido el Lunes (0)."""
+    from app.models.tipo_recurso import TipoRecurso
+    from app.models.recurso import Recurso
+    neg, _ = crear_negocio(email="hor@test.com")
+    tipo = TipoRecurso(negocio_id=neg.id, nombre="T", slug="t")
+    db.session.add(tipo); db.session.flush()
+    rec = Recurso(negocio_id=neg.id, tipo_recurso_id=tipo.id, nombre="R", slug="r", capacidad=1)
+    db.session.add(rec); db.session.commit()
+
+    client.post("/auth/login", data={"email": "hor@test.com", "password": "clave1234"})
+    r = client.post(f"/panel/disponibilidad/recurso/{rec.id}/horario", data={
+        "dias": ["0", "1", "2"],            # Lunes, Martes, Miércoles
+        "hora_inicio": "09:00", "hora_fin": "18:00",
+    }, follow_redirects=False)
+    assert r.status_code == 302
+
+    dias = {h.dia_semana for h in HorarioAtencion.query.filter_by(recurso_id=rec.id).all()}
+    assert dias == {0, 1, 2}   # incluye el Lunes (antes fallaba por DataRequired)
+
+
 def test_capacidad_y_ocupados(crear_negocio, crear_recurso, proximo_lunes):
     neg, _ = crear_negocio()
     rec = crear_recurso(neg, capacidad=1, hora_inicio=time(9, 0), hora_fin=time(11, 0))
