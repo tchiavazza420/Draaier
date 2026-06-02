@@ -1,0 +1,72 @@
+# ===========================================================================
+#  Stack de producción/staging: web (gunicorn) + worker + beat + Postgres + Redis
+#
+#  Uso:
+#    cp .env.docker.example .env.docker   # completar secretos
+#    docker compose up --build
+#  La app queda en http://localhost:8000
+# ===========================================================================
+
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-reservas_saas}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  web:
+    build: .
+    env_file: .env.docker
+    environment:
+      RUN_MIGRATIONS: "1"   # solo este servicio corre migraciones + seed
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - uploads:/app/app/static/uploads
+
+  worker:
+    build: .
+    env_file: .env.docker
+    command: celery -A celery_worker.celery worker --loglevel=info
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - uploads:/app/app/static/uploads
+
+  beat:
+    build: .
+    env_file: .env.docker
+    command: celery -A celery_worker.celery beat --loglevel=info
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  uploads:

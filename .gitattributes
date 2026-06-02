@@ -1,0 +1,6 @@
+# Scripts de shell SIEMPRE con LF (CRLF rompe el shebang en contenedores Linux).
+*.sh text eol=lf
+docker/entrypoint.sh text eol=lf
+
+# El resto, normalización automática de Git.
+* text=auto

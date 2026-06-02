@@ -1,0 +1,30 @@
+# Entornos y caches
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Secretos y datos locales
+.env
+.env.docker
+*.env
+!.env.example
+!.env.docker.example
+
+# Git / IDE / OS
+.git/
+.gitignore
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+# Uploads locales (se usan volúmenes en producción)
+app/static/uploads/
+
+# Artefactos
+_*.txt
+_*.py
+*.md
+.claude/

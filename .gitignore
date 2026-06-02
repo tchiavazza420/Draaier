@@ -11,8 +11,10 @@ dist/
 
 # ===== Pytest =====
 .pytest_cache/
-_pytest_out.txt
-_verify.txt
+
+# ===== Scripts/archivos temporales de verificación (convención _*) =====
+_*.txt
+_*.py
 
 # ===== Entornos virtuales =====
 venv/
@@ -23,7 +25,9 @@ ENV/
 # ===== Variables de entorno / secretos =====
 .env
 *.env
+.env.docker
 !.env.example
+!.env.docker.example
 
 # ===== Flask / SQLAlchemy =====
 instance/

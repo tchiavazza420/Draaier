@@ -27,5 +27,8 @@ redis==5.2.1                 # broker/backend de Celery
 # ===== Utilidades =====
 python-dotenv==1.0.1         # carga de variables desde .env
 
+# ===== Servidor de producción =====
+gunicorn==23.0.0             # WSGI server (Linux/Docker)
+
 # ===== Testing =====
 pytest==8.3.4
