@@ -18,7 +18,7 @@ from app.auth.decorators import rol_required
 from app.models.negocio import RubroEnum, TemplatePublicoEnum, MetodoPagoEnum, PlanEnum
 from app.panel.forms import NegocioConfigForm, PersonalizacionForm, MensajesForm
 from app.uploads import guardar_imagen
-from app.planes import PLANES, ORDEN, info_plan
+from app.planes import PLANES, ORDEN, info_plan, precio_anual
 
 panel_bp = Blueprint("panel", __name__)
 
@@ -48,9 +48,11 @@ def dashboard():
 def plan():
     """Muestra el plan actual, qué incluye, y permite cambiarlo."""
     negocio = current_user.negocio
+    precios_anuales = {k: precio_anual(p) for k, p in PLANES.items()}
     return render_template(
         "panel/plan.html",
         negocio=negocio, planes=PLANES, orden=ORDEN,
+        precios_anuales=precios_anuales,
         plan_actual=info_plan(negocio.plan),
         plan_actual_key=negocio.plan.value if negocio.plan else None,
     )

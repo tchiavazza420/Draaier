@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Agenda · Panel{% endblock %}
+{% block title %}Calendario · Panel{% endblock %}
 
 {% block head_extra %}
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
@@ -7,7 +7,7 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-  <h1 class="h3 mb-0">Agenda</h1>
+  <h1 class="h3 mb-0">Calendario</h1>
   <div>
     <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('panel.dashboard') }}">← Panel</a>
     <a class="btn btn-outline-primary btn-sm" href="{{ url_for('reservas.listar') }}">Ver lista</a>

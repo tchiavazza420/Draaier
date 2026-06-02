@@ -11,7 +11,7 @@
   </div>
 </div>
 
-<p class="text-muted">Configurá los horarios de atención y bloqueos de cada reservable.</p>
+<p class="text-muted">Configurá los horarios de atención y bloqueos de cada agenda.</p>
 
 <div class="card">
   <div class="card-body">
@@ -30,7 +30,7 @@
       </div>
     {% else %}
       <p class="text-muted mb-0">
-        No hay reservables. Creá uno en <a href="{{ url_for('recursos.listar') }}">Reservables</a>.
+        No hay agendas. Creá una en <a href="{{ url_for('recursos.listar') }}">Agendas</a>.
       </p>
     {% endif %}
   </div>

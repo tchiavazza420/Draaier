@@ -54,9 +54,9 @@
 <h2 class="h6 text-muted mb-3">Accesos rápidos</h2>
 <div class="row g-3">
   {% set accesos = [
-    ('🗓️','Agenda','Calendario de turnos', url_for('reservas.agenda')),
+    ('🗓️','Calendario','Tus turnos del día', url_for('reservas.agenda')),
     ('📋','Actividad','Todas tus reservas', url_for('reservas.listar')),
-    ('🧩','Reservables','Profesionales, canchas, salas', url_for('recursos.listar')),
+    ('🧩','Agendas','Profesionales, canchas, salas', url_for('recursos.listar')),
     ('✂️','Servicios','Duración y precios', url_for('servicios.listar')),
     ('⏰','Disponibilidad','Horarios y bloqueos', url_for('disponibilidad.index')),
     ('👤','Clientes','Cartera y historial', url_for('clientes.listar')),

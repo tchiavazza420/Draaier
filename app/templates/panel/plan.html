@@ -15,62 +15,70 @@
     </div>
     <span class="badge bg-primary">{{ negocio.estado_suscripcion.value.title() }}</span>
   </div>
-{% else %}
-  <p class="text-muted">Todavía no elegiste un plan. Mirá las opciones:</p>
 {% endif %}
 
-<div class="row g-3">
-  {% for key in orden %}
-    {% set p = planes[key] %}
-    {% set actual = (key == plan_actual_key) %}
-    <div class="col-md-4">
-      <div class="card hover-lift h-100 {{ 'border-primary border-2' if actual }}">
-        <div class="card-body d-flex flex-column">
-          <div class="d-flex justify-content-between align-items-start">
-            <div>
-              <span class="badge bg-light text-dark mb-1">{{ p.grupo }}</span>
-              <h2 class="h4 mb-0">{{ p.nombre }}</h2>
+<!-- Toggle mensual / anual (Alpine) -->
+<div class="d-flex align-items-center gap-2 mb-3" x-data="{ anual: false }" x-init="$watch('anual', v => {})">
+  <span :class="!anual ? 'fw-bold' : 'text-muted'">Mensual</span>
+  <label class="form-check form-switch m-0">
+    <input class="form-check-input" type="checkbox" role="switch" x-model="anual" style="cursor:pointer">
+  </label>
+  <span :class="anual ? 'fw-bold' : 'text-muted'">Anual</span>
+  <span class="badge bg-success-subtle text-success-emphasis" x-show="anual">2 meses gratis 🎉</span>
+
+  <div class="row g-3 w-100 mt-1">
+    {% for key in orden %}
+      {% set p = planes[key] %}
+      {% set actual = (key == plan_actual_key) %}
+      <div class="col-md-4">
+        <div class="card hover-lift h-100 {{ 'border-primary border-2' if actual }}">
+          <div class="card-body d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <span class="badge bg-light text-dark mb-1">{{ p.grupo }}</span>
+                <h2 class="h4 mb-0">{{ p.nombre }}</h2>
+              </div>
+              {% if actual %}<span class="badge bg-primary">Actual</span>
+              {% elif p.prueba_dias %}<span class="badge bg-success-subtle text-success-emphasis">{{ p.prueba_dias }} días gratis</span>{% endif %}
             </div>
-            {% if actual %}<span class="badge bg-primary">Actual</span>{% endif %}
-          </div>
-          <div class="my-2">
-            {% if p.precio == 0 %}
-              <span class="h4">Gratis</span> <span class="text-muted small">14 días</span>
-            {% else %}
-              <span class="h4">${{ '{:,.0f}'.format(p.precio).replace(',','.') }}</span>
-              <span class="text-muted small">/mes</span>
-            {% endif %}
-          </div>
-          <p class="text-muted small">{{ p.resumen }}</p>
-          <ul class="list-unstyled small mb-3">
-            {% for f in p.features %}
-              <li class="mb-1">✅ {{ f }}</li>
-            {% endfor %}
-            {% for f in p.no %}
-              <li class="mb-1 text-muted">✖️ {{ f }}</li>
-            {% endfor %}
-          </ul>
-          <div class="mt-auto">
-            {% if actual %}
-              <button class="btn btn-outline-secondary w-100" disabled>Tu plan actual</button>
-            {% else %}
-              <form method="post" action="{{ url_for('panel.plan_cambiar') }}">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <input type="hidden" name="plan" value="{{ key }}">
-                <button class="btn btn-primary w-100">
-                  {{ 'Empezar' if p.precio == 0 else 'Elegir este plan' }}
-                </button>
-              </form>
-            {% endif %}
+
+            <div class="my-2">
+              {% if p.desde %}<span class="text-muted small">Desde </span>{% endif %}
+              <span class="h4 stat-num" x-show="!anual">${{ '{:,.0f}'.format(p.precio).replace(',','.') }}</span>
+              <span class="text-muted small" x-show="!anual">/mes</span>
+              <span class="h4 stat-num" x-show="anual" x-cloak>${{ '{:,.0f}'.format(precios_anuales[key]).replace(',','.') }}</span>
+              <span class="text-muted small" x-show="anual" x-cloak>/año</span>
+            </div>
+
+            <p class="text-muted small">{{ p.resumen }}</p>
+            <ul class="list-unstyled small mb-3">
+              {% for f in p.features %}<li class="mb-1">✅ {{ f }}</li>{% endfor %}
+              {% for f in p.no %}<li class="mb-1 text-muted">✖️ {{ f }}</li>{% endfor %}
+            </ul>
+
+            <div class="mt-auto">
+              {% if actual %}
+                <button class="btn btn-outline-secondary w-100" disabled>Tu plan actual</button>
+              {% else %}
+                <form method="post" action="{{ url_for('panel.plan_cambiar') }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="plan" value="{{ key }}">
+                  <button class="btn btn-primary w-100">
+                    {% if p.prueba_dias %}Probar gratis{% elif p.desde %}Consultar{% else %}Elegir este plan{% endif %}
+                  </button>
+                </form>
+              {% endif %}
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  {% endfor %}
+    {% endfor %}
+  </div>
 </div>
 
 <p class="text-muted small mt-3">
-  El cobro de los planes pagos se integra con tu pasarela de pago. En esta
-  versión, el cambio de plan se aplica al instante para que puedas probarlo.
+  Solo el plan Básico tiene 14 días de prueba sin tarjeta. El cobro de los planes
+  se integra con tu pasarela de pago; en esta versión el cambio se aplica al
+  instante para que puedas probarlo.
 </p>
 {% endblock %}

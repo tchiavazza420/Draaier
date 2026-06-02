@@ -1,26 +1,26 @@
 {% extends "base.html" %}
 
-{% block title %}Reservables · Panel{% endblock %}
+{% block title %}Agendas · Panel{% endblock %}
 
 {% block content %}
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-  <h1 class="h3 mb-0">Reservables</h1>
+  <h1 class="h3 mb-0">Agendas</h1>
   <div>
     <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('panel.dashboard') }}">← Panel</a>
     <a class="btn btn-outline-primary btn-sm" href="{{ url_for('recursos.tipo_nuevo') }}">+ Categoría</a>
-    <a class="btn btn-primary btn-sm" href="{{ url_for('recursos.recurso_nuevo') }}">+ Reservable</a>
+    <a class="btn btn-primary btn-sm" href="{{ url_for('recursos.recurso_nuevo') }}">+ Agenda</a>
   </div>
 </div>
 <p class="text-muted mb-4">
-  Un <strong>reservable</strong> es lo que tus clientes pueden reservar: una
+  Una <strong>agenda</strong> es lo que tus clientes pueden reservar: una
   persona (profesional), una cancha, una sala, un consultorio, una mesa…
-  Las <strong>categorías</strong> sirven para agruparlos.
+  Las <strong>categorías</strong> sirven para agruparlas.
 </p>
 
-{# ---------- RESERVABLES ---------- #}
+{# ---------- AGENDAS ---------- #}
 <div class="card mb-4">
   <div class="card-body">
-    <h2 class="h6 text-muted mb-3">Tus reservables</h2>
+    <h2 class="h6 text-muted mb-3">Tus agendas</h2>
     {% if recursos %}
       <div class="table-responsive">
         <table class="table align-middle mb-0">
@@ -59,7 +59,7 @@
       </div>
     {% else %}
       <p class="text-muted mb-0">
-        Todavía no tenés reservables. Creá uno con “+ Reservable”
+        Todavía no tenés agendas. Creá una con “+ Agenda”
         (ej: <em>Sofía</em>, <em>Cancha 1</em>, <em>Consultorio A</em>).
       </p>
     {% endif %}
@@ -70,7 +70,7 @@
 <div class="card">
   <div class="card-body">
     <h2 class="h6 text-muted mb-1">Categorías</h2>
-    <p class="text-muted small mb-3">Agrupan tus reservables. Ej: Profesionales, Canchas, Salas.</p>
+    <p class="text-muted small mb-3">Agrupan tus agendas. Ej: Profesionales, Canchas, Salas.</p>
     {% if tipos %}
       <div class="d-flex flex-wrap gap-2">
         {% for t in tipos %}

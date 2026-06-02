@@ -39,10 +39,10 @@
             </button>
             <div class="menu-pop" x-show="open" x-cloak
                  x-transition:enter="aparecer" style="display:none">
-              <a href="{{ url_for('reservas.agenda') }}"><span class="menu-emoji">🗓️</span> Agenda</a>
+              <a href="{{ url_for('reservas.agenda') }}"><span class="menu-emoji">🗓️</span> Calendario</a>
               <a href="{{ url_for('reservas.listar') }}"><span class="menu-emoji">📋</span> Actividad</a>
               <div class="menu-sep"></div>
-              <a href="{{ url_for('recursos.listar') }}"><span class="menu-emoji">🧩</span> Reservables</a>
+              <a href="{{ url_for('recursos.listar') }}"><span class="menu-emoji">🧩</span> Agendas</a>
               <a href="{{ url_for('servicios.listar') }}"><span class="menu-emoji">✂️</span> Servicios</a>
               <a href="{{ url_for('disponibilidad.index') }}"><span class="menu-emoji">⏰</span> Disponibilidad</a>
               <div class="menu-sep"></div>
