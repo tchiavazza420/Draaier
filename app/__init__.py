@@ -75,6 +75,7 @@ def register_blueprints(app):
     from app.pagos.routes import pagos_bp
     from app.clientes.routes import clientes_bp
     from app.resenas.routes import resenas_bp
+    from app.reportes.routes import reportes_bp
     from app.marketplace.routes import marketplace_bp
     from app.super_admin.routes import super_admin_bp
     from app.publico.routes import publico_bp
@@ -90,5 +91,6 @@ def register_blueprints(app):
     app.register_blueprint(reservas_bp, url_prefix="/panel/reservas")
     app.register_blueprint(clientes_bp, url_prefix="/panel/clientes")
     app.register_blueprint(resenas_bp, url_prefix="/panel/resenas")
+    app.register_blueprint(reportes_bp, url_prefix="/panel/reportes")
     app.register_blueprint(pagos_bp, url_prefix="/pagos")
     app.register_blueprint(publico_bp)  # catch-all /<slug>: SIEMPRE el último
