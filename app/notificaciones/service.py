@@ -19,14 +19,30 @@ from flask import current_app
 from app.models.negocio import Negocio
 from app.extensions import db
 from app.notificaciones.email import enviar_email
+from app.notificaciones.whatsapp import enviar_whatsapp
 
 
 def _negocio(reserva):
     return db.session.get(Negocio, reserva.negocio_id)
 
 
+def _wa(reserva, texto):
+    """Envía un WhatsApp al cliente (si tiene teléfono), tolerante a fallos."""
+    try:
+        if reserva.cliente and reserva.cliente.telefono:
+            enviar_whatsapp(reserva.cliente.telefono, texto)
+    except Exception:
+        current_app.logger.exception("Fallo enviando WhatsApp %s", reserva.codigo)
+
+
+def _detalle(reserva):
+    return (f"{reserva.servicio.nombre} el {reserva.inicio.strftime('%d/%m a las %H:%M')} "
+            f"({reserva.recurso.nombre})")
+
+
 # ----------------------------------------------------------------------
 #  Senders reales (corren dentro de la tarea / del worker)
+#  Cada uno envía por email Y por WhatsApp (cada canal degrada solo).
 # ----------------------------------------------------------------------
 def _enviar_confirmada(reserva):
     try:
@@ -35,6 +51,7 @@ def _enviar_confirmada(reserva):
                      "reserva_confirmada", reserva=reserva, negocio=_negocio(reserva))
     except Exception:
         current_app.logger.exception("Fallo notificando confirmada %s", reserva.codigo)
+    _wa(reserva, f"✅ ¡Reserva confirmada! {_detalle(reserva)}. Código {reserva.codigo}.")
 
 
 def _enviar_pendiente(reserva, url_pago=None):
@@ -45,6 +62,10 @@ def _enviar_pendiente(reserva, url_pago=None):
                      url_pago=url_pago)
     except Exception:
         current_app.logger.exception("Fallo notificando pendiente %s", reserva.codigo)
+    msg = f"⏳ Reservá tu turno: {_detalle(reserva)}."
+    if url_pago:
+        msg += f" Pagá la seña acá: {url_pago}"
+    _wa(reserva, msg)
 
 
 def _enviar_recordatorio(reserva):
@@ -54,6 +75,7 @@ def _enviar_recordatorio(reserva):
                      "recordatorio", reserva=reserva, negocio=_negocio(reserva))
     except Exception:
         current_app.logger.exception("Fallo enviando recordatorio %s", reserva.codigo)
+    _wa(reserva, f"⏰ Te recordamos tu turno: {_detalle(reserva)}. ¡Te esperamos!")
 
 
 # ----------------------------------------------------------------------

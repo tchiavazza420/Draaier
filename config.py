@@ -72,6 +72,13 @@ class BaseConfig:
         "MAIL_DEFAULT_SENDER", "Reservas SaaS <no-reply@reservas.local>"
     )
 
+    # --- WhatsApp (Cloud API de Meta) ---
+    # Sin token/phone-id, las notificaciones WA van a una bandeja de desarrollo
+    # (testeable). Con credenciales, se envían por la API real.
+    WHATSAPP_TOKEN = os.environ.get("WHATSAPP_TOKEN")
+    WHATSAPP_PHONE_ID = os.environ.get("WHATSAPP_PHONE_ID")
+    WHATSAPP_API_VERSION = os.environ.get("WHATSAPP_API_VERSION", "v21.0")
+
     # --- Uploads (logo / banner) ---
     UPLOAD_FOLDER = os.path.join(basedir, "app", "static", "uploads")
     MAX_CONTENT_LENGTH = 4 * 1024 * 1024  # 4 MB máximo por archivo
