@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Marketplace · Encontrá tu negocio{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">Encontrá y reservá</h1>
+
+<form class="row g-2 mb-4" method="get">
+  <div class="col-md-4">
+    <input type="text" name="q" value="{{ f_q }}" class="form-control" placeholder="Negocio o servicio…">
+  </div>
+  <div class="col-md-3">
+    <input type="text" name="ciudad" value="{{ f_ciudad }}" class="form-control" placeholder="Ciudad" list="ciudades">
+    <datalist id="ciudades">{% for c in ciudades %}<option value="{{ c }}">{% endfor %}</datalist>
+  </div>
+  <div class="col-md-3">
+    <select name="rubro" class="form-select">
+      <option value="">Todos los rubros</option>
+      {% for r in rubros %}
+        <option value="{{ r.value }}" {{ 'selected' if f_rubro == r.value }}>{{ r.value.replace('_',' ').title() }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-2">
+    <select name="orden" class="form-select" onchange="this.form.submit()">
+      <option value="rating" {{ 'selected' if f_orden == 'rating' }}>Mejor puntuados</option>
+      <option value="nombre" {{ 'selected' if f_orden == 'nombre' }}>Nombre</option>
+    </select>
+  </div>
+  <div class="col-12"><button class="btn btn-primary">Buscar</button></div>
+</form>
+
+{% if resultados %}
+  <div class="row g-3">
+    {% for item in resultados %}
+      <div class="col-md-4">
+        <a class="text-decoration-none text-reset" href="{{ url_for('publico.perfil_negocio', slug=item.negocio.slug) }}">
+          <div class="card h-100 shadow-sm">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start">
+                <h2 class="h5 mb-1">{{ item.negocio.nombre }}</h2>
+                {% if item.rating %}
+                  <span class="badge bg-warning text-dark">★ {{ item.rating }}</span>
+                {% endif %}
+              </div>
+              <p class="text-muted mb-0">
+                {{ item.negocio.rubro.value.replace('_',' ').title() }}
+                {% if item.negocio.ciudad %}· {{ item.negocio.ciudad }}{% endif %}
+              </p>
+              {% if item.cantidad %}<small class="text-muted">{{ item.cantidad }} reseña(s)</small>{% endif %}
+            </div>
+          </div>
+        </a>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="alert alert-light border">No encontramos negocios con esos filtros.</div>
+{% endif %}
+{% endblock %}
