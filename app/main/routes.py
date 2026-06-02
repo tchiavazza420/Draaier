@@ -8,12 +8,33 @@ ejecutando un "SELECT 1". Sirve para diagnóstico local y, más adelante,
 para los health checks de producción (load balancer, Docker, etc.).
 """
 
-from flask import Blueprint, jsonify, render_template
+from flask import Blueprint, jsonify, render_template, send_from_directory, current_app
 from sqlalchemy import text
 
 from app.extensions import db
 
 main_bp = Blueprint("main", __name__)
+
+
+@main_bp.route("/sw.js")
+def service_worker():
+    """
+    Sirve el service worker desde la raíz para que su scope sea '/'.
+    (Si se sirviera desde /static/, solo controlaría /static/.)
+    """
+    resp = send_from_directory(current_app.static_folder, "sw.js")
+    resp.headers["Content-Type"] = "application/javascript"
+    resp.headers["Service-Worker-Allowed"] = "/"
+    resp.headers["Cache-Control"] = "no-cache"
+    return resp
+
+
+@main_bp.route("/manifest.webmanifest")
+def manifest():
+    """Sirve el manifest desde la raíz."""
+    resp = send_from_directory(current_app.static_folder, "manifest.webmanifest")
+    resp.headers["Content-Type"] = "application/manifest+json"
+    return resp
 
 
 @main_bp.route("/")
