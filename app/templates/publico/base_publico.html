@@ -3,6 +3,16 @@
    definen el bloque `publico` en lugar de `content`. #}
 {% extends "base.html" %}
 
+{# --- SEO / Open Graph propios del negocio --- #}
+{% block og_title %}{{ negocio.nombre }}{% endblock %}
+{% block meta_description %}{{ (negocio.descripcion_publica or (negocio.nombre ~ ' — Reservá tu turno online. ' ~ negocio.rubro.value.replace('_',' ').title() ~ (' en ' ~ negocio.ciudad if negocio.ciudad else '')))|truncate(160) }}{% endblock %}
+{% block og_description %}{{ (negocio.descripcion_publica or ('Reservá tu turno online en ' ~ negocio.nombre ~ '.'))|truncate(200) }}{% endblock %}
+{% block og_image %}
+  {%- if negocio.banner_filename -%}{{ url_for('static', filename=negocio.banner_filename, _external=True) }}
+  {%- elif negocio.logo_filename -%}{{ url_for('static', filename=negocio.logo_filename, _external=True) }}
+  {%- else -%}{{ url_for('static', filename='icons/icon-512.png', _external=True) }}{%- endif -%}
+{% endblock %}
+
 {% block head_extra %}
 <link rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family={{ negocio.tipografia|replace(' ', '+') }}:wght@400;600;700&display=swap">

@@ -7,6 +7,7 @@
   <h1 class="h3 mb-0">Servicios</h1>
   <div>
     <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('panel.dashboard') }}">← Panel</a>
+    <a class="btn btn-outline-primary btn-sm" href="{{ url_for('servicios.sugeridos') }}">✨ Sugeridos</a>
     <a class="btn btn-primary btn-sm" href="{{ url_for('servicios.nuevo') }}">+ Servicio</a>
   </div>
 </div>
@@ -63,7 +64,13 @@
         </table>
       </div>
     {% else %}
-      <p class="text-muted mb-0">Todavía no hay servicios. Creá uno con “+ Servicio”.</p>
+      <div class="text-center py-4">
+        <p class="text-muted">Todavía no tenés servicios cargados.</p>
+        <a class="btn btn-primary" href="{{ url_for('servicios.sugeridos') }}">
+          ✨ Empezar con servicios sugeridos para tu rubro
+        </a>
+        <div class="mt-2"><a class="small text-muted" href="{{ url_for('servicios.nuevo') }}">o cargar uno a mano</a></div>
+      </div>
     {% endif %}
   </div>
 </div>

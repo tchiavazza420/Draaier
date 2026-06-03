@@ -8,7 +8,10 @@ ejecutando un "SELECT 1". Sirve para diagnóstico local y, más adelante,
 para los health checks de producción (load balancer, Docker, etc.).
 """
 
-from flask import Blueprint, jsonify, render_template, send_from_directory, current_app
+from flask import (
+    Blueprint, jsonify, render_template, send_from_directory, current_app,
+    Response, url_for,
+)
 from sqlalchemy import text
 
 from app.extensions import db
@@ -41,6 +44,42 @@ def manifest():
 def index():
     """Landing público. Se ampliará con el marketplace más adelante."""
     return render_template("home.html")
+
+
+@main_bp.route("/robots.txt")
+def robots():
+    """Permite el rastreo y apunta al sitemap."""
+    sitemap_url = url_for("main.sitemap", _external=True)
+    cuerpo = f"User-agent: *\nAllow: /\nDisallow: /panel/\nDisallow: /super-admin/\nSitemap: {sitemap_url}\n"
+    return Response(cuerpo, mimetype="text/plain")
+
+
+@main_bp.route("/sitemap.xml")
+def sitemap():
+    """
+    Sitemap dinámico: home, marketplace y las páginas públicas de cada negocio
+    visible (con sus profesionales). Ayuda al SEO e indexación.
+    """
+    from app.models.negocio import Negocio
+    from app.models.recurso import Recurso
+
+    urls = [
+        url_for("main.index", _external=True),
+        url_for("marketplace.index", _external=True),
+    ]
+    negocios = Negocio.query.filter_by(activo=True, visible_marketplace=True).all()
+    for n in negocios:
+        urls.append(url_for("publico.perfil_negocio", slug=n.slug, _external=True))
+        recursos = Recurso.query.filter_by(negocio_id=n.id, activo=True).all()
+        for r in recursos:
+            urls.append(url_for("publico.perfil_recurso", slug=n.slug,
+                                recurso_slug=r.slug, _external=True))
+
+    items = "".join(f"<url><loc>{u}</loc></url>" for u in urls)
+    xml = ('<?xml version="1.0" encoding="UTF-8"?>'
+           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+           f"{items}</urlset>")
+    return Response(xml, mimetype="application/xml")
 
 
 @main_bp.route("/health")
