@@ -17,20 +17,24 @@
   </div>
 {% endif %}
 
-<!-- Toggle mensual / anual (Alpine) -->
-<div class="d-flex align-items-center gap-2 mb-3" x-data="{ anual: false }" x-init="$watch('anual', v => {})">
-  <span :class="!anual ? 'fw-bold' : 'text-muted'">Mensual</span>
-  <label class="form-check form-switch m-0">
-    <input class="form-check-input" type="checkbox" role="switch" x-model="anual" style="cursor:pointer">
-  </label>
-  <span :class="anual ? 'fw-bold' : 'text-muted'">Anual</span>
-  <span class="badge bg-success-subtle text-success-emphasis" x-show="anual">2 meses gratis 🎉</span>
+<!-- Toggle mensual / anual + grilla (Alpine) -->
+<div x-data="{ anual: false }">
+  <!-- Toggle (fila propia, centrado en mobile) -->
+  <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-start gap-2 mb-3">
+    <span :class="!anual ? 'fw-bold' : 'text-muted'">Mensual</span>
+    <label class="form-check form-switch m-0">
+      <input class="form-check-input" type="checkbox" role="switch" x-model="anual" style="cursor:pointer">
+    </label>
+    <span :class="anual ? 'fw-bold' : 'text-muted'">Anual</span>
+    <span class="badge bg-success-subtle text-success-emphasis" x-show="anual" x-cloak>2 meses gratis 🎉</span>
+  </div>
 
-  <div class="row g-3 w-100 mt-1">
+  <!-- Grilla de planes: 1 col en celular, 2 en tablet, 3 en desktop -->
+  <div class="row g-3 stagger">
     {% for key in orden %}
       {% set p = planes[key] %}
       {% set actual = (key == plan_actual_key) %}
-      <div class="col-md-4">
+      <div class="col-12 col-sm-6 col-lg-4">
         <div class="card hover-lift h-100 {{ 'border-primary border-2' if actual }}">
           <div class="card-body d-flex flex-column">
             <div class="d-flex justify-content-between align-items-start">
