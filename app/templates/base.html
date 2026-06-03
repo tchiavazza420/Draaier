@@ -19,7 +19,7 @@
 
   {% block head_extra %}{% endblock %}
 </head>
-<body class="bg-light">
+<body class="bg-light {% if current_user.is_authenticated and not current_user.es_super_admin and current_user.negocio %}con-bottomnav{% endif %}">
 
   <nav class="navbar navbar-dark bg-dark sticky-top">
     <div class="container">
@@ -31,8 +31,8 @@
         <a class="nav-link text-light d-none d-md-inline px-2" href="{{ url_for('marketplace.index') }}">Marketplace</a>
 
         {% if current_user.is_authenticated and not current_user.es_super_admin and current_user.negocio %}
-          <!-- Menú de gestión dinámico (Alpine) -->
-          <div class="position-relative" x-data="{ open:false }" @click.outside="open=false">
+          <!-- Menú de gestión dinámico (Alpine) — oculto en mobile (lo cubre la barra inferior) -->
+          <div class="position-relative d-none d-md-block" x-data="{ open:false }" @click.outside="open=false">
             <button class="btn btn-sm btn-outline-light" @click="open=!open">
               Gestión
               <span class="ms-1" x-text="open ? '▴' : '▾'"></span>
@@ -101,6 +101,17 @@
     {% block content %}{% endblock %}
   </main>
 
+  {% if current_user.is_authenticated and not current_user.es_super_admin and current_user.negocio %}
+  <!-- Barra inferior de navegación (solo mobile, look de app) -->
+  <nav class="bottom-nav">
+    <a href="{{ url_for('reservas.agenda') }}"><span class="bn-ico">🗓️</span>Agenda</a>
+    <a href="{{ url_for('reservas.listar') }}"><span class="bn-ico">📋</span>Actividad</a>
+    <a href="{{ url_for('reservas.nueva') }}" class="bn-fab" aria-label="Nueva reserva">+</a>
+    <a href="{{ url_for('recursos.listar') }}"><span class="bn-ico">🧩</span>Agendas</a>
+    <a href="{{ url_for('panel.dashboard') }}"><span class="bn-ico">🏠</span>Panel</a>
+  </nav>
+  {% endif %}
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <!-- HTMX: interacciones dinámicas sin recargar la página -->
   <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
@@ -118,6 +129,11 @@
         navigator.serviceWorker.register('/sw.js').catch(() => {});
       });
     }
+    // Resalta el ítem activo de la barra inferior.
+    document.querySelectorAll('.bottom-nav a').forEach((a) => {
+      const href = a.getAttribute('href');
+      if (href && href !== '/' && location.pathname.startsWith(href)) a.classList.add('active');
+    });
   </script>
   {% block scripts %}{% endblock %}
 </body>
