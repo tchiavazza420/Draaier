@@ -25,6 +25,48 @@
   </div>
 {% endif %}
 
+<!-- Plan + WhatsApp (vencimientos y saldo) -->
+<div class="row g-3 mb-4">
+  <div class="col-md-6">
+    <a class="text-decoration-none text-reset" href="{{ url_for('panel.plan') }}">
+      <div class="card hover-lift h-100 animar">
+        <div class="card-body d-flex align-items-center gap-3">
+          <div class="feature-ico">💎</div>
+          <div>
+            <div class="text-muted small">Tu plan ›</div>
+            <div class="h5 mb-0 stat-num">{{ (negocio.plan.value if negocio.plan else '—').title() }}</div>
+            {% if plan_vence %}
+              <small class="text-muted">Vence el {{ plan_vence.strftime('%d/%m/%Y') }}</small>
+            {% else %}
+              <small class="text-muted">Sin vencimiento configurado</small>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-6">
+    <a class="text-decoration-none text-reset" href="{{ url_for('panel.mensajes') }}">
+      <div class="card hover-lift h-100 animar-2">
+        <div class="card-body d-flex align-items-center gap-3">
+          <div class="feature-ico">💬</div>
+          <div>
+            <div class="text-muted small">WhatsApp este mes ›</div>
+            {% if wa.ilimitado %}
+              <div class="h5 mb-0 stat-num">Ilimitado</div>
+            {% else %}
+              <div class="h5 mb-0 stat-num">{{ wa.disponibles }} disponibles</div>
+              <small class="text-muted">
+                {{ wa.extra }} comprados · se renuevan el {{ wa_renueva.strftime('%d/%m') }}
+              </small>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </a>
+  </div>
+</div>
+
 <!-- Resumen -->
 <div class="row g-3 mb-4">
   {% set resumen = [

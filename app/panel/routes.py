@@ -27,6 +27,8 @@ panel_bp = Blueprint("panel", __name__)
 @login_required
 def dashboard():
     """Tablero principal del negocio."""
+    from app.whatsapp_creditos import estado as wa_estado
+
     negocio = current_user.negocio
 
     # Días restantes de prueba (si está en trial).
@@ -35,10 +37,20 @@ def dashboard():
         delta = negocio.trial_fin - datetime.now(timezone.utc)
         dias_trial_restantes = max(delta.days, 0)
 
+    # WhatsApp: saldo del mes + fecha de renovación (1° del próximo mes).
+    wa = wa_estado(negocio)
+    hoy = datetime.now()
+    if hoy.month == 12:
+        wa_renueva = datetime(hoy.year + 1, 1, 1)
+    else:
+        wa_renueva = datetime(hoy.year, hoy.month + 1, 1)
+
     return render_template(
         "panel/dashboard.html",
         negocio=negocio,
         dias_trial_restantes=dias_trial_restantes,
+        wa=wa, wa_renueva=wa_renueva,
+        plan_vence=negocio.vencimiento,
     )
 
 
