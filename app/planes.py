@@ -14,13 +14,59 @@ from app.models.negocio import PlanEnum
 MESES_ANUAL = 10
 PRUEBA_DIAS = 14
 
+# Packs de mensajes de WhatsApp extra (se pueden comprar en cualquier plan).
+# Precio: $2.500 cada 100 mensajes. Se usan/renuevan dentro del mes.
+PACKS_WHATSAPP = [
+    {"cantidad": 100, "precio": 2500},
+    {"cantidad": 300, "precio": 7500},
+    {"cantidad": 600, "precio": 15000},
+    {"cantidad": 1000, "precio": 25000},
+]
+
+# Mensajes de WhatsApp incluidos por plan, por mes (None = ilimitado).
+WA_INCLUIDOS = {
+    PlanEnum.BASICO.value: 0,
+    PlanEnum.PRO.value: 100,
+    PlanEnum.PREMIUM.value: 500,
+    PlanEnum.STARTER.value: 200,
+    PlanEnum.BUSINESS.value: 600,
+    PlanEnum.ENTERPRISE.value: None,   # ilimitado
+}
+
+
+def wa_incluidos_de(plan_enum):
+    """Mensajes de WhatsApp incluidos por mes según el plan (None=ilimitado)."""
+    if plan_enum is None:
+        return 0
+    return WA_INCLUIDOS.get(plan_enum.value, 0)
+
+
+# Máximo de agendas (reservables) por plan (None = ilimitado).
+# Independiente = 1 agenda (para una sola persona). Locales = varias.
+LIMITE_AGENDAS = {
+    PlanEnum.BASICO.value: 1,
+    PlanEnum.PRO.value: 1,
+    PlanEnum.PREMIUM.value: 1,
+    PlanEnum.STARTER.value: 5,
+    PlanEnum.BUSINESS.value: 15,
+    PlanEnum.ENTERPRISE.value: None,   # ilimitado
+}
+
+
+def limite_agendas_de(plan_enum):
+    """Máximo de agendas según el plan (None = ilimitado). Sin plan: 1."""
+    if plan_enum is None:
+        return 1
+    return LIMITE_AGENDAS.get(plan_enum.value, 1)
+
+
 PLANES = {
     PlanEnum.BASICO.value: {
         "nombre": "Básico", "grupo": "Independiente", "precio": 9000,
         "prueba_dias": PRUEBA_DIAS,
         "resumen": "Para empezar. 14 días de prueba, sin tarjeta.",
         "features": [
-            "1 agenda (vos)", "Reservas online ilimitadas",
+            "1 agenda (para vos)", "Reservas online ilimitadas",
             "Tu página pública propia", "Recordatorios por email",
         ],
         "no": ["Cobro de señas", "WhatsApp", "Reportes", "Marketplace"],
@@ -29,7 +75,7 @@ PLANES = {
         "nombre": "Pro", "grupo": "Independiente", "precio": 18000,
         "resumen": "Para profesionales que cobran señas.",
         "features": [
-            "Hasta 3 agendas", "Cobro de señas (Mercado Pago / Naranja X / Modo)",
+            "1 agenda (para vos)", "Cobro de señas (Mercado Pago / Naranja X / Modo)",
             "Recordatorios por email y WhatsApp", "Reportes e ingresos",
             "Personalización de tu página",
         ],
@@ -39,11 +85,11 @@ PLANES = {
         "nombre": "Premium", "grupo": "Independiente", "precio": 30000,
         "resumen": "Todo, con presencia destacada en el marketplace.",
         "features": [
-            "Agendas ilimitadas", "Todo lo de Pro",
+            "1 agenda (para vos)", "Todo lo de Pro",
             "Aparición destacada en el Marketplace", "Reseñas y reputación",
             "Soporte prioritario",
         ],
-        "no": [],
+        "no": ["Multi-staff"],
     },
     PlanEnum.STARTER.value: {
         "nombre": "Starter", "grupo": "Locales", "precio": 35000,

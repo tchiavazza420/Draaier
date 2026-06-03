@@ -53,6 +53,11 @@
             <p class="text-muted small">{{ p.resumen }}</p>
             <ul class="list-unstyled small mb-3">
               {% for f in p.features %}<li class="mb-1">✅ {{ f }}</li>{% endfor %}
+              <li class="mb-1">💬
+                {% if wa_incluidos[key] is none %}WhatsApp ilimitado
+                {% elif wa_incluidos[key] == 0 %}WhatsApp: comprá packs aparte
+                {% else %}{{ wa_incluidos[key] }} mensajes WhatsApp/mes{% endif %}
+              </li>
               {% for f in p.no %}<li class="mb-1 text-muted">✖️ {{ f }}</li>{% endfor %}
             </ul>
 

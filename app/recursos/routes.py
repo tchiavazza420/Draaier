@@ -123,9 +123,19 @@ def _tipos_del_negocio():
 @rol_required(*_ROLES_PANEL)
 @negocio_operativo_required
 def recurso_nuevo():
+    # Límite de agendas según el plan (Independiente = 1; Locales = varias).
+    from app.planes import limite_agendas_de
+    limite = limite_agendas_de(current_user.negocio.plan)
+    if limite is not None:
+        actuales = query_tenant(Recurso, _neg()).count()
+        if actuales >= limite:
+            flash(f"Tu plan permite hasta {limite} agenda(s). "
+                  f"Subí de plan para agregar más.", "warning")
+            return redirect(url_for("panel.plan"))
+
     tipos = _tipos_del_negocio()
     if not tipos:
-        flash("Primero creá al menos un tipo de recurso.", "warning")
+        flash("Primero creá al menos una categoría.", "warning")
         return redirect(url_for("recursos.tipo_nuevo"))
 
     form = RecursoForm(tipos=tipos)

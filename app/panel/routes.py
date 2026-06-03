@@ -18,7 +18,7 @@ from app.auth.decorators import rol_required
 from app.models.negocio import RubroEnum, TemplatePublicoEnum, MetodoPagoEnum, PlanEnum
 from app.panel.forms import NegocioConfigForm, PersonalizacionForm, MensajesForm
 from app.uploads import guardar_imagen
-from app.planes import PLANES, ORDEN, info_plan, precio_anual
+from app.planes import PLANES, ORDEN, info_plan, precio_anual, WA_INCLUIDOS
 
 panel_bp = Blueprint("panel", __name__)
 
@@ -52,7 +52,7 @@ def plan():
     return render_template(
         "panel/plan.html",
         negocio=negocio, planes=PLANES, orden=ORDEN,
-        precios_anuales=precios_anuales,
+        precios_anuales=precios_anuales, wa_incluidos=WA_INCLUIDOS,
         plan_actual=info_plan(negocio.plan),
         plan_actual_key=negocio.plan.value if negocio.plan else None,
     )
@@ -141,7 +141,33 @@ def mensajes():
         db.session.commit()
         flash("Mensajes automáticos actualizados.", "success")
         return redirect(url_for("panel.mensajes"))
-    return render_template("panel/mensajes.html", form=form, negocio=negocio)
+
+    from app.whatsapp_creditos import estado as wa_estado
+    from app.planes import PACKS_WHATSAPP
+    return render_template(
+        "panel/mensajes.html", form=form, negocio=negocio,
+        wa=wa_estado(negocio), packs=PACKS_WHATSAPP,
+    )
+
+
+@panel_bp.route("/whatsapp/comprar", methods=["POST"])
+@login_required
+@rol_required("dueno")
+def whatsapp_comprar():
+    """
+    Compra un pack de mensajes de WhatsApp. El cobro real iría por la pasarela
+    de pago; en esta versión se acredita al instante (simulado).
+    """
+    from app.planes import PACKS_WHATSAPP
+    from app.whatsapp_creditos import comprar_pack
+    cantidad = request.form.get("cantidad", type=int)
+    valido = next((p for p in PACKS_WHATSAPP if p["cantidad"] == cantidad), None)
+    if valido is None:
+        flash("Pack inválido.", "danger")
+        return redirect(url_for("panel.mensajes"))
+    comprar_pack(current_user.negocio, cantidad)
+    flash(f"¡Listo! Sumaste {cantidad} mensajes de WhatsApp (simulado).", "success")
+    return redirect(url_for("panel.mensajes"))
 
 
 @panel_bp.route("/configuracion", methods=["GET", "POST"])

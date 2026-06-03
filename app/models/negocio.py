@@ -113,6 +113,13 @@ class Negocio(TimestampMixin, db.Model):
     # Texto que se agrega al final de los mensajes (saludo/firma del negocio).
     mensaje_firma = db.Column(db.String(280), nullable=True)
 
+    # --- Créditos de WhatsApp (se renuevan cada mes) ---
+    # wa_extra: mensajes comprados este mes (packs). wa_usados: enviados este mes.
+    # wa_periodo: "YYYY-MM" para detectar el cambio de mes y reiniciar.
+    wa_extra = db.Column(db.Integer, nullable=False, default=0)
+    wa_usados = db.Column(db.Integer, nullable=False, default=0)
+    wa_periodo = db.Column(db.String(7), nullable=True)
+
     # --- Personalización / branding ---
     logo_filename = db.Column(db.String(200), nullable=True)
     banner_filename = db.Column(db.String(200), nullable=True)
