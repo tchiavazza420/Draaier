@@ -13,11 +13,21 @@ Disponible = (incluidos + extra_comprados) - usados   [o ilimitado].
 from datetime import datetime
 
 from app.extensions import db
-from app.planes import wa_incluidos_de
+from app.planes import wa_incluidos_para
 
 
 def _periodo_actual():
     return datetime.now().strftime("%Y-%m")
+
+
+def _wa_incluidos(negocio):
+    """
+    Mensajes incluidos por mes del negocio. En planes por puesto (Locales)
+    depende de cuántos profesionales tenga cargados; en los fijos es constante.
+    """
+    from app.models.recurso import Recurso
+    n_prof = Recurso.query.filter_by(negocio_id=negocio.id).count()
+    return wa_incluidos_para(negocio.plan, n_prof)
 
 
 def _renovar_si_corresponde(negocio):
@@ -32,7 +42,7 @@ def _renovar_si_corresponde(negocio):
 
 
 def es_ilimitado(negocio):
-    return wa_incluidos_de(negocio.plan) is None
+    return _wa_incluidos(negocio) is None
 
 
 def estado(negocio):
@@ -44,7 +54,7 @@ def estado(negocio):
     if cambio:
         db.session.commit()
 
-    incluidos = wa_incluidos_de(negocio.plan)
+    incluidos = _wa_incluidos(negocio)
     if incluidos is None:
         return {"incluidos": None, "extra": negocio.wa_extra,
                 "usados": negocio.wa_usados, "disponibles": None, "ilimitado": True}
@@ -65,7 +75,7 @@ def consumir(negocio):
     """
     _renovar_si_corresponde(negocio)
     if not es_ilimitado(negocio):
-        incluidos = wa_incluidos_de(negocio.plan)
+        incluidos = _wa_incluidos(negocio)
         if (incluidos + negocio.wa_extra - negocio.wa_usados) <= 0:
             db.session.commit()
             return False

@@ -47,18 +47,23 @@
             </div>
 
             <div class="my-2">
-              {% if p.desde %}<span class="text-muted small">Desde </span>{% endif %}
-              <span class="h4 stat-num" x-show="!anual">${{ '{:,.0f}'.format(p.precio).replace(',','.') }}</span>
+              {% if por_puesto[key] %}<span class="text-muted small">Desde </span>{% endif %}
+              <span class="h4 stat-num" x-show="!anual">${{ '{:,.0f}'.format(precios_mes[key]).replace(',','.') }}</span>
               <span class="text-muted small" x-show="!anual">/mes</span>
               <span class="h4 stat-num" x-show="anual" x-cloak>${{ '{:,.0f}'.format(precios_anuales[key]).replace(',','.') }}</span>
               <span class="text-muted small" x-show="anual" x-cloak>/año</span>
+              {% if por_puesto[key] %}
+                <div class="text-muted small" x-show="!anual">
+                  por {{ p.prof_base }} prof · +${{ '{:,.0f}'.format(p.precio_adicional).replace(',','.') }} c/u (hasta {{ p.max_prof }})
+                </div>
+              {% endif %}
             </div>
 
             <p class="text-muted small">{{ p.resumen }}</p>
             <ul class="list-unstyled small mb-3">
               {% for f in p.features %}<li class="mb-1">✅ {{ f }}</li>{% endfor %}
               <li class="mb-1">💬
-                {% if wa_incluidos[key] is none %}WhatsApp ilimitado
+                {% if por_puesto[key] %}{{ p.wa_por_prof }} mensajes WhatsApp por profesional/mes
                 {% elif wa_incluidos[key] == 0 %}WhatsApp: comprá packs aparte
                 {% else %}{{ wa_incluidos[key] }} mensajes WhatsApp/mes{% endif %}
               </li>
@@ -73,7 +78,7 @@
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <input type="hidden" name="plan" value="{{ key }}">
                   <button class="btn btn-primary w-100">
-                    {% if p.prueba_dias %}Probar gratis{% elif p.desde %}Consultar{% else %}Elegir este plan{% endif %}
+                    {% if p.prueba_dias %}Probar gratis{% else %}Elegir este plan{% endif %}
                   </button>
                 </form>
               {% endif %}

@@ -18,7 +18,10 @@ from app.auth.decorators import rol_required
 from app.models.negocio import RubroEnum, TemplatePublicoEnum, MetodoPagoEnum, PlanEnum
 from app.panel.forms import NegocioConfigForm, PersonalizacionForm, MensajesForm
 from app.uploads import guardar_imagen
-from app.planes import PLANES, ORDEN, info_plan, precio_anual, WA_INCLUIDOS
+from app.planes import (
+    PLANES, ORDEN, info_plan, precio_anual, precio_desde,
+    es_por_puesto, wa_incluidos_catalogo,
+)
 
 panel_bp = Blueprint("panel", __name__)
 
@@ -114,11 +117,16 @@ def _estado_onboarding(negocio):
 def plan():
     """Muestra el plan actual, qué incluye, y permite cambiarlo."""
     negocio = current_user.negocio
+    # Datos derivados por plan para la vista (precio de referencia, anual, WA).
+    precios_mes = {k: precio_desde(p) for k, p in PLANES.items()}
     precios_anuales = {k: precio_anual(p) for k, p in PLANES.items()}
+    wa_incluidos = {k: wa_incluidos_catalogo(PlanEnum(k)) for k in PLANES}
+    por_puesto = {k: es_por_puesto(p) for k, p in PLANES.items()}
     return render_template(
         "panel/plan.html",
         negocio=negocio, planes=PLANES, orden=ORDEN,
-        precios_anuales=precios_anuales, wa_incluidos=WA_INCLUIDOS,
+        precios_mes=precios_mes, precios_anuales=precios_anuales,
+        wa_incluidos=wa_incluidos, por_puesto=por_puesto,
         plan_actual=info_plan(negocio.plan),
         plan_actual_key=negocio.plan.value if negocio.plan else None,
     )

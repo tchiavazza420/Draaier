@@ -3,7 +3,13 @@ app/planes.py
 -------------
 Catálogo de planes comerciales de AgenPro.
 
-Estructura: dos grupos (Independiente / Locales), 3 planes cada uno.
+Dos grupos:
+  - Independiente (1 profesional, precio FIJO): básico / pro / premium.
+  - Locales (precio POR PUESTO): starter / business.
+      precio = precio_base (incluye `prof_base` profesionales)
+               + precio_adicional por cada profesional extra, hasta `max_prof`.
+      WhatsApp incluido = `wa_por_prof` mensajes por profesional contratado.
+
 Todos son pagos; solo Básico tiene 14 días de prueba sin tarjeta.
 Precios en ARS mensuales. El pago anual da 2 meses gratis (pagás 10 meses).
 """
@@ -15,54 +21,19 @@ MESES_ANUAL = 10
 PRUEBA_DIAS = 14
 
 # Packs de mensajes de WhatsApp extra (se pueden comprar en cualquier plan).
-# Precio: $2.500 cada 100 mensajes. Se usan/renuevan dentro del mes.
 PACKS_WHATSAPP = [
-    {"cantidad": 100, "precio": 2500},
-    {"cantidad": 300, "precio": 7500},
-    {"cantidad": 600, "precio": 15000},
-    {"cantidad": 1000, "precio": 25000},
+    {"cantidad": 100, "precio": 8000},
+    {"cantidad": 300, "precio": 22000},
+    {"cantidad": 600, "precio": 40000},
+    {"cantidad": 1000, "precio": 65000},
 ]
-
-# Mensajes de WhatsApp incluidos por plan, por mes (None = ilimitado).
-WA_INCLUIDOS = {
-    PlanEnum.BASICO.value: 0,
-    PlanEnum.PRO.value: 100,
-    PlanEnum.PREMIUM.value: 500,
-    PlanEnum.STARTER.value: 200,
-    PlanEnum.BUSINESS.value: 600,
-    PlanEnum.ENTERPRISE.value: None,   # ilimitado
-}
-
-
-def wa_incluidos_de(plan_enum):
-    """Mensajes de WhatsApp incluidos por mes según el plan (None=ilimitado)."""
-    if plan_enum is None:
-        return 0
-    return WA_INCLUIDOS.get(plan_enum.value, 0)
-
-
-# Máximo de agendas (reservables) por plan (None = ilimitado).
-# Independiente = 1 agenda (para una sola persona). Locales = varias.
-LIMITE_AGENDAS = {
-    PlanEnum.BASICO.value: 1,
-    PlanEnum.PRO.value: 1,
-    PlanEnum.PREMIUM.value: 1,
-    PlanEnum.STARTER.value: 5,
-    PlanEnum.BUSINESS.value: 15,
-    PlanEnum.ENTERPRISE.value: None,   # ilimitado
-}
-
-
-def limite_agendas_de(plan_enum):
-    """Máximo de agendas según el plan (None = ilimitado). Sin plan: 1."""
-    if plan_enum is None:
-        return 1
-    return LIMITE_AGENDAS.get(plan_enum.value, 1)
 
 
 PLANES = {
+    # ---------- Independiente (precio fijo, 1 profesional) ----------
     PlanEnum.BASICO.value: {
-        "nombre": "Básico", "grupo": "Independiente", "precio": 9000,
+        "nombre": "Básico", "grupo": "Independiente", "tipo": "fijo",
+        "precio": 9000, "max_prof": 1, "wa_incluido": 0,
         "prueba_dias": PRUEBA_DIAS,
         "resumen": "Para empezar. 14 días de prueba, sin tarjeta.",
         "features": [
@@ -72,68 +43,142 @@ PLANES = {
         "no": ["Cobro de señas", "WhatsApp", "Reportes", "Marketplace"],
     },
     PlanEnum.PRO.value: {
-        "nombre": "Pro", "grupo": "Independiente", "precio": 18000,
+        "nombre": "Pro", "grupo": "Independiente", "tipo": "fijo",
+        "precio": 20000, "max_prof": 1, "wa_incluido": 100,
         "resumen": "Para profesionales que cobran señas.",
         "features": [
             "1 profesional (vos)", "Cobro de señas (Mercado Pago / Naranja X / Modo)",
-            "Recordatorios por email y WhatsApp", "Reportes e ingresos",
-            "Personalización de tu página",
+            "Recordatorios por email y WhatsApp", "100 mensajes de WhatsApp/mes",
+            "Reportes e ingresos", "Personalización de tu página",
         ],
         "no": ["Marketplace destacado", "Multi-staff"],
     },
     PlanEnum.PREMIUM.value: {
-        "nombre": "Premium", "grupo": "Independiente", "precio": 30000,
+        "nombre": "Premium", "grupo": "Independiente", "tipo": "fijo",
+        "precio": 45000, "max_prof": 1, "wa_incluido": 500,
         "resumen": "Todo, con presencia destacada en el marketplace.",
         "features": [
             "1 profesional (vos)", "Todo lo de Pro",
+            "500 mensajes de WhatsApp/mes",
             "Aparición destacada en el Marketplace", "Reseñas y reputación",
             "Soporte prioritario",
         ],
         "no": ["Multi-staff"],
     },
+    # ---------- Locales (precio por puesto) ----------
     PlanEnum.STARTER.value: {
-        "nombre": "Starter", "grupo": "Locales", "precio": 35000,
-        "resumen": "Para locales chicos con equipo.",
+        "nombre": "Starter", "grupo": "Locales", "tipo": "puesto",
+        "precio_base": 45000, "prof_base": 2, "precio_adicional": 18000,
+        "max_prof": 5, "wa_por_prof": 100,
+        "resumen": "Para locales chicos con equipo. Pagás por profesional.",
         "features": [
-            "Hasta 5 profesionales", "Multi-staff (varios usuarios)",
-            "Cobro de señas", "Recordatorios por email y WhatsApp", "Reportes",
+            "Desde 2 profesionales (hasta 5)",
+            "$18.000 por cada profesional adicional",
+            "Multi-staff (varios usuarios)", "Cobro de señas",
+            "100 mensajes de WhatsApp por profesional/mes",
+            "Recordatorios por email y WhatsApp", "Reportes",
         ],
         "no": ["Marketplace destacado"],
     },
     PlanEnum.BUSINESS.value: {
-        "nombre": "Business", "grupo": "Locales", "precio": 55000,
-        "resumen": "Para locales en crecimiento.",
+        "nombre": "Business", "grupo": "Locales", "tipo": "puesto",
+        "precio_base": 135000, "prof_base": 5, "precio_adicional": 25000,
+        "max_prof": 15, "wa_por_prof": 300,
+        "resumen": "Para locales en crecimiento. Pagás por profesional.",
         "features": [
-            "Hasta 15 profesionales", "Todo lo de Starter",
+            "Desde 5 profesionales (hasta 15)",
+            "$25.000 por cada profesional adicional",
+            "Todo lo de Starter",
+            "300 mensajes de WhatsApp por profesional/mes",
             "Marketplace destacado", "Personalización avanzada",
-        ],
-        "no": [],
-    },
-    PlanEnum.ENTERPRISE.value: {
-        "nombre": "Enterprise", "grupo": "Locales", "precio": 95000,
-        "desde": True,  # "Desde $95.000", escalable según necesidades
-        "resumen": "Para cadenas y alto volumen. Escala con vos.",
-        "features": [
-            "Profesionales y staff ilimitados", "Todo lo de Business",
-            "Soporte dedicado", "Integraciones a medida",
         ],
         "no": [],
     },
 }
 
+# Orden de aparición en la página de planes (Enterprise fuera de catálogo).
 ORDEN = [
     PlanEnum.BASICO.value, PlanEnum.PRO.value, PlanEnum.PREMIUM.value,
-    PlanEnum.STARTER.value, PlanEnum.BUSINESS.value, PlanEnum.ENTERPRISE.value,
+    PlanEnum.STARTER.value, PlanEnum.BUSINESS.value,
 ]
 
 
-def precio_anual(plan):
-    """Precio anual (con 2 meses gratis) a partir del dict de plan."""
-    return plan["precio"] * MESES_ANUAL
-
-
+# ======================================================================
+#  Helpers
+# ======================================================================
 def info_plan(plan_enum):
     """Devuelve el dict de info de un PlanEnum (o None)."""
     if plan_enum is None:
         return None
     return PLANES.get(plan_enum.value)
+
+
+def es_por_puesto(plan):
+    """True si el plan cobra por puesto (Locales)."""
+    return plan.get("tipo") == "puesto"
+
+
+def precio_desde(plan):
+    """Precio mensual de referencia (mínimo): fijo => precio; puesto => base."""
+    return plan["precio_base"] if es_por_puesto(plan) else plan["precio"]
+
+
+def precio_para(plan, n_prof):
+    """
+    Precio mensual para `n_prof` profesionales.
+    - Fijo: siempre el precio del plan.
+    - Puesto: base + adicional por cada profesional por encima de prof_base,
+      acotado entre prof_base y max_prof.
+    """
+    if not es_por_puesto(plan):
+        return plan["precio"]
+    seats = max(plan["prof_base"], min(n_prof, plan["max_prof"]))
+    extra = seats - plan["prof_base"]
+    return plan["precio_base"] + extra * plan["precio_adicional"]
+
+
+def precio_anual(plan):
+    """Precio anual (con 2 meses gratis) sobre el precio de referencia."""
+    return precio_desde(plan) * MESES_ANUAL
+
+
+def max_prof_de(plan_enum):
+    """Máximo de profesionales/agendas del plan. Sin plan: 1."""
+    plan = info_plan(plan_enum)
+    return plan["max_prof"] if plan else 1
+
+
+# Alias histórico usado por el módulo de recursos (límite de agendas).
+def limite_agendas_de(plan_enum):
+    """Máximo de agendas (= profesionales) según el plan. Sin plan: 1."""
+    return max_prof_de(plan_enum)
+
+
+def wa_incluidos_para(plan_enum, n_prof):
+    """
+    Mensajes de WhatsApp incluidos por mes según el plan y la cantidad de
+    profesionales contratados.
+    - Fijo: el valor fijo del plan.
+    - Puesto: wa_por_prof × profesionales (mínimo prof_base, máximo max_prof).
+    """
+    plan = info_plan(plan_enum)
+    if plan is None:
+        return 0
+    if not es_por_puesto(plan):
+        return plan.get("wa_incluido", 0)
+    seats = max(plan["prof_base"], min(n_prof or 0, plan["max_prof"]))
+    return plan["wa_por_prof"] * seats
+
+
+def wa_incluidos_catalogo(plan_enum):
+    """
+    Valor de WhatsApp para mostrar en el catálogo (sin saber profesionales):
+    - Fijo: el número fijo.
+    - Puesto: el mínimo garantizado (wa_por_prof × prof_base).
+    """
+    plan = info_plan(plan_enum)
+    if plan is None:
+        return 0
+    if not es_por_puesto(plan):
+        return plan.get("wa_incluido", 0)
+    return plan["wa_por_prof"] * plan["prof_base"]

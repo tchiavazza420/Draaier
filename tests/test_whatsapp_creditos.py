@@ -34,14 +34,18 @@ def test_compra_pack_suma_saldo(crear_negocio):
     assert estado(neg)["disponibles"] == 299
 
 
-def test_ilimitado_enterprise(crear_negocio):
+def test_incluidos_por_puesto_starter(crear_negocio, crear_recurso):
+    """Starter incluye 100 WhatsApp por profesional/mes (mínimo prof_base=2)."""
     neg, _ = crear_negocio()
-    neg.plan = PlanEnum.ENTERPRISE
+    neg.plan = PlanEnum.STARTER
     db.session.commit()
-    st = estado(neg)
-    assert st["ilimitado"] is True
-    for _ in range(50):
-        assert consumir(neg) is True   # nunca se agota
+
+    # Sin profesionales cargados: cuenta el mínimo del plan (2 puestos) => 200.
+    assert estado(neg)["incluidos"] == 200
+
+    # Con 3 profesionales: 100 x 3 = 300.
+    crear_recurso(neg); crear_recurso(neg); crear_recurso(neg)
+    assert estado(neg)["incluidos"] == 300
 
 
 def test_reset_mensual(crear_negocio):
