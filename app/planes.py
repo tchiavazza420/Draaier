@@ -66,7 +66,7 @@ PLANES = {
         "prueba_dias": PRUEBA_DIAS,
         "resumen": "Para empezar. 14 días de prueba, sin tarjeta.",
         "features": [
-            "1 agenda (para vos)", "Reservas online ilimitadas",
+            "1 profesional (vos)", "Reservas online ilimitadas",
             "Tu página pública propia", "Recordatorios por email",
         ],
         "no": ["Cobro de señas", "WhatsApp", "Reportes", "Marketplace"],
@@ -75,7 +75,7 @@ PLANES = {
         "nombre": "Pro", "grupo": "Independiente", "precio": 18000,
         "resumen": "Para profesionales que cobran señas.",
         "features": [
-            "1 agenda (para vos)", "Cobro de señas (Mercado Pago / Naranja X / Modo)",
+            "1 profesional (vos)", "Cobro de señas (Mercado Pago / Naranja X / Modo)",
             "Recordatorios por email y WhatsApp", "Reportes e ingresos",
             "Personalización de tu página",
         ],
@@ -85,7 +85,7 @@ PLANES = {
         "nombre": "Premium", "grupo": "Independiente", "precio": 30000,
         "resumen": "Todo, con presencia destacada en el marketplace.",
         "features": [
-            "1 agenda (para vos)", "Todo lo de Pro",
+            "1 profesional (vos)", "Todo lo de Pro",
             "Aparición destacada en el Marketplace", "Reseñas y reputación",
             "Soporte prioritario",
         ],
@@ -95,7 +95,7 @@ PLANES = {
         "nombre": "Starter", "grupo": "Locales", "precio": 35000,
         "resumen": "Para locales chicos con equipo.",
         "features": [
-            "Hasta 5 agendas", "Multi-staff (varios usuarios)",
+            "Hasta 5 profesionales", "Multi-staff (varios usuarios)",
             "Cobro de señas", "Recordatorios por email y WhatsApp", "Reportes",
         ],
         "no": ["Marketplace destacado"],
@@ -104,7 +104,7 @@ PLANES = {
         "nombre": "Business", "grupo": "Locales", "precio": 55000,
         "resumen": "Para locales en crecimiento.",
         "features": [
-            "Hasta 15 agendas", "Todo lo de Starter",
+            "Hasta 15 profesionales", "Todo lo de Starter",
             "Marketplace destacado", "Personalización avanzada",
         ],
         "no": [],
@@ -114,7 +114,7 @@ PLANES = {
         "desde": True,  # "Desde $95.000", escalable según necesidades
         "resumen": "Para cadenas y alto volumen. Escala con vos.",
         "features": [
-            "Agendas y staff ilimitados", "Todo lo de Business",
+            "Profesionales y staff ilimitados", "Todo lo de Business",
             "Soporte dedicado", "Integraciones a medida",
         ],
         "no": [],

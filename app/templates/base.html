@@ -51,7 +51,7 @@
               <a href="{{ url_for('reservas.agenda') }}"><span class="menu-emoji">🗓️</span> Calendario</a>
               <a href="{{ url_for('reservas.listar') }}"><span class="menu-emoji">📋</span> Actividad</a>
               <div class="menu-sep"></div>
-              <a href="{{ url_for('recursos.listar') }}"><span class="menu-emoji">🧩</span> Agendas</a>
+              <a href="{{ url_for('recursos.listar') }}"><span class="menu-emoji">💇</span> Profesionales</a>
               <a href="{{ url_for('servicios.listar') }}"><span class="menu-emoji">✂️</span> Servicios</a>
               <a href="{{ url_for('disponibilidad.index') }}"><span class="menu-emoji">⏰</span> Disponibilidad</a>
               <div class="menu-sep"></div>
@@ -117,10 +117,10 @@
   {% if current_user.is_authenticated and not current_user.es_super_admin and current_user.negocio %}
   <!-- Barra inferior de navegación (solo mobile, look de app) -->
   <nav class="bottom-nav">
-    <a href="{{ url_for('reservas.agenda') }}"><span class="bn-ico">🗓️</span>Agenda</a>
+    <a href="{{ url_for('reservas.agenda') }}"><span class="bn-ico">🗓️</span>Calendario</a>
     <a href="{{ url_for('reservas.listar') }}"><span class="bn-ico">📋</span>Actividad</a>
     <a href="{{ url_for('reservas.nueva') }}" class="bn-fab" aria-label="Nueva reserva">+</a>
-    <a href="{{ url_for('recursos.listar') }}"><span class="bn-ico">🧩</span>Agendas</a>
+    <a href="{{ url_for('recursos.listar') }}"><span class="bn-ico">💇</span>Profesionales</a>
     <a href="{{ url_for('panel.dashboard') }}"><span class="bn-ico">🏠</span>Panel</a>
   </nav>
   {% endif %}
