@@ -45,13 +45,67 @@ def dashboard():
     else:
         wa_renueva = datetime(hoy.year, hoy.month + 1, 1)
 
+    # --- Onboarding: primeros pasos para dejar el salón listo ---
+    onboarding = _estado_onboarding(negocio)
+
     return render_template(
         "panel/dashboard.html",
         negocio=negocio,
         dias_trial_restantes=dias_trial_restantes,
         wa=wa, wa_renueva=wa_renueva,
         plan_vence=negocio.vencimiento,
+        onboarding=onboarding,
     )
+
+
+def _estado_onboarding(negocio):
+    """
+    Calcula el progreso de configuración inicial del salón a partir de los
+    datos ya cargados (no guarda estado: es siempre la foto real).
+    Devuelve dict con los pasos, cuántos están completos y el % de avance.
+    """
+    from app.models.recurso import Recurso
+    from app.models.servicio import Servicio
+    from app.models.horario import HorarioAtencion
+
+    nid = negocio.id
+    tiene_prof = db.session.query(Recurso.id).filter_by(negocio_id=nid).first() is not None
+    tiene_serv = db.session.query(Servicio.id).filter_by(negocio_id=nid).first() is not None
+    tiene_horario = db.session.query(HorarioAtencion.id).filter_by(negocio_id=nid).first() is not None
+    personalizado = bool(negocio.logo_filename or negocio.descripcion_publica)
+    visible = bool(negocio.visible_marketplace)
+
+    pasos = [
+        {"clave": "profesional", "ok": tiene_prof, "icono": "💇",
+         "titulo": "Cargá tu primer profesional",
+         "texto": "Quien atiende y tiene su agenda.",
+         "url": url_for("recursos.recurso_nuevo"), "cta": "Agregar profesional"},
+        {"clave": "servicio", "ok": tiene_serv, "icono": "✂️",
+         "titulo": "Creá un servicio",
+         "texto": "Ej: Corte, Color, Manicura (duración y precio).",
+         "url": url_for("servicios.nuevo"), "cta": "Agregar servicio"},
+        {"clave": "horario", "ok": tiene_horario, "icono": "⏰",
+         "titulo": "Definí tus horarios",
+         "texto": "Cuándo atendés, para mostrar turnos disponibles.",
+         "url": url_for("disponibilidad.index"), "cta": "Configurar horarios"},
+        {"clave": "personalizar", "ok": personalizado, "icono": "🎨",
+         "titulo": "Personalizá tu página",
+         "texto": "Subí tu logo y contá de qué se trata tu salón.",
+         "url": url_for("panel.personalizacion"), "cta": "Personalizar"},
+        {"clave": "publicar", "ok": visible, "icono": "🌐",
+         "titulo": "Publicá en el marketplace",
+         "texto": "Hacé visible tu salón para recibir clientes nuevos.",
+         "url": url_for("panel.configuracion"), "cta": "Hacer visible"},
+    ]
+    completos = sum(1 for p in pasos if p["ok"])
+    total = len(pasos)
+    return {
+        "pasos": pasos,
+        "completos": completos,
+        "total": total,
+        "porcentaje": round(completos / total * 100),
+        "completo": completos == total,
+    }
 
 
 @panel_bp.route("/plan")

@@ -25,6 +25,54 @@
   </div>
 {% endif %}
 
+{% if not onboarding.completo %}
+<!-- ===== Onboarding: primeros pasos ===== -->
+<div class="card border-0 shadow-sm mb-4 pop-in" style="overflow:hidden"
+     x-data="{ abierto: true }">
+  <div class="card-body p-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h2 class="h5 mb-1">🚀 Configurá tu salón</h2>
+        <p class="text-muted small mb-0">
+          {{ onboarding.completos }} de {{ onboarding.total }} pasos listos.
+          ¡Faltan pocos para empezar a recibir turnos!
+        </p>
+      </div>
+      <button class="btn btn-sm btn-outline-secondary" @click="abierto=!abierto"
+              x-text="abierto ? 'Ocultar' : 'Ver pasos'"></button>
+    </div>
+
+    <!-- Barra de progreso -->
+    <div class="progress mt-3" style="height:10px" role="progressbar"
+         aria-valuenow="{{ onboarding.porcentaje }}" aria-valuemin="0" aria-valuemax="100">
+      <div class="progress-bar" style="width:{{ onboarding.porcentaje }}%;transition:width .6s ease"></div>
+    </div>
+
+    <div class="row g-3 mt-1 stagger" x-show="abierto" x-transition>
+      {% for p in onboarding.pasos %}
+        <div class="col-12 col-md-6">
+          <div class="d-flex align-items-center gap-3 p-3 rounded-3 h-100
+                      {{ 'bg-success-subtle' if p.ok else 'border' }}">
+            <div class="feature-ico flex-shrink-0">
+              {% if p.ok %}✅{% else %}{{ p.icono }}{% endif %}
+            </div>
+            <div class="flex-grow-1">
+              <div class="fw-semibold {{ 'text-success-emphasis text-decoration-line-through' if p.ok }}">
+                {{ p.titulo }}
+              </div>
+              <small class="text-muted">{{ p.texto }}</small>
+            </div>
+            {% if not p.ok %}
+              <a href="{{ p.url }}" class="btn btn-sm btn-primary flex-shrink-0">{{ p.cta }}</a>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
 <!-- Plan + WhatsApp (vencimientos y saldo) -->
 <div class="row g-3 mb-4">
   <div class="col-md-6">
