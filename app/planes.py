@@ -1,7 +1,7 @@
 """
 app/planes.py
 -------------
-Catálogo de planes comerciales de Draaier.
+Catálogo de planes comerciales de AgenPro.
 
 Estructura: dos grupos (Independiente / Locales), 3 planes cada uno.
 Todos son pagos; solo Básico tiene 14 días de prueba sin tarjeta.

@@ -10,6 +10,7 @@ Formularios del módulo de recursos (Flask-WTF + CSRF).
 """
 
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileAllowed
 from wtforms import StringField, TextAreaField, IntegerField, SelectField, BooleanField, SubmitField
 from wtforms.validators import DataRequired, Length, NumberRange, Optional
 
@@ -28,14 +29,20 @@ class RecursoForm(FlaskForm):
         "Nombre del profesional",
         validators=[DataRequired(), Length(min=1, max=120)],
     )
+    especialidad = StringField(
+        "Especialidad",
+        validators=[Optional(), Length(max=80)],
+    )
+    foto = FileField("Foto", validators=[
+        Optional(), FileAllowed(["png", "jpg", "jpeg", "webp", "gif"], "Solo imágenes.")])
+    descripcion = TextAreaField(
+        "Bio / descripción",
+        validators=[Optional(), Length(max=2000)],
+    )
     capacidad = IntegerField(
         "Cupos por turno",
         validators=[DataRequired(), NumberRange(min=1, max=10000)],
         default=1,
-    )
-    descripcion = TextAreaField(
-        "Descripción",
-        validators=[Optional(), Length(max=2000)],
     )
     activo = BooleanField("Activo", default=True)
     submit = SubmitField("Guardar")

@@ -38,7 +38,7 @@ class RubroEnum(enum.Enum):
     OTRO = "otro"
 
 
-# Draaier es solo para el sector belleza/estética: estos son los rubros que se
+# AgenPro es solo para el sector belleza/estética: estos son los rubros que se
 # ofrecen al registrarse y configurar (el enum conserva los demás por
 # compatibilidad con datos existentes, pero no se muestran).
 RUBROS_BELLEZA = [

@@ -1,6 +1,6 @@
-# Draaier — Puesta en producción (runbook completo)
+# AgenPro — Puesta en producción (runbook completo)
 
-Guía paso a paso para dejar Draaier online, con dominio propio, pagos reales,
+Guía paso a paso para dejar AgenPro online, con dominio propio, pagos reales,
 emails y WhatsApp. Hacé las fases en orden; cada una funciona por sí sola.
 
 ---
@@ -20,7 +20,7 @@ Render está conectado a la rama `master`. Para que se actualice:
 
 1. En Render, esperá que **reservas-web** quede en **Live**. Te da una URL
    `https://reservas-web-xxxx.onrender.com`.
-2. Entrá: deberías ver el landing de Draaier.
+2. Entrá: deberías ver el landing de AgenPro.
 3. Creá tu **Super Admin** (administrador de la plataforma). En Render →
    servicio **reservas-web** → pestaña **Shell**:
    ```bash
@@ -99,7 +99,7 @@ lo más fácil es un proveedor transaccional gratis (Brevo) o Gmail.
    MAIL_USE_TLS = true
    MAIL_USERNAME = (tu login de Brevo)
    MAIL_PASSWORD = (tu clave SMTP de Brevo)
-   MAIL_DEFAULT_SENDER = Draaier <no-reply@draaier.com>
+   MAIL_DEFAULT_SENDER = AgenPro <no-reply@draaier.com>
    ```
 
 **Opción B — Gmail:** activá verificación en 2 pasos y creá una "Contraseña de

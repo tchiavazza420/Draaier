@@ -25,6 +25,7 @@ from app.auth.decorators import rol_required, negocio_operativo_required
 from app.models.tipo_recurso import TipoRecurso
 from app.models.recurso import Recurso
 from app.recursos.forms import TipoRecursoForm, RecursoForm
+from app.uploads import guardar_imagen
 
 recursos_bp = Blueprint("recursos", __name__)
 
@@ -149,11 +150,18 @@ def recurso_nuevo():
 
     form = RecursoForm()
     if form.validate_on_submit():
+        try:
+            foto = guardar_imagen(form.foto.data, _neg(), "profesional")
+        except ValueError as exc:
+            flash(str(exc), "danger")
+            return render_template("recursos/recurso_form.html", form=form, titulo="Nuevo profesional", recurso=None)
         recurso = Recurso(
             negocio_id=_neg(),
             tipo_recurso_id=_categoria_default().id,
             nombre=form.nombre.data.strip(),
             slug=generar_slug_unico_scoped(Recurso, form.nombre.data, _neg()),
+            especialidad=(form.especialidad.data or "").strip() or None,
+            foto_filename=foto,
             descripcion=(form.descripcion.data or "").strip() or None,
             capacidad=form.capacidad.data,
             activo=form.activo.data,
@@ -162,7 +170,7 @@ def recurso_nuevo():
         db.session.commit()
         flash(f"Profesional '{recurso.nombre}' creado.", "success")
         return redirect(url_for("recursos.listar"))
-    return render_template("recursos/recurso_form.html", form=form, titulo="Nuevo profesional")
+    return render_template("recursos/recurso_form.html", form=form, titulo="Nuevo profesional", recurso=None)
 
 
 @recursos_bp.route("/<int:recurso_id>/editar", methods=["GET", "POST"])

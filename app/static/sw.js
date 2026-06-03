@@ -1,11 +1,11 @@
-/* Service Worker — Draaier PWA
+/* Service Worker — AgenPro PWA
    Estrategia:
    - Precache del "app shell" mínimo (offline básico).
    - Network-first para navegación (HTML siempre fresco; cae a caché si no hay red).
    - Cache-first para estáticos (rápido).
    No cachea peticiones POST ni rutas de panel/pagos (datos sensibles/dinámicos).
 */
-const CACHE = "draaier-v5";
+const CACHE = "agenpro-v6";
 const APP_SHELL = [
   "/",
   "/static/css/app.css",

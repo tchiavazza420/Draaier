@@ -36,6 +36,10 @@ class Recurso(TenantMixin, TimestampMixin, db.Model):
     slug = db.Column(db.String(140), nullable=False)
     descripcion = db.Column(db.Text, nullable=True)
 
+    # --- Página pública del profesional ---
+    foto_filename = db.Column(db.String(200), nullable=True)
+    especialidad = db.Column(db.String(80), nullable=True)   # ej: Colorista, Barbero
+
     # Cupos simultáneos por turno. >= 1.
     capacidad = db.Column(db.Integer, nullable=False, default=1)
 
