@@ -1,0 +1,33 @@
+name: Recordatorios diarios
+
+# Cron GRATIS para plan free de Render (sin Celery beat).
+# Llama al endpoint /tareas/correr una vez por día para enviar los
+# recordatorios del día siguiente y vencer las suscripciones expiradas.
+#
+# Requiere dos secrets en el repo (Settings -> Secrets -> Actions):
+#   - SITE_URL    ej: https://www.agenpro.com.ar
+#   - CRON_TOKEN  el mismo valor que la env var CRON_TOKEN del servicio en Render
+#
+# La hora es UTC. 11:00 UTC ~ 08:00 Argentina (UTC-3).
+
+on:
+  schedule:
+    - cron: "0 11 * * *"
+  workflow_dispatch: {}   # permite ejecutarlo a mano desde la pestaña Actions
+
+jobs:
+  disparar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Llamar al endpoint de tareas
+        run: |
+          echo "Disparando tareas programadas…"
+          codigo=$(curl -s -o /tmp/resp.json -w "%{http_code}" \
+            -X POST "${{ secrets.SITE_URL }}/tareas/correr?dias=1" \
+            -H "X-Cron-Token: ${{ secrets.CRON_TOKEN }}")
+          echo "HTTP $codigo"
+          cat /tmp/resp.json || true
+          if [ "$codigo" != "200" ]; then
+            echo "::error::El endpoint respondió $codigo"
+            exit 1
+          fi
