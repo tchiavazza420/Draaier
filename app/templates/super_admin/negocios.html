@@ -46,12 +46,36 @@
               </td>
               <td>{% if n.activo %}<span class="badge bg-success">Sí</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
               <td>
-                <form method="post" action="{{ url_for('super_admin.negocio_toggle', negocio_id=n.id) }}">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                  <button class="btn btn-sm btn-outline-{{ 'warning' if n.activo else 'success' }}">
-                    {{ 'Desactivar' if n.activo else 'Activar' }}
-                  </button>
-                </form>
+                <div class="d-flex flex-column gap-1" x-data="{ borrar:false, txt:'' }">
+                  <form method="post" action="{{ url_for('super_admin.negocio_toggle', negocio_id=n.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="btn btn-sm btn-outline-{{ 'warning' if n.activo else 'success' }} w-100">
+                      {{ 'Desactivar' if n.activo else 'Activar' }}
+                    </button>
+                  </form>
+                  <button class="btn btn-sm btn-outline-danger" @click="borrar=true">🗑 Eliminar</button>
+
+                  <!-- Modal de confirmación -->
+                  <div x-show="borrar" x-cloak class="modal-borrar-bg" @click.self="borrar=false">
+                    <div class="modal-borrar pop-in">
+                      <h2 class="h6 mb-2">Eliminar “{{ n.nombre }}”</h2>
+                      <p class="small text-muted mb-2">
+                        Esto borra <strong>todo</strong> (reservas, servicios, profesionales,
+                        clientes, reseñas, usuarios). No se puede deshacer.
+                        Para confirmar, escribí el slug: <code>{{ n.slug }}</code>
+                      </p>
+                      <form method="post" action="{{ url_for('super_admin.negocio_eliminar', negocio_id=n.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="text" name="confirmar" x-model="txt" class="form-control form-control-sm mb-2"
+                               placeholder="{{ n.slug }}" autocomplete="off">
+                        <div class="d-flex justify-content-end gap-2">
+                          <button type="button" class="btn btn-sm btn-outline-secondary" @click="borrar=false">Cancelar</button>
+                          <button class="btn btn-sm btn-danger" :disabled="txt !== '{{ n.slug }}'">Eliminar definitivamente</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
               </td>
             </tr>
           {% endfor %}

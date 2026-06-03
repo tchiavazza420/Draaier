@@ -104,6 +104,35 @@ def negocio_suscripcion(negocio_id):
     return redirect(url_for("super_admin.negocios"))
 
 
+@super_admin_bp.route("/negocios/<int:negocio_id>/eliminar", methods=["POST"])
+@login_required
+@super_admin_required
+def negocio_eliminar(negocio_id):
+    """
+    Elimina DEFINITIVAMENTE un negocio y todos sus datos (pensado para borrar
+    locales de prueba). Acción irreversible.
+
+    Orden de borrado: primero las reservas (las FK servicio_id/recurso_id son
+    RESTRICT, así que hay que removerlas antes; esto cascadea a pagos y reseñas
+    por reserva_id). Luego el negocio, cuyo ON DELETE CASCADE en negocio_id
+    elimina servicios, recursos, clientes, horarios, bloqueos, galería,
+    usuarios y tipos de recurso.
+    """
+    n = db.session.get(Negocio, negocio_id) or abort(404)
+
+    # Confirmación: el formulario debe enviar el slug exacto del negocio.
+    if (request.form.get("confirmar") or "").strip() != n.slug:
+        flash("Confirmación incorrecta: escribí el slug del negocio para borrarlo.", "warning")
+        return redirect(url_for("super_admin.negocios"))
+
+    nombre = n.nombre
+    Reserva.query.filter_by(negocio_id=n.id).delete(synchronize_session=False)
+    db.session.delete(n)
+    db.session.commit()
+    flash(f"Negocio '{nombre}' eliminado por completo.", "success")
+    return redirect(url_for("super_admin.negocios"))
+
+
 @super_admin_bp.route("/resenas")
 @login_required
 @super_admin_required

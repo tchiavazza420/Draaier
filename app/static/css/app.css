@@ -34,6 +34,18 @@
 * { -webkit-font-smoothing: antialiased; }
 [x-cloak] { display: none !important; }
 
+/* ---------- Modal de confirmación (Alpine) ---------- */
+.modal-borrar-bg {
+  position: fixed; inset: 0; z-index: 1080;
+  background: rgba(17, 24, 39, .55); backdrop-filter: blur(2px);
+  display: flex; align-items: center; justify-content: center; padding: 1rem;
+}
+.modal-borrar {
+  background: var(--bs-body-bg, #fff); color: var(--bs-body-color, #111827);
+  border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,.3);
+  padding: 1.25rem; width: 100%; max-width: 420px;
+}
+
 /* ---------- Modo nocturno ---------- */
 html[data-bs-theme="dark"] {
   --tinta: #e8e9f2;
