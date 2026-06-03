@@ -8,7 +8,8 @@
     {{ field(
         class="form-control" ~ (" is-invalid" if field.errors else ""),
         placeholder=placeholder,
-        autocomplete=autocomplete
+        autocomplete=autocomplete,
+        **kwargs
     ) }}
     {% if field.errors %}
       <div class="invalid-feedback">

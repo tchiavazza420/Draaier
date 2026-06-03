@@ -4,31 +4,113 @@
 {% block title %}{{ titulo }} · Panel{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-7">
-    <div class="card shadow-sm">
-      <div class="card-body p-4">
-        <h1 class="h4 mb-1">{{ titulo }}</h1>
-        <p class="text-muted small mb-4">
-          Un profesional es quien atiende y tiene su propia agenda (estilista,
-          manicurista, esteticista…). Cada uno tiene su página y sus turnos.
-        </p>
-        <form method="post" novalidate>
-          {{ form.hidden_tag() }}
-          {{ render_field(form.nombre, placeholder="Ej: Sofía · Julián · Mara") }}
-          {{ render_field(form.capacidad) }}
-          <small class="text-muted d-block mb-3">
-            Cuántas personas pueden reservar el mismo turno. <strong>1</strong> en
-            la mayoría de los casos; mayor solo para servicios grupales.
-          </small>
-          {{ render_field(form.descripcion, placeholder="Opcional") }}
-          {{ render_checkbox(form.activo) }}
-          <div class="d-flex justify-content-between">
-            <a class="btn btn-outline-secondary" href="{{ url_for('recursos.listar') }}">Cancelar</a>
-            {{ form.submit(class="btn btn-primary") }}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h4 mb-0">{{ titulo }}</h1>
+  <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('recursos.listar') }}">← Volver</a>
+</div>
+
+<div class="row g-4"
+     x-data="{
+       nombre: {{ (recurso.nombre if recurso else '')|tojson }},
+       especialidad: {{ (recurso.especialidad if recurso and recurso.especialidad else '')|tojson }},
+       desc: {{ (recurso.descripcion if recurso and recurso.descripcion else '')|tojson }},
+       fotoPreview: {{ (url_for('static', filename=recurso.foto_filename) if recurso and recurso.foto_filename else '')|tojson }},
+       primario: '{{ current_user.negocio.color_primario }}',
+       cargarFoto(e){
+         const f = e.target.files[0];
+         if(f){ this.fotoPreview = URL.createObjectURL(f); }
+       },
+       get iniciales(){
+         const n = (this.nombre||'').trim();
+         if(!n) return '?';
+         const p = n.split(' ').filter(Boolean);
+         return (p[0][0] + (p[1]? p[1][0] : '')).toUpperCase();
+       }
+     }">
+
+  <!-- ===== FORMULARIO ===== -->
+  <div class="col-lg-7">
+    <div class="card shadow-sm fade-in"><div class="card-body p-4">
+      <p class="text-muted small mb-4">
+        Un profesional es quien atiende y tiene su propia agenda (estilista,
+        manicurista, esteticista…). Cada uno tiene su página pública y sus turnos.
+      </p>
+      <form method="post" enctype="multipart/form-data" novalidate>
+        {{ form.hidden_tag() }}
+
+        <h2 class="h6 text-uppercase text-muted">Identidad</h2>
+        <div class="row g-3">
+          <div class="col-sm-7">
+            {{ render_field(form.nombre, placeholder="Ej: Sofía · Julián · Mara", **{"x-model":"nombre"}) }}
           </div>
-        </form>
+          <div class="col-sm-5">
+            {{ render_field(form.especialidad, placeholder="Ej: Colorista", **{"x-model":"especialidad"}) }}
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">{{ form.foto.label.text }}</label>
+          {{ form.foto(class="form-control", accept="image/*", **{"@change":"cargarFoto"}) }}
+          {% for e in form.foto.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          <small class="text-muted">Cuadrada se ve mejor. PNG/JPG/WEBP, hasta 4 MB.</small>
+        </div>
+
+        <h2 class="h6 text-uppercase text-muted mt-2">Sobre el profesional</h2>
+        {{ form.descripcion(class="form-control mb-3", rows="3",
+            placeholder="Contá su experiencia, especialidades, estilo…", **{"x-model":"desc"}) }}
+
+        <h2 class="h6 text-uppercase text-muted mt-2">Agenda</h2>
+        {{ render_field(form.capacidad) }}
+        <small class="text-muted d-block mb-3">
+          Cuántas personas pueden reservar el mismo turno. <strong>1</strong> en
+          la mayoría de los casos; mayor solo para servicios grupales.
+        </small>
+        {{ render_checkbox(form.activo) }}
+
+        <div class="d-flex justify-content-between mt-3">
+          <a class="btn btn-outline-secondary" href="{{ url_for('recursos.listar') }}">Cancelar</a>
+          {{ form.submit(class="btn btn-primary px-4") }}
+        </div>
+        <small class="text-muted d-block mt-2 d-lg-none">El preview de tu página está abajo ↓</small>
+        <small class="text-muted d-none d-lg-block mt-2">Los cambios se ven en vivo a la derecha →</small>
+      </form>
+    </div></div>
+  </div>
+
+  <!-- ===== PREVIEW EN VIVO ===== -->
+  <div class="col-lg-5">
+    <div class="position-sticky" style="top:90px">
+      <p class="text-muted small mb-2">Así se verá su página pública</p>
+      <div class="card overflow-hidden shadow-sm">
+        <div :style="`height:84px;background:linear-gradient(135deg, ${primario}, ${primario}cc)`"></div>
+        <div class="card-body text-center" style="margin-top:-52px">
+          <!-- Avatar: foto o iniciales -->
+          <template x-if="fotoPreview">
+            <img :src="fotoPreview" alt=""
+                 style="width:96px;height:96px;border-radius:50%;object-fit:cover;border:4px solid var(--bs-body-bg);box-shadow:0 4px 16px rgba(0,0,0,.15)">
+          </template>
+          <template x-if="!fotoPreview">
+            <div class="d-inline-flex align-items-center justify-content-center fw-bold text-white"
+                 :style="`width:96px;height:96px;border-radius:50%;border:4px solid var(--bs-body-bg);font-size:2rem;background:${primario};box-shadow:0 4px 16px rgba(0,0,0,.15)`"
+                 x-text="iniciales"></div>
+          </template>
+
+          <h3 class="h5 mt-3 mb-0" x-text="nombre || 'Nombre del profesional'"></h3>
+          <div class="mb-2">
+            <span class="badge rounded-pill"
+                  :style="`background:${primario}1a;color:${primario}`"
+                  x-text="especialidad || 'Especialidad'"></span>
+          </div>
+          <p class="text-muted small px-2" x-text="desc || 'La descripción aparecerá acá.'"></p>
+
+          <button type="button" class="btn btn-sm text-white w-100" :style="`background:${primario}`">
+            Reservar turno
+          </button>
+        </div>
       </div>
+      <p class="text-muted small mt-2">
+        El estilo (color) se toma de tu Personalización. Guardá para aplicarlo.
+      </p>
     </div>
   </div>
 </div>

@@ -155,13 +155,37 @@ h1, h2, h3, h4, h5, .fw-bold { letter-spacing: -.02em; }
 /* ---------- Animaciones de entrada ---------- */
 @keyframes subir { from { opacity:0; transform: translateY(14px); } to { opacity:1; transform:none; } }
 @keyframes aparecer { from { opacity:0; } to { opacity:1; } }
+@keyframes popIn { 0% { opacity:0; transform: scale(.92); } 60% { transform: scale(1.02); } 100% { opacity:1; transform: scale(1); } }
+@keyframes flotar { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes shimmer { 0% { background-position: -468px 0; } 100% { background-position: 468px 0; } }
 .animar  { animation: subir .55s cubic-bezier(.2,.7,.2,1) both; }
 .animar-2 { animation: subir .55s .08s cubic-bezier(.2,.7,.2,1) both; }
 .animar-3 { animation: subir .55s .16s cubic-bezier(.2,.7,.2,1) both; }
 .aparecer { animation: aparecer .8s ease both; }
+.fade-in { animation: subir .5s cubic-bezier(.2,.7,.2,1) both; }
+.pop-in  { animation: popIn .45s cubic-bezier(.2,.7,.2,1) both; }
+.flotar  { animation: flotar 4s ease-in-out infinite; }
+
+/* Stagger: hijos directos entran en cascada (hasta 8) */
+.stagger > * { animation: subir .5s cubic-bezier(.2,.7,.2,1) both; }
+.stagger > *:nth-child(1){animation-delay:.04s}
+.stagger > *:nth-child(2){animation-delay:.10s}
+.stagger > *:nth-child(3){animation-delay:.16s}
+.stagger > *:nth-child(4){animation-delay:.22s}
+.stagger > *:nth-child(5){animation-delay:.28s}
+.stagger > *:nth-child(6){animation-delay:.34s}
+.stagger > *:nth-child(7){animation-delay:.40s}
+.stagger > *:nth-child(8){animation-delay:.46s}
+
+/* Hover elevado para tarjetas clickeables */
+.lift { transition: transform .18s ease, box-shadow .18s ease; }
+.lift:hover { transform: translateY(-4px); box-shadow: var(--sombra-lg); }
+.lift:active { transform: translateY(-1px); }
 
 @media (prefers-reduced-motion: reduce) {
-  *, .animar, .animar-2, .animar-3, .aparecer { animation: none !important; transition: none !important; }
+  *, .animar, .animar-2, .animar-3, .aparecer, .fade-in, .pop-in,
+  .flotar, .stagger > * { animation: none !important; transition: none !important; }
+  .lift:hover { transform: none; }
 }
 
 /* ---------- Hero del landing ---------- */

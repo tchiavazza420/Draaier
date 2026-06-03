@@ -181,18 +181,30 @@ def recurso_editar(recurso_id):
     recurso = obtener_tenant_o_404(Recurso, _neg(), recurso_id)
     form = RecursoForm(obj=recurso)
     if form.validate_on_submit():
+        # Si subió una foto nueva, la guardamos; si no, conservamos la actual.
+        try:
+            nueva_foto = guardar_imagen(form.foto.data, _neg(), "profesional")
+        except ValueError as exc:
+            flash(str(exc), "danger")
+            return render_template("recursos/recurso_form.html", form=form,
+                                   titulo="Editar profesional", recurso=recurso)
+        if nueva_foto:
+            recurso.foto_filename = nueva_foto
+
         if form.nombre.data.strip() != recurso.nombre:
             recurso.slug = generar_slug_unico_scoped(
                 Recurso, form.nombre.data, _neg(), exclude_id=recurso.id
             )
         recurso.nombre = form.nombre.data.strip()
+        recurso.especialidad = (form.especialidad.data or "").strip() or None
         recurso.capacidad = form.capacidad.data
         recurso.descripcion = (form.descripcion.data or "").strip() or None
         recurso.activo = form.activo.data
         db.session.commit()
         flash("Profesional actualizado.", "success")
         return redirect(url_for("recursos.listar"))
-    return render_template("recursos/recurso_form.html", form=form, titulo="Editar profesional")
+    return render_template("recursos/recurso_form.html", form=form,
+                           titulo="Editar profesional", recurso=recurso)
 
 
 @recursos_bp.route("/<int:recurso_id>/toggle", methods=["POST"])

@@ -4,7 +4,7 @@
 
 {% block publico %}
 <nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
+  <ol class="breadcrumb small">
     <li class="breadcrumb-item">
       <a href="{{ url_for('publico.perfil_negocio', slug=negocio.slug) }}">{{ negocio.nombre }}</a>
     </li>
@@ -12,20 +12,71 @@
   </ol>
 </nav>
 
-<div class="card shadow-sm">
-  <div class="card-body p-5">
-    <h1 class="h3 mb-1">{{ recurso.nombre }}</h1>
-    <p class="text-muted">Profesional</p>
-
-    {% if recurso.descripcion %}
-      <p class="mt-3">{{ recurso.descripcion }}</p>
+<!-- ===== HERO DEL PROFESIONAL ===== -->
+<div class="card shadow-sm overflow-hidden mb-4 fade-in">
+  <div style="height:120px;background:linear-gradient(135deg, var(--marca), var(--marca2))"></div>
+  <div class="card-body text-center" style="margin-top:-66px">
+    {% if recurso.foto_filename %}
+      <img src="{{ url_for('static', filename=recurso.foto_filename) }}" alt="{{ recurso.nombre }}"
+           class="prof-avatar"
+           style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:5px solid var(--bs-body-bg);box-shadow:0 6px 20px rgba(0,0,0,.18)">
+    {% else %}
+      <div class="prof-avatar d-inline-flex align-items-center justify-content-center fw-bold text-white"
+           style="width:120px;height:120px;border-radius:50%;border:5px solid var(--bs-body-bg);font-size:2.6rem;background:var(--marca);box-shadow:0 6px 20px rgba(0,0,0,.18)">
+        {{ recurso.nombre[:1]|upper }}
+      </div>
     {% endif %}
 
-    <hr class="my-4">
-    <button class="btn btn-primary" disabled>Reservar (próximamente)</button>
-    <p class="text-muted small mt-2 mb-0">
-      El flujo de reserva se habilita en el módulo de reservas.
-    </p>
+    <h1 class="h3 mt-3 mb-1 marca-titulo">{{ recurso.nombre }}</h1>
+    {% if recurso.especialidad %}
+      <span class="badge rounded-pill px-3 py-2"
+            style="background:color-mix(in srgb, var(--marca) 14%, transparent);color:var(--marca)">
+        ✦ {{ recurso.especialidad }}
+      </span>
+    {% endif %}
+
+    {% if recurso.descripcion %}
+      <p class="text-muted mt-3 mb-0 mx-auto" style="max-width:560px">{{ recurso.descripcion }}</p>
+    {% endif %}
   </div>
 </div>
+
+<!-- ===== SERVICIOS RESERVABLES ===== -->
+{% set servicios = recurso.servicios | selectattr('activo') | list %}
+<h2 class="h5 mb-3">Reservá un turno</h2>
+{% if servicios %}
+  <div class="row g-3">
+    {% for s in servicios %}
+      <div class="col-12 col-md-6">
+        <a href="{{ url_for('publico.perfil_servicio', slug=negocio.slug, servicio_slug=s.slug) }}"
+           class="card h-100 text-decoration-none servicio-card lift">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <div class="fw-semibold text-body">{{ s.nombre }}</div>
+              <div class="text-muted small">
+                ⏱ {{ s.duracion_legible }}
+                {% if s.requiere_sena and s.sena_monto %}· seña ${{ '%g'|format(s.sena_monto) }}{% endif %}
+              </div>
+            </div>
+            <div class="text-end">
+              {% if s.precio and s.precio > 0 %}
+                <div class="fw-bold marca-titulo">${{ '%g'|format(s.precio) }}</div>
+              {% endif %}
+              <span class="btn btn-sm btn-primary mt-1">Reservar →</span>
+            </div>
+          </div>
+        </a>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="card"><div class="card-body text-center text-muted py-4">
+    Este profesional todavía no tiene servicios publicados.
+    <div class="mt-2">
+      <a href="{{ url_for('publico.perfil_negocio', slug=negocio.slug) }}" class="btn btn-outline-primary btn-sm">
+        Ver todos los servicios del local
+      </a>
+    </div>
+  </div></div>
+{% endif %}
 {% endblock %}
