@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Agenda · Panel{% endblock %}
+{% block title %}Calendario · Panel{% endblock %}
 
 {% block head_extra %}
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
@@ -7,7 +7,7 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-  <h1 class="h3 mb-0">Agenda</h1>
+  <h1 class="h3 mb-0">Calendario</h1>
   <div>
     <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('panel.dashboard') }}">← Panel</a>
     <a class="btn btn-outline-primary btn-sm" href="{{ url_for('reservas.listar') }}">Ver lista</a>
@@ -25,19 +25,29 @@
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const el = document.getElementById('calendario');
+    const esMobile = window.matchMedia('(max-width: 767px)').matches;
+
     const cal = new FullCalendar.Calendar(el, {
       locale: 'es',
-      initialView: 'timeGridWeek',
-      headerToolbar: {
-        left: 'prev,next today',
-        center: 'title',
-        right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
-      },
-      buttonText: { today: 'hoy', month: 'mes', week: 'semana', day: 'día', list: 'lista' },
+      // En celular: vista de lista (mucho más legible que la semana apretada).
+      initialView: esMobile ? 'listWeek' : 'timeGridWeek',
+      headerToolbar: esMobile
+        ? { left: 'prev,next', center: 'title', right: 'today' }
+        : { left: 'prev,next today', center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek' },
+      // En celular, los botones de vista van abajo (más cómodos para el pulgar).
+      footerToolbar: esMobile ? { center: 'listWeek,timeGridDay,dayGridMonth' } : false,
+      buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', day: 'Día', list: 'Lista' },
       slotMinTime: '07:00:00',
       slotMaxTime: '23:00:00',
       nowIndicator: true,
       height: 'auto',
+      expandRows: true,
+      stickyHeaderDates: true,
+      dayMaxEvents: 3,
+      allDaySlot: false,
+      slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
+      noEventsText: 'No hay turnos en este período',
       events: '{{ url_for("reservas.agenda_eventos") }}',
       eventClick: (info) => {
         if (info.event.url) { info.jsEvent.preventDefault(); window.location = info.event.url; }
@@ -48,6 +58,16 @@
       }
     });
     cal.render();
+
+    // Si rota el teléfono / cambia el tamaño, ajustamos la vista por defecto.
+    let eraMobile = esMobile;
+    window.addEventListener('resize', () => {
+      const ahoraMobile = window.matchMedia('(max-width: 767px)').matches;
+      if (ahoraMobile !== eraMobile) {
+        eraMobile = ahoraMobile;
+        cal.changeView(ahoraMobile ? 'listWeek' : 'timeGridWeek');
+      }
+    });
   });
 </script>
 {% endblock %}

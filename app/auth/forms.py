@@ -18,7 +18,7 @@ from wtforms.validators import (
     Regexp,
 )
 
-from app.models.negocio import RubroEnum
+from app.models.negocio import RUBROS_BELLEZA
 
 
 class RegistroNegocioForm(FlaskForm):
@@ -71,9 +71,9 @@ class RegistroNegocioForm(FlaskForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Carga las opciones de rubro desde el enum (value, etiqueta legible).
+        # Solo rubros de belleza/estética.
         self.rubro.choices = [
-            (r.value, r.value.replace("_", " ").title()) for r in RubroEnum
+            (r.value, r.value.replace("_", " ").title()) for r in RUBROS_BELLEZA
         ]
 
 

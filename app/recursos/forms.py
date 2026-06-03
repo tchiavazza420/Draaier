@@ -24,13 +24,8 @@ class TipoRecursoForm(FlaskForm):
 
 
 class RecursoForm(FlaskForm):
-    tipo_recurso = SelectField(
-        "Categoría",
-        coerce=int,
-        validators=[DataRequired(message="Elegí una categoría.")],
-    )
     nombre = StringField(
-        "Nombre del reservable",
+        "Nombre del profesional",
         validators=[DataRequired(), Length(min=1, max=120)],
     )
     capacidad = IntegerField(
@@ -44,13 +39,3 @@ class RecursoForm(FlaskForm):
     )
     activo = BooleanField("Activo", default=True)
     submit = SubmitField("Guardar")
-
-    def __init__(self, tipos=None, *args, **kwargs):
-        """
-        `tipos` es la lista de TipoRecurso del negocio actual. Sus ids
-        definen las únicas opciones válidas del select (anti-manipulación).
-        """
-        super().__init__(*args, **kwargs)
-        self.tipo_recurso.choices = [
-            (t.id, t.nombre) for t in (tipos or [])
-        ]

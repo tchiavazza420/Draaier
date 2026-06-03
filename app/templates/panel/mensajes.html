@@ -36,6 +36,51 @@
         {{ form.submit(class="btn btn-primary") }}
       </form>
     </div></div>
+
+    <!-- ===== CRÉDITOS DE WHATSAPP ===== -->
+    <div class="card mt-4"><div class="card-body p-4">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h2 class="h5 mb-0">💬 Mensajes de WhatsApp</h2>
+        {% if wa.ilimitado %}
+          <span class="badge bg-success">Ilimitado</span>
+        {% else %}
+          <span class="badge bg-primary">{{ wa.disponibles }} disponibles este mes</span>
+        {% endif %}
+      </div>
+
+      {% if wa.ilimitado %}
+        <p class="text-muted mb-0">Tu plan incluye mensajes de WhatsApp ilimitados. 🎉</p>
+      {% else %}
+        <div class="row text-center g-2 mb-3">
+          <div class="col-4"><div class="border rounded-3 p-2">
+            <div class="h5 mb-0 stat-num">{{ wa.incluidos }}</div><small class="text-muted">incluidos/mes</small>
+          </div></div>
+          <div class="col-4"><div class="border rounded-3 p-2">
+            <div class="h5 mb-0 stat-num">{{ wa.extra }}</div><small class="text-muted">comprados</small>
+          </div></div>
+          <div class="col-4"><div class="border rounded-3 p-2">
+            <div class="h5 mb-0 stat-num">{{ wa.usados }}</div><small class="text-muted">usados</small>
+          </div></div>
+        </div>
+
+        <p class="text-muted small mb-2">Comprá un pack extra (se usa este mes):</p>
+        <div class="d-flex flex-wrap gap-2">
+          {% for p in packs %}
+            <form method="post" action="{{ url_for('panel.whatsapp_comprar') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="cantidad" value="{{ p.cantidad }}">
+              <button class="btn btn-outline-primary">
+                +{{ p.cantidad }} msj · ${{ '{:,.0f}'.format(p.precio).replace(',','.') }}
+              </button>
+            </form>
+          {% endfor %}
+        </div>
+        <small class="text-muted d-block mt-2">
+          Los mensajes (incluidos y comprados) se renuevan cada mes. El cobro real
+          se integra con tu pasarela de pago; acá se acreditan al instante para probar.
+        </small>
+      {% endif %}
+    </div></div>
   </div>
 </div>
 {% endblock %}

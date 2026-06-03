@@ -5,7 +5,7 @@
    - Cache-first para estáticos (rápido).
    No cachea peticiones POST ni rutas de panel/pagos (datos sensibles/dinámicos).
 */
-const CACHE = "draaier-v3";
+const CACHE = "draaier-v5";
 const APP_SHELL = [
   "/",
   "/static/css/app.css",

@@ -114,8 +114,22 @@ def tipo_toggle(tipo_id):
 # ======================================================================
 #  RECURSOS
 # ======================================================================
-def _tipos_del_negocio():
-    return query_tenant(TipoRecurso, _neg()).order_by(TipoRecurso.nombre).all()
+def _categoria_default():
+    """
+    Devuelve una categoría para asignar a los profesionales. Como ya no
+    mostramos categorías en la UI, usamos la primera que exista o creamos una
+    "General" oculta (TipoRecurso sigue existiendo en el modelo).
+    """
+    cat = query_tenant(TipoRecurso, _neg()).first()
+    if cat is None:
+        cat = TipoRecurso(
+            negocio_id=_neg(), nombre="General",
+            slug=generar_slug_unico_scoped(TipoRecurso, "General", _neg()),
+            activo=True,
+        )
+        db.session.add(cat)
+        db.session.flush()
+    return cat
 
 
 @recursos_bp.route("/nuevo", methods=["GET", "POST"])
@@ -123,18 +137,21 @@ def _tipos_del_negocio():
 @rol_required(*_ROLES_PANEL)
 @negocio_operativo_required
 def recurso_nuevo():
-    tipos = _tipos_del_negocio()
-    if not tipos:
-        flash("Primero creá al menos un tipo de recurso.", "warning")
-        return redirect(url_for("recursos.tipo_nuevo"))
+    # Límite de profesionales según el plan (Independiente = 1; Locales = varios).
+    from app.planes import limite_agendas_de
+    limite = limite_agendas_de(current_user.negocio.plan)
+    if limite is not None:
+        actuales = query_tenant(Recurso, _neg()).count()
+        if actuales >= limite:
+            flash(f"Tu plan permite hasta {limite} profesional(es). "
+                  f"Subí de plan para agregar más.", "warning")
+            return redirect(url_for("panel.plan"))
 
-    form = RecursoForm(tipos=tipos)
+    form = RecursoForm()
     if form.validate_on_submit():
-        # Doble verificación: el tipo elegido debe pertenecer al negocio.
-        obtener_tenant_o_404(TipoRecurso, _neg(), form.tipo_recurso.data)
         recurso = Recurso(
             negocio_id=_neg(),
-            tipo_recurso_id=form.tipo_recurso.data,
+            tipo_recurso_id=_categoria_default().id,
             nombre=form.nombre.data.strip(),
             slug=generar_slug_unico_scoped(Recurso, form.nombre.data, _neg()),
             descripcion=(form.descripcion.data or "").strip() or None,
@@ -143,9 +160,9 @@ def recurso_nuevo():
         )
         db.session.add(recurso)
         db.session.commit()
-        flash(f"Recurso '{recurso.nombre}' creado.", "success")
+        flash(f"Profesional '{recurso.nombre}' creado.", "success")
         return redirect(url_for("recursos.listar"))
-    return render_template("recursos/recurso_form.html", form=form, titulo="Nuevo recurso")
+    return render_template("recursos/recurso_form.html", form=form, titulo="Nuevo profesional")
 
 
 @recursos_bp.route("/<int:recurso_id>/editar", methods=["GET", "POST"])
@@ -154,27 +171,20 @@ def recurso_nuevo():
 @negocio_operativo_required
 def recurso_editar(recurso_id):
     recurso = obtener_tenant_o_404(Recurso, _neg(), recurso_id)
-    tipos = _tipos_del_negocio()
-    form = RecursoForm(tipos=tipos, obj=recurso)
-    # En GET, preseleccionamos el tipo actual.
-    if request.method == "GET":
-        form.tipo_recurso.data = recurso.tipo_recurso_id
-
+    form = RecursoForm(obj=recurso)
     if form.validate_on_submit():
-        obtener_tenant_o_404(TipoRecurso, _neg(), form.tipo_recurso.data)
         if form.nombre.data.strip() != recurso.nombre:
             recurso.slug = generar_slug_unico_scoped(
                 Recurso, form.nombre.data, _neg(), exclude_id=recurso.id
             )
-        recurso.tipo_recurso_id = form.tipo_recurso.data
         recurso.nombre = form.nombre.data.strip()
         recurso.capacidad = form.capacidad.data
         recurso.descripcion = (form.descripcion.data or "").strip() or None
         recurso.activo = form.activo.data
         db.session.commit()
-        flash("Recurso actualizado.", "success")
+        flash("Profesional actualizado.", "success")
         return redirect(url_for("recursos.listar"))
-    return render_template("recursos/recurso_form.html", form=form, titulo="Editar recurso")
+    return render_template("recursos/recurso_form.html", form=form, titulo="Editar profesional")
 
 
 @recursos_bp.route("/<int:recurso_id>/toggle", methods=["POST"])

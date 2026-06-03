@@ -19,7 +19,7 @@ from flask import current_app
 from app.models.negocio import Negocio
 from app.extensions import db
 from app.notificaciones.email import enviar_email
-from app.notificaciones.whatsapp import enviar_whatsapp
+from app.notificaciones.whatsapp import enviar_whatsapp, esta_configurado as _wa_configurado
 
 
 def _negocio(reserva):
@@ -36,13 +36,21 @@ def _email(neg, *args, **kwargs):
 
 
 def _wa(reserva, negocio, texto):
-    """Envía WhatsApp si el negocio lo activó y el cliente tiene teléfono."""
+    """Envía WhatsApp si el negocio lo activó, hay saldo y el cliente tiene tel."""
     if negocio is not None and not negocio.notif_canal_whatsapp:
         return
+    if not (reserva.cliente and reserva.cliente.telefono):
+        return
+    # Solo en producción (WhatsApp configurado) se consume crédito y se exige
+    # saldo. En modo dev (bandeja) no se cobra ni limita.
+    if negocio is not None and _wa_configurado():
+        from app.whatsapp_creditos import consumir as _consumir_wa
+        if not _consumir_wa(negocio):
+            current_app.logger.info("Sin saldo de WhatsApp, no se envía %s", reserva.codigo)
+            return
     try:
-        if reserva.cliente and reserva.cliente.telefono:
-            firma = (negocio.mensaje_firma if negocio and negocio.mensaje_firma else "")
-            enviar_whatsapp(reserva.cliente.telefono, texto + (f"\n{firma}" if firma else ""))
+        firma = (negocio.mensaje_firma if negocio and negocio.mensaje_firma else "")
+        enviar_whatsapp(reserva.cliente.telefono, texto + (f"\n{firma}" if firma else ""))
     except Exception:
         current_app.logger.exception("Fallo enviando WhatsApp %s", reserva.codigo)
 

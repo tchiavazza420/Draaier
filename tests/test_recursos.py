@@ -33,6 +33,25 @@ def test_aislamiento_no_edita_recurso_ajeno(client, crear_negocio, crear_recurso
     assert r.status_code == 404
 
 
+def test_limite_agendas_por_plan(client, crear_negocio):
+    """Plan Independiente (Básico) = 1 agenda: no deja crear una segunda."""
+    from app.models.negocio import PlanEnum
+    neg, dueno = crear_negocio(email="lim@test.com")
+    neg.plan = PlanEnum.BASICO       # límite 1
+    tipo = TipoRecurso(negocio_id=neg.id, nombre="T", slug="t-lim")
+    db.session.add(tipo); db.session.flush()
+    db.session.add(Recurso(negocio_id=neg.id, tipo_recurso_id=tipo.id,
+                           nombre="Agenda 1", slug="a1", capacidad=1))
+    db.session.commit()
+
+    client.post("/auth/login", data={"email": "lim@test.com", "password": "clave1234"})
+    r = client.post("/panel/recursos/nuevo", data={
+        "tipo_recurso": str(tipo.id), "nombre": "Agenda 2", "capacidad": "1", "activo": "y",
+    }, follow_redirects=False)
+    assert r.status_code == 302 and "/panel/plan" in r.headers["Location"]
+    assert Recurso.query.filter_by(negocio_id=neg.id).count() == 1
+
+
 def test_capacidad_invalida_rechazada_por_form(client, crear_negocio):
     """El formulario del panel rechaza capacidad < 1 (no crea el recurso)."""
     neg, dueno = crear_negocio(email="cap@test.com")

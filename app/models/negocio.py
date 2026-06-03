@@ -38,6 +38,19 @@ class RubroEnum(enum.Enum):
     OTRO = "otro"
 
 
+# Draaier es solo para el sector belleza/estética: estos son los rubros que se
+# ofrecen al registrarse y configurar (el enum conserva los demás por
+# compatibilidad con datos existentes, pero no se muestran).
+RUBROS_BELLEZA = [
+    RubroEnum.PELUQUERIA,
+    RubroEnum.BARBERIA,
+    RubroEnum.MANICURA,
+    RubroEnum.LASHISTA,
+    RubroEnum.ESTETICA,
+    RubroEnum.SPA,
+]
+
+
 class PlanEnum(enum.Enum):
     """
     Planes comerciales.
@@ -112,6 +125,13 @@ class Negocio(TimestampMixin, db.Model):
     notif_canal_whatsapp = db.Column(db.Boolean, nullable=False, default=True)
     # Texto que se agrega al final de los mensajes (saludo/firma del negocio).
     mensaje_firma = db.Column(db.String(280), nullable=True)
+
+    # --- Créditos de WhatsApp (se renuevan cada mes) ---
+    # wa_extra: mensajes comprados este mes (packs). wa_usados: enviados este mes.
+    # wa_periodo: "YYYY-MM" para detectar el cambio de mes y reiniciar.
+    wa_extra = db.Column(db.Integer, nullable=False, default=0)
+    wa_usados = db.Column(db.Integer, nullable=False, default=0)
+    wa_periodo = db.Column(db.String(7), nullable=True)
 
     # --- Personalización / branding ---
     logo_filename = db.Column(db.String(200), nullable=True)

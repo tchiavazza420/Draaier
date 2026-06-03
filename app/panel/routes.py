@@ -18,7 +18,7 @@ from app.auth.decorators import rol_required
 from app.models.negocio import RubroEnum, TemplatePublicoEnum, MetodoPagoEnum, PlanEnum
 from app.panel.forms import NegocioConfigForm, PersonalizacionForm, MensajesForm
 from app.uploads import guardar_imagen
-from app.planes import PLANES, ORDEN, info_plan
+from app.planes import PLANES, ORDEN, info_plan, precio_anual, WA_INCLUIDOS
 
 panel_bp = Blueprint("panel", __name__)
 
@@ -27,6 +27,8 @@ panel_bp = Blueprint("panel", __name__)
 @login_required
 def dashboard():
     """Tablero principal del negocio."""
+    from app.whatsapp_creditos import estado as wa_estado
+
     negocio = current_user.negocio
 
     # Días restantes de prueba (si está en trial).
@@ -35,10 +37,20 @@ def dashboard():
         delta = negocio.trial_fin - datetime.now(timezone.utc)
         dias_trial_restantes = max(delta.days, 0)
 
+    # WhatsApp: saldo del mes + fecha de renovación (1° del próximo mes).
+    wa = wa_estado(negocio)
+    hoy = datetime.now()
+    if hoy.month == 12:
+        wa_renueva = datetime(hoy.year + 1, 1, 1)
+    else:
+        wa_renueva = datetime(hoy.year, hoy.month + 1, 1)
+
     return render_template(
         "panel/dashboard.html",
         negocio=negocio,
         dias_trial_restantes=dias_trial_restantes,
+        wa=wa, wa_renueva=wa_renueva,
+        plan_vence=negocio.vencimiento,
     )
 
 
@@ -48,9 +60,11 @@ def dashboard():
 def plan():
     """Muestra el plan actual, qué incluye, y permite cambiarlo."""
     negocio = current_user.negocio
+    precios_anuales = {k: precio_anual(p) for k, p in PLANES.items()}
     return render_template(
         "panel/plan.html",
         negocio=negocio, planes=PLANES, orden=ORDEN,
+        precios_anuales=precios_anuales, wa_incluidos=WA_INCLUIDOS,
         plan_actual=info_plan(negocio.plan),
         plan_actual_key=negocio.plan.value if negocio.plan else None,
     )
@@ -139,7 +153,33 @@ def mensajes():
         db.session.commit()
         flash("Mensajes automáticos actualizados.", "success")
         return redirect(url_for("panel.mensajes"))
-    return render_template("panel/mensajes.html", form=form, negocio=negocio)
+
+    from app.whatsapp_creditos import estado as wa_estado
+    from app.planes import PACKS_WHATSAPP
+    return render_template(
+        "panel/mensajes.html", form=form, negocio=negocio,
+        wa=wa_estado(negocio), packs=PACKS_WHATSAPP,
+    )
+
+
+@panel_bp.route("/whatsapp/comprar", methods=["POST"])
+@login_required
+@rol_required("dueno")
+def whatsapp_comprar():
+    """
+    Compra un pack de mensajes de WhatsApp. El cobro real iría por la pasarela
+    de pago; en esta versión se acredita al instante (simulado).
+    """
+    from app.planes import PACKS_WHATSAPP
+    from app.whatsapp_creditos import comprar_pack
+    cantidad = request.form.get("cantidad", type=int)
+    valido = next((p for p in PACKS_WHATSAPP if p["cantidad"] == cantidad), None)
+    if valido is None:
+        flash("Pack inválido.", "danger")
+        return redirect(url_for("panel.mensajes"))
+    comprar_pack(current_user.negocio, cantidad)
+    flash(f"¡Listo! Sumaste {cantidad} mensajes de WhatsApp (simulado).", "success")
+    return redirect(url_for("panel.mensajes"))
 
 
 @panel_bp.route("/configuracion", methods=["GET", "POST"])
