@@ -82,6 +82,48 @@ def sitemap():
     return Response(xml, mimetype="application/xml")
 
 
+@main_bp.route("/tareas/correr", methods=["GET", "POST"])
+def tareas_cron():
+    """
+    Dispara las tareas programadas (recordatorios + vencer suscripciones).
+    Pensado para un cron EXTERNO en plan free (sin Celery beat). Se protege con
+    CRON_TOKEN: el llamador debe mandar el token por header 'X-Cron-Token',
+    'Authorization: Bearer <token>' o query ?token=.
+
+    Si no hay CRON_TOKEN configurado, el endpoint queda deshabilitado (404).
+    """
+    from flask import request, abort
+
+    token_ok = current_app.config.get("CRON_TOKEN")
+    if not token_ok:
+        abort(404)  # deshabilitado si no se configuró el secreto
+
+    enviado = (
+        request.headers.get("X-Cron-Token")
+        or (request.headers.get("Authorization", "").removeprefix("Bearer ").strip())
+        or request.args.get("token")
+    )
+    if enviado != token_ok:
+        abort(403)
+
+    try:
+        dias = int(request.args.get("dias", 1))
+    except ValueError:
+        dias = 1
+
+    from app.notificaciones.service import enviar_recordatorios
+    from app.suscripciones import vencer_suscripciones
+
+    recordatorios_enviados = enviar_recordatorios(dias)
+    suscripciones_vencidas = vencer_suscripciones()
+    return jsonify({
+        "ok": True,
+        "recordatorios_enviados": recordatorios_enviados,
+        "suscripciones_vencidas": suscripciones_vencidas,
+        "dias": dias,
+    })
+
+
 @main_bp.route("/health")
 def health():
     """

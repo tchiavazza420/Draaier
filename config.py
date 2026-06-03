@@ -77,6 +77,11 @@ class BaseConfig:
     # URL base pública del sitio (para back_urls y webhooks de Mercado Pago).
     SITE_URL = os.environ.get("SITE_URL", "http://127.0.0.1:5000")
 
+    # Token secreto para el endpoint de tareas programadas (/tareas/correr).
+    # Lo usa un cron externo (cron-job.org / GitHub Actions) para disparar los
+    # recordatorios y el vencimiento de suscripciones en plan free (sin worker).
+    CRON_TOKEN = os.environ.get("CRON_TOKEN")
+
     # --- Email (Flask-Mail) ---
     # Sin MAIL_SERVER, las notificaciones van a una bandeja de desarrollo
     # (no se envían de verdad, pero se registran y son testeables).

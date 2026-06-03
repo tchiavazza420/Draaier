@@ -39,6 +39,11 @@ services:
       # URL pública del sitio (back_urls de pagos, webhooks, links de emails).
       - key: SITE_URL
         value: https://www.agenpro.com.ar
+      # Token del endpoint de tareas programadas (/tareas/correr). Un cron
+      # externo gratis (GitHub Actions / cron-job.org) lo usa para disparar
+      # recordatorios y vencimientos en plan free. Ver RECORDATORIOS.md.
+      - key: CRON_TOKEN
+        generateValue: true
       # Sin worker en free -> Celery corre síncrono (eager).
       - key: CELERY_EAGER
         value: "true"

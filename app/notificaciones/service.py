@@ -133,7 +133,9 @@ def enviar_recordatorios(dias=1):
     )
     enviados = 0
     for r in reservas:
-        if r.cliente and r.cliente.email:
+        # Se envía si el cliente tiene al menos un canal de contacto
+        # (email o teléfono para WhatsApp); cada canal respeta sus toggles.
+        if r.cliente and (r.cliente.email or r.cliente.telefono):
             _enviar_recordatorio(r)
             enviados += 1
     return enviados
