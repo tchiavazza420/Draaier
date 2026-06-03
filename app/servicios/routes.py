@@ -65,6 +65,54 @@ def listar():
     return render_template("servicios/listar.html", servicios=servicios)
 
 
+@servicios_bp.route("/sugeridos", methods=["GET", "POST"])
+@login_required
+@rol_required(*_ROLES_PANEL)
+@negocio_operativo_required
+def sugeridos():
+    """
+    Onboarding accionable: ofrece servicios típicos del rubro para crearlos de
+    a varios con un clic (nombre/duración/precio editables). Cada servicio se
+    asigna a todos los profesionales activos para que quede reservable.
+    """
+    from app.servicios.sugeridos import sugerencias_para
+    sugerencias = sugerencias_para(current_user.negocio.rubro)
+
+    if request.method == "POST":
+        recursos = _recursos_activos()
+        creados = 0
+        for i, s in enumerate(sugerencias):
+            if not request.form.get(f"sel_{i}"):
+                continue
+            nombre = (request.form.get(f"nombre_{i}") or s["nombre"]).strip()
+            if not nombre:
+                continue
+            try:
+                duracion = max(1, int(request.form.get(f"duracion_{i}") or s["duracion"]))
+            except ValueError:
+                duracion = s["duracion"]
+            try:
+                precio = max(0, float(request.form.get(f"precio_{i}") or s["precio"]))
+            except ValueError:
+                precio = s["precio"]
+            servicio = Servicio(
+                negocio_id=_neg(), nombre=nombre,
+                slug=generar_slug_unico_scoped(Servicio, nombre, _neg()),
+                duracion_minutos=duracion, precio=precio, activo=True,
+            )
+            servicio.recursos = recursos
+            db.session.add(servicio)
+            creados += 1
+        db.session.commit()
+        if creados:
+            flash(f"¡Listo! Se crearon {creados} servicio(s).", "success")
+        else:
+            flash("No seleccionaste ningún servicio.", "info")
+        return redirect(url_for("servicios.listar"))
+
+    return render_template("servicios/sugeridos.html", sugerencias=sugerencias)
+
+
 @servicios_bp.route("/nuevo", methods=["GET", "POST"])
 @login_required
 @rol_required(*_ROLES_PANEL)

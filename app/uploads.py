@@ -13,7 +13,11 @@ import os
 import uuid
 
 from flask import current_app
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ImageFile
+
+# Tolera imágenes levemente truncadas (subidas interrumpidas / archivos
+# minimalistas) en vez de fallar; igual validamos que sea una imagen.
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 # Lado máximo (px) del lado más largo, según el uso. El resto se reescala
 # proporcionalmente. Default si el prefijo no está en el mapa.
