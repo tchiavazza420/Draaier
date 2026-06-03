@@ -133,6 +133,22 @@ def _categoria_default():
     return cat
 
 
+def _aplicar_personalizacion(recurso, form):
+    """Vuelca los campos de personalización del formulario al recurso."""
+    def limpio(v):
+        return (v or "").strip() or None
+
+    recurso.especialidad = limpio(form.especialidad.data)
+    recurso.frase = limpio(form.frase.data)
+    recurso.descripcion = limpio(form.descripcion.data)
+    recurso.habilidades = limpio(form.habilidades.data)
+    recurso.anios_experiencia = form.anios_experiencia.data
+    recurso.color_acento = limpio(form.color_acento.data)
+    recurso.estilo_cabecera = form.estilo_cabecera.data or "degradado"
+    recurso.instagram = limpio(form.instagram.data)
+    recurso.whatsapp = limpio(form.whatsapp.data)
+
+
 @recursos_bp.route("/nuevo", methods=["GET", "POST"])
 @login_required
 @rol_required(*_ROLES_PANEL)
@@ -152,6 +168,7 @@ def recurso_nuevo():
     if form.validate_on_submit():
         try:
             foto = guardar_imagen(form.foto.data, _neg(), "profesional")
+            banner = guardar_imagen(form.banner.data, _neg(), "portada")
         except ValueError as exc:
             flash(str(exc), "danger")
             return render_template("recursos/recurso_form.html", form=form, titulo="Nuevo profesional", recurso=None)
@@ -160,12 +177,12 @@ def recurso_nuevo():
             tipo_recurso_id=_categoria_default().id,
             nombre=form.nombre.data.strip(),
             slug=generar_slug_unico_scoped(Recurso, form.nombre.data, _neg()),
-            especialidad=(form.especialidad.data or "").strip() or None,
             foto_filename=foto,
-            descripcion=(form.descripcion.data or "").strip() or None,
+            banner_filename=banner,
             capacidad=form.capacidad.data,
             activo=form.activo.data,
         )
+        _aplicar_personalizacion(recurso, form)
         db.session.add(recurso)
         db.session.commit()
         flash(f"Profesional '{recurso.nombre}' creado.", "success")
@@ -181,25 +198,27 @@ def recurso_editar(recurso_id):
     recurso = obtener_tenant_o_404(Recurso, _neg(), recurso_id)
     form = RecursoForm(obj=recurso)
     if form.validate_on_submit():
-        # Si subió una foto nueva, la guardamos; si no, conservamos la actual.
+        # Si subió imágenes nuevas, las guardamos; si no, conservamos las actuales.
         try:
             nueva_foto = guardar_imagen(form.foto.data, _neg(), "profesional")
+            nuevo_banner = guardar_imagen(form.banner.data, _neg(), "portada")
         except ValueError as exc:
             flash(str(exc), "danger")
             return render_template("recursos/recurso_form.html", form=form,
                                    titulo="Editar profesional", recurso=recurso)
         if nueva_foto:
             recurso.foto_filename = nueva_foto
+        if nuevo_banner:
+            recurso.banner_filename = nuevo_banner
 
         if form.nombre.data.strip() != recurso.nombre:
             recurso.slug = generar_slug_unico_scoped(
                 Recurso, form.nombre.data, _neg(), exclude_id=recurso.id
             )
         recurso.nombre = form.nombre.data.strip()
-        recurso.especialidad = (form.especialidad.data or "").strip() or None
         recurso.capacidad = form.capacidad.data
-        recurso.descripcion = (form.descripcion.data or "").strip() or None
         recurso.activo = form.activo.data
+        _aplicar_personalizacion(recurso, form)
         db.session.commit()
         flash("Profesional actualizado.", "success")
         return redirect(url_for("recursos.listar"))

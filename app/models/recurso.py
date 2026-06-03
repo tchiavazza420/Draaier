@@ -36,9 +36,28 @@ class Recurso(TenantMixin, TimestampMixin, db.Model):
     slug = db.Column(db.String(140), nullable=False)
     descripcion = db.Column(db.Text, nullable=True)
 
-    # --- Página pública del profesional ---
+    # --- Página pública del profesional (personalización propia) ---
     foto_filename = db.Column(db.String(200), nullable=True)
-    especialidad = db.Column(db.String(80), nullable=True)   # ej: Colorista, Barbero
+    banner_filename = db.Column(db.String(200), nullable=True)  # portada de su página
+    especialidad = db.Column(db.String(80), nullable=True)      # ej: Colorista, Barbero
+    frase = db.Column(db.String(160), nullable=True)            # tagline bajo el nombre
+    # Color de acento propio (hex). Si es NULL, usa el color del negocio.
+    color_acento = db.Column(db.String(7), nullable=True)
+    # Estilo visual de la cabecera de su página.
+    estilo_cabecera = db.Column(db.String(20), nullable=False, default="degradado")
+    anios_experiencia = db.Column(db.Integer, nullable=True)
+    # Habilidades / etiquetas separadas por coma (se muestran como chips).
+    habilidades = db.Column(db.String(400), nullable=True)
+    # Redes propias del profesional.
+    instagram = db.Column(db.String(120), nullable=True)
+    whatsapp = db.Column(db.String(40), nullable=True)
+
+    @property
+    def habilidades_lista(self):
+        """Devuelve las habilidades como lista limpia (sin vacíos)."""
+        if not self.habilidades:
+            return []
+        return [h.strip() for h in self.habilidades.split(",") if h.strip()]
 
     # Cupos simultáneos por turno. >= 1.
     capacidad = db.Column(db.Integer, nullable=False, default=1)

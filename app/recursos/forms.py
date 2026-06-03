@@ -12,7 +12,7 @@ Formularios del módulo de recursos (Flask-WTF + CSRF).
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from wtforms import StringField, TextAreaField, IntegerField, SelectField, BooleanField, SubmitField
-from wtforms.validators import DataRequired, Length, NumberRange, Optional
+from wtforms.validators import DataRequired, Length, NumberRange, Optional, Regexp
 
 
 class TipoRecursoForm(FlaskForm):
@@ -33,12 +33,38 @@ class RecursoForm(FlaskForm):
         "Especialidad",
         validators=[Optional(), Length(max=80)],
     )
-    foto = FileField("Foto", validators=[
+    frase = StringField(
+        "Frase / lema",
+        validators=[Optional(), Length(max=160)],
+    )
+    foto = FileField("Foto de perfil", validators=[
+        Optional(), FileAllowed(["png", "jpg", "jpeg", "webp", "gif"], "Solo imágenes.")])
+    banner = FileField("Portada", validators=[
         Optional(), FileAllowed(["png", "jpg", "jpeg", "webp", "gif"], "Solo imágenes.")])
     descripcion = TextAreaField(
         "Bio / descripción",
         validators=[Optional(), Length(max=2000)],
     )
+    habilidades = StringField(
+        "Habilidades (separadas por coma)",
+        validators=[Optional(), Length(max=400)],
+    )
+    anios_experiencia = IntegerField(
+        "Años de experiencia",
+        validators=[Optional(), NumberRange(min=0, max=80)],
+    )
+    color_acento = StringField(
+        "Color de acento",
+        validators=[Optional(), Regexp(r"^#[0-9A-Fa-f]{6}$", message="Color inválido.")],
+    )
+    estilo_cabecera = SelectField(
+        "Estilo de cabecera",
+        choices=[("degradado", "Degradado"), ("solido", "Color sólido"),
+                 ("foto", "Foto de portada")],
+        default="degradado",
+    )
+    instagram = StringField("Instagram", validators=[Optional(), Length(max=120)])
+    whatsapp = StringField("WhatsApp", validators=[Optional(), Length(max=40)])
     capacidad = IntegerField(
         "Cupos por turno",
         validators=[DataRequired(), NumberRange(min=1, max=10000)],
