@@ -25,6 +25,10 @@ services:
     buildCommand: pip install -r requirements.txt
     # En free no hay preDeployCommand: migramos + seed al arrancar (idempotente).
     startCommand: flask db upgrade && flask seed-roles && gunicorn -c gunicorn.conf.py wsgi:app
+    # Dominio propio (configurar también los DNS en el registrar — ver DOMINIO.md).
+    domains:
+      - www.agenpro.com.ar
+      - agenpro.com.ar
     envVars:
       - key: FLASK_APP
         value: run.py
@@ -32,6 +36,9 @@ services:
         value: production
       - key: PYTHON_VERSION
         value: "3.12.7"
+      # URL pública del sitio (back_urls de pagos, webhooks, links de emails).
+      - key: SITE_URL
+        value: https://www.agenpro.com.ar
       # Sin worker en free -> Celery corre síncrono (eager).
       - key: CELERY_EAGER
         value: "true"
