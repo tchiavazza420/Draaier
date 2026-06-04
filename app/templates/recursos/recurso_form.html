@@ -1,12 +1,41 @@
 {% extends "base.html" %}
 {% from "_macros.html" import render_field, render_checkbox %}
-
 {% block title %}{{ titulo }} · Panel{% endblock %}
 
 {% block head_extra %}
-  {# Precargamos TODAS las fuentes para que el preview cambie al instante #}
   {% if fuentes_url_todas %}<link rel="stylesheet" href="{{ fuentes_url_todas }}">{% endif %}
 {% endblock %}
+
+{% set R = recurso %}
+{% set v = {
+  'nombre': (R.nombre if R else ''),
+  'especialidad': (R.especialidad if R and R.especialidad else ''),
+  'frase': (R.frase if R and R.frase else ''),
+  'desc': (R.descripcion if R and R.descripcion else ''),
+  'habilidades': (R.habilidades if R and R.habilidades else ''),
+  'anios': (R.anios_experiencia if R and R.anios_experiencia is not none else ''),
+  'tipografia': (R.tipografia if R else 'Plus Jakarta Sans'),
+  'formaFoto': (R.forma_foto if R else 'circulo'),
+  'fondoTipo': (R.estilo('fondo_tipo') if R else 'gradiente'),
+  'fondoColor': (R.estilo('fondo_color') if R else '#fff1f2'),
+  'fondoColor2': (R.fondo_color2 if R and R.fondo_color2 else '#ffe4e6'),
+  'fondoPatron': (R.estilo('fondo_patron') if R else 'puntos'),
+  'botonEstilo': (R.estilo('boton_estilo') if R else 'sombra_suave'),
+  'botonForma': (R.estilo('boton_forma') if R else 'redondo'),
+  'colorBoton': (R.estilo('color_boton') if R else '#6d28d9'),
+  'colorBotonTexto': (R.estilo('color_boton_texto') if R else '#ffffff'),
+  'colorTitulos': (R.color_titulos or R.color_acento or current_user.negocio.color_primario) if R else current_user.negocio.color_primario,
+  'avatarTamano': (R.avatar_tamano or 'grande') if R else 'grande',
+  'mostrarPortada': (R.portada_visible if R else True),
+  'portadaEfecto': (R.estilo('portada_efecto') if R else 'original'),
+  'instagram': (R.instagram if R and R.instagram else ''),
+  'whatsapp': (R.whatsapp if R and R.whatsapp else ''),
+  'tiktok': (R.tiktok if R and R.tiktok else ''),
+  'pinterest': (R.pinterest if R and R.pinterest else ''),
+  'facebook': (R.facebook if R and R.facebook else ''),
+  'fotoPreview': (url_for('static', filename=R.foto_filename) if R and R.foto_filename else ''),
+  'bannerPreview': (url_for('static', filename=R.banner_filename) if R and R.banner_filename else '')
+} %}
 
 {% block content %}
 <div class="d-flex align-items-center justify-content-between mb-3">
@@ -14,145 +43,168 @@
   <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('recursos.listar') }}">← Volver</a>
 </div>
 
-<div class="row g-4"
-     x-data='profesionalEditor({
-       nombre: {{ (recurso.nombre if recurso else "")|tojson }},
-       especialidad: {{ (recurso.especialidad if recurso and recurso.especialidad else '')|tojson }},
-       frase: {{ (recurso.frase if recurso and recurso.frase else '')|tojson }},
-       desc: {{ (recurso.descripcion if recurso and recurso.descripcion else '')|tojson }},
-       habilidades: {{ (recurso.habilidades if recurso and recurso.habilidades else '')|tojson }},
-       anios: {{ (recurso.anios_experiencia if recurso and recurso.anios_experiencia is not none else '')|tojson }},
-       acento: {{ (recurso.color_acento if recurso and recurso.color_acento else current_user.negocio.color_primario)|tojson }},
-       usarAcento: {{ 'true' if (recurso and recurso.color_acento) else 'false' }},
-       estiloCab: {{ (recurso.estilo_cabecera if recurso else 'degradado')|tojson }},
-       tipografia: {{ (recurso.tipografia if recurso else 'Plus Jakarta Sans')|tojson }},
-       estilo: {{ (recurso.estilo_pagina if recurso else 'minimal')|tojson }},
-       forma: {{ (recurso.forma_foto if recurso else 'circulo')|tojson }},
-       instagram: {{ (recurso.instagram if recurso and recurso.instagram else '')|tojson }},
-       whatsapp: {{ (recurso.whatsapp if recurso and recurso.whatsapp else '')|tojson }},
-       fotoPreview: {{ (url_for('static', filename=recurso.foto_filename) if recurso and recurso.foto_filename else '')|tojson }},
-       bannerPreview: {{ (url_for('static', filename=recurso.banner_filename) if recurso and recurso.banner_filename else '')|tojson }},
-       negColor: {{ current_user.negocio.color_primario|tojson }}
-     })'>
-
-  <!-- ===== FORMULARIO ===== -->
-  <div class="col-lg-7">
+<div class="row g-4" x-data='pbEditor({{ v|tojson }})'>
+  <!-- ================= FORM ================= -->
+  <div class="col-lg-7 order-2 order-lg-1">
     <form method="post" enctype="multipart/form-data" novalidate>
       {{ form.hidden_tag() }}
 
       <!-- Identidad -->
-      <div class="card shadow-sm mb-3 fade-in"><div class="card-body p-4">
-        <h2 class="h6 text-uppercase text-muted mb-3">Identidad</h2>
+      <div class="card shadow-sm mb-3"><div class="card-body p-4">
+        <h2 class="h6 text-uppercase text-muted mb-3">📇 Identidad</h2>
         <div class="row g-3">
-          <div class="col-sm-7">
-            {{ render_field(form.nombre, placeholder="Ej: Sofía Pérez", **{"x-model":"nombre"}) }}
-          </div>
-          <div class="col-sm-5">
-            {{ render_field(form.especialidad, placeholder="Ej: Colorista", **{"x-model":"especialidad"}) }}
-          </div>
+          <div class="col-sm-7">{{ render_field(form.nombre, placeholder="Ej: Sofía Pérez", **{"x-model":"nombre"}) }}</div>
+          <div class="col-sm-5">{{ render_field(form.especialidad, placeholder="Subtítulo: Manicurista profesional", **{"x-model":"especialidad"}) }}</div>
         </div>
-        {{ render_field(form.frase, placeholder="Ej: Tu mejor versión empieza acá ✨", **{"x-model":"frase"}) }}
+        {{ render_field(form.frase, placeholder="Frase / lema ✨", **{"x-model":"frase"}) }}
         <div class="row g-3">
           <div class="col-sm-6">
             <label class="form-label">{{ form.foto.label.text }}</label>
             {{ form.foto(class="form-control", accept="image/*", **{"@change":"cargarFoto"}) }}
-            {% for e in form.foto.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
           </div>
           <div class="col-sm-6">
             <label class="form-label">{{ form.banner.label.text }}</label>
             {{ form.banner(class="form-control", accept="image/*", **{"@change":"cargarBanner"}) }}
-            {% for e in form.banner.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
           </div>
         </div>
       </div></div>
 
-      <!-- Diseño: fuente + estilo + forma + cabecera + color -->
-      <div class="card shadow-sm mb-3 fade-in"><div class="card-body p-4">
-        <h2 class="h6 text-uppercase text-muted mb-3">Diseño de su página</h2>
+      <!-- Fondo -->
+      <div class="card shadow-sm mb-3"><div class="card-body p-4">
+        <h2 class="h6 text-uppercase text-muted mb-3">🎨 Fondo</h2>
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          {% for val,label in form.fondo_tipo.choices %}
+            <input type="radio" class="btn-check" name="fondo_tipo" id="ft-{{val}}" value="{{val}}" x-model="fondoTipo" autocomplete="off">
+            <label class="btn btn-outline-primary btn-sm" for="ft-{{val}}">{{ label }}</label>
+          {% endfor %}
+        </div>
+        <div class="row g-3 align-items-end">
+          <div class="col-auto">
+            <label class="form-label small mb-1">Color</label><br>
+            <input type="color" class="form-control form-control-color" name="fondo_color" x-model="fondoColor">
+          </div>
+          <div class="col-auto" x-show="fondoTipo==='gradiente' || fondoTipo==='animado'">
+            <label class="form-label small mb-1">Color 2</label><br>
+            <input type="color" class="form-control form-control-color" name="fondo_color2" x-model="fondoColor2">
+          </div>
+          <div class="col" x-show="fondoTipo==='patron'">
+            <label class="form-label small mb-1">Patrón</label>
+            <select name="fondo_patron" x-model="fondoPatron" class="form-select form-select-sm">
+              {% for val,label in form.fondo_patron.choices %}<option value="{{val}}">{{label}}</option>{% endfor %}
+            </select>
+          </div>
+        </div>
+      </div></div>
 
-        <!-- Tipografía (cada opción en su propia letra) -->
-        <label class="form-label">Tipografía</label>
-        <select name="tipografia" x-model="tipografia" class="form-select mb-3"
-                :style="`font-family:'${tipografia}',sans-serif`">
-          {% for val, label in form.tipografia.choices %}
-            <option value="{{ val }}" style="font-family:'{{ val }}',sans-serif">{{ label }}</option>
+      <!-- Botones -->
+      <div class="card shadow-sm mb-3"><div class="card-body p-4">
+        <h2 class="h6 text-uppercase text-muted mb-3">🔘 Botones</h2>
+        <label class="form-label small">Estilo</label>
+        <div class="row g-2 mb-3">
+          {% for val,label in form.boton_estilo.choices %}
+            <div class="col-4 col-sm-3">
+              <input type="radio" class="btn-check" name="boton_estilo" id="be-{{val}}" value="{{val}}" x-model="botonEstilo" autocomplete="off">
+              <label class="pb-opt d-block" for="be-{{val}}">{{ label }}</label>
+            </div>
+          {% endfor %}
+        </div>
+        <label class="form-label small">Forma</label>
+        <div class="d-flex flex-wrap gap-2">
+          {% for val,label in form.boton_forma.choices %}
+            <input type="radio" class="btn-check" name="boton_forma" id="bf-{{val}}" value="{{val}}" x-model="botonForma" autocomplete="off">
+            <label class="btn btn-outline-secondary btn-sm" for="bf-{{val}}">{{ label }}</label>
+          {% endfor %}
+        </div>
+      </div></div>
+
+      <!-- Colores -->
+      <div class="card shadow-sm mb-3"><div class="card-body p-4">
+        <h2 class="h6 text-uppercase text-muted mb-3">🌈 Colores</h2>
+        <div class="row g-3">
+          <div class="col-4 text-center">
+            <label class="form-label small d-block">Títulos</label>
+            <input type="color" class="form-control form-control-color mx-auto" name="color_titulos" x-model="colorTitulos">
+          </div>
+          <div class="col-4 text-center">
+            <label class="form-label small d-block">Botones</label>
+            <input type="color" class="form-control form-control-color mx-auto" name="color_boton" x-model="colorBoton">
+          </div>
+          <div class="col-4 text-center">
+            <label class="form-label small d-block">Texto botón</label>
+            <input type="color" class="form-control form-control-color mx-auto" name="color_boton_texto" x-model="colorBotonTexto">
+          </div>
+        </div>
+      </div></div>
+
+      <!-- Cabecera -->
+      <div class="card shadow-sm mb-3"><div class="card-body p-4">
+        <h2 class="h6 text-uppercase text-muted mb-3">👤 Cabecera</h2>
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <label class="form-label small">Tamaño del avatar</label>
+            <div class="d-flex gap-2">
+              {% for val,label in form.avatar_tamano.choices %}
+                <input type="radio" class="btn-check" name="avatar_tamano" id="av-{{val}}" value="{{val}}" x-model="avatarTamano" autocomplete="off">
+                <label class="btn btn-outline-secondary btn-sm" for="av-{{val}}">{{ label }}</label>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label small">Forma de la foto</label>
+            <div class="d-flex flex-wrap gap-2">
+              {% for val,label in form.forma_foto.choices %}
+                <input type="radio" class="btn-check" name="forma_foto" id="fm-{{val}}" value="{{val}}" x-model="formaFoto" autocomplete="off">
+                <label class="btn btn-outline-secondary btn-sm" for="fm-{{val}}">{{ label }}</label>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        <div class="form-check form-switch mt-3 mb-2">
+          <input class="form-check-input" type="checkbox" name="mostrar_portada" id="mp" x-model="mostrarPortada">
+          <label class="form-check-label" for="mp">Mostrar portada</label>
+        </div>
+        <div x-show="mostrarPortada">
+          <label class="form-label small">Efecto de portada</label>
+          <div class="d-flex flex-wrap gap-2">
+            {% for val,label in form.portada_efecto.choices %}
+              <input type="radio" class="btn-check" name="portada_efecto" id="pe-{{val}}" value="{{val}}" x-model="portadaEfecto" autocomplete="off">
+              <label class="btn btn-outline-secondary btn-sm" for="pe-{{val}}">{{ label }}</label>
+            {% endfor %}
+          </div>
+        </div>
+      </div></div>
+
+      <!-- Tipografía -->
+      <div class="card shadow-sm mb-3"><div class="card-body p-4">
+        <h2 class="h6 text-uppercase text-muted mb-3">🔤 Tipografía</h2>
+        <select name="tipografia" x-model="tipografia" class="form-select" :style="`font-family:'${tipografia}',sans-serif`">
+          {% for val,label in form.tipografia.choices %}
+            <option value="{{val}}" style="font-family:'{{val}}',sans-serif">{{ label }}</option>
           {% endfor %}
         </select>
-
-        <!-- Estilo de página (temas) -->
-        <label class="form-label">Estilo</label>
-        <div class="d-flex flex-wrap gap-2 mb-3">
-          {% for val, label in form.estilo_pagina.choices %}
-            <input type="radio" class="btn-check" name="estilo_pagina" id="est-pg-{{ val }}"
-                   value="{{ val }}" x-model="estilo" autocomplete="off">
-            <label class="btn btn-outline-primary btn-sm" for="est-pg-{{ val }}">{{ label }}</label>
-          {% endfor %}
-        </div>
-
-        <div class="row g-3">
-          <!-- Forma de la foto -->
-          <div class="col-sm-6">
-            <label class="form-label">Forma de la foto</label>
-            <div class="d-flex flex-wrap gap-2">
-              {% for val, label in form.forma_foto.choices %}
-                <input type="radio" class="btn-check" name="forma_foto" id="forma-{{ val }}"
-                       value="{{ val }}" x-model="forma" autocomplete="off">
-                <label class="btn btn-outline-secondary btn-sm" for="forma-{{ val }}">{{ label }}</label>
-              {% endfor %}
-            </div>
-          </div>
-          <!-- Cabecera -->
-          <div class="col-sm-6">
-            <label class="form-label">Cabecera</label>
-            <div class="d-flex flex-wrap gap-2">
-              {% for val, label in [('degradado','Degradado'),('solido','Sólido'),('foto','Foto')] %}
-                <input type="radio" class="btn-check" name="estilo_cabecera" id="est-cab-{{ val }}"
-                       value="{{ val }}" x-model="estiloCab" autocomplete="off">
-                <label class="btn btn-outline-secondary btn-sm" for="est-cab-{{ val }}">{{ label }}</label>
-              {% endfor %}
-            </div>
-          </div>
-        </div>
-
-        <!-- Color -->
-        <div class="d-flex align-items-center gap-3 flex-wrap mt-3">
-          <div class="form-check form-switch m-0">
-            <input class="form-check-input" type="checkbox" id="usarAcento" x-model="usarAcento">
-            <label class="form-check-label" for="usarAcento">Color propio</label>
-          </div>
-          <div class="d-flex align-items-center gap-2" :style="usarAcento ? '' : 'opacity:.4;pointer-events:none'">
-            <input type="color" class="form-control form-control-color" x-model="acento" :disabled="!usarAcento">
-            <span class="small text-muted" x-text="usarAcento ? acento : 'Usa el color del negocio'"></span>
-          </div>
-        </div>
-        {% for e in form.color_acento.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
-        <input type="hidden" name="color_acento" :value="usarAcento ? acento : ''">
       </div></div>
 
-      <!-- Sobre el profesional -->
-      <div class="card shadow-sm mb-3 fade-in"><div class="card-body p-4">
-        <h2 class="h6 text-uppercase text-muted mb-3">Sobre el profesional</h2>
-        {{ form.descripcion(class="form-control mb-3", rows="3",
-            placeholder="Contá su experiencia, estilo, lo que la hace única…", **{"x-model":"desc"}) }}
-        <div class="row g-3">
-          <div class="col-sm-8">
-            {{ render_field(form.habilidades, placeholder="Balayage, Colorimetría, Peinados", **{"x-model":"habilidades"}) }}
-          </div>
-          <div class="col-sm-4">
-            {{ render_field(form.anios_experiencia, placeholder="Ej: 8", **{"x-model":"anios"}) }}
-          </div>
-        </div>
-      </div></div>
-
-      <!-- Redes + agenda -->
-      <div class="card shadow-sm mb-3 fade-in"><div class="card-body p-4">
-        <h2 class="h6 text-uppercase text-muted mb-3">Redes y agenda</h2>
+      <!-- Redes -->
+      <div class="card shadow-sm mb-3"><div class="card-body p-4">
+        <h2 class="h6 text-uppercase text-muted mb-3">🔗 Redes</h2>
         <div class="row g-3">
           <div class="col-sm-6">{{ render_field(form.instagram, placeholder="@usuario", **{"x-model":"instagram"}) }}</div>
+          <div class="col-sm-6">{{ render_field(form.tiktok, placeholder="@usuario", **{"x-model":"tiktok"}) }}</div>
+          <div class="col-sm-6">{{ render_field(form.pinterest, placeholder="usuario", **{"x-model":"pinterest"}) }}</div>
           <div class="col-sm-6">{{ render_field(form.whatsapp, placeholder="+54911...", **{"x-model":"whatsapp"}) }}</div>
+          <div class="col-12">{{ render_field(form.facebook, placeholder="https://facebook.com/...", **{"x-model":"facebook"}) }}</div>
+        </div>
+      </div></div>
+
+      <!-- Sobre + agenda -->
+      <div class="card shadow-sm mb-3"><div class="card-body p-4">
+        <h2 class="h6 text-uppercase text-muted mb-3">📝 Sobre el profesional</h2>
+        {{ form.descripcion(class="form-control mb-3", rows="3", placeholder="Experiencia, estilo, lo que lo hace único…", **{"x-model":"desc"}) }}
+        <div class="row g-3">
+          <div class="col-sm-8">{{ render_field(form.habilidades, placeholder="Soft Gel, Nail Art, Kapping", **{"x-model":"habilidades"}) }}</div>
+          <div class="col-sm-4">{{ render_field(form.anios_experiencia, placeholder="8", **{"x-model":"anios"}) }}</div>
         </div>
         {{ render_field(form.capacidad) }}
-        <small class="text-muted d-block mb-3">Cuántas personas pueden reservar el mismo turno. <strong>1</strong> casi siempre.</small>
         {{ render_checkbox(form.activo) }}
       </div></div>
 
@@ -163,78 +215,76 @@
     </form>
   </div>
 
-  <!-- ===== PREVIEW EN VIVO ===== -->
-  <div class="col-lg-5">
-    <div class="position-sticky" style="top:90px">
-      <p class="text-muted small mb-2">Vista previa en vivo 👇 (cambia al instante)</p>
-      <div class="prof-page" :class="`prof-tema-${estilo} prof-foto-${forma}`"
-           :style="`--acc:${color}; font-family:'${tipografia}',sans-serif`">
-        <div class="card prof-card shadow-sm">
-          <div class="prof-cab" :style="cabeceraStyle"></div>
-          <div class="card-body text-center" style="margin-top:-66px">
-            <template x-if="fotoPreview">
-              <img :src="fotoPreview" alt="" class="prof-avatar">
+  <!-- ================= PREVIEW ================= -->
+  <div class="col-lg-5 order-1 order-lg-2">
+    <div class="position-sticky" style="top:84px">
+      <p class="text-muted small text-center mb-2">Vista previa en vivo 👇</p>
+      <div class="pb-preview">
+        <div class="pb-page" :class="pageClasses" :style="pageStyle">
+          <div class="pb-wrap">
+            <template x-if="mostrarPortada && bannerPreview">
+              <div class="pb-portada" :class="`pb-efecto-${portadaEfecto}`" style="height:120px">
+                <div class="pb-portada-img" :style="`background-image:url('${bannerPreview}')`"></div>
+              </div>
             </template>
-            <template x-if="!fotoPreview">
-              <div class="prof-avatar" x-text="iniciales"></div>
-            </template>
-
-            <h3 class="h4 prof-nombre" x-text="nombre || 'Nombre del profesional'"></h3>
-            <div class="mb-1" x-show="especialidad">
-              <span class="prof-chip" x-text="'✦ ' + especialidad"></span>
-            </div>
-            <p class="prof-frase small mb-2" x-show="frase" x-text="frase"></p>
-
-            <div class="d-flex justify-content-center gap-3 my-2 small text-muted" x-show="anios || habilidadesLista.length">
-              <span x-show="anios"><strong x-text="anios"></strong> años de exp.</span>
-              <span x-show="habilidadesLista.length"><strong x-text="habilidadesLista.length"></strong> especialidades</span>
-            </div>
-
-            <div class="d-flex flex-wrap justify-content-center gap-1 mb-2" x-show="habilidadesLista.length">
-              <template x-for="h in habilidadesLista" :key="h">
-                <span class="prof-chip" x-text="h"></span>
+            <div class="text-center" :style="(mostrarPortada && bannerPreview) ? 'margin-top:-46px' : 'margin-top:1rem'">
+              <template x-if="fotoPreview">
+                <img :src="fotoPreview" class="pb-avatar" :class="`pb-avatar-${avatarTamano}`" style="width:88px;height:88px">
               </template>
+              <template x-if="!fotoPreview">
+                <div class="pb-avatar mx-auto" :class="`pb-avatar-${avatarTamano}`" style="width:88px;height:88px;font-size:2rem" x-text="iniciales"></div>
+              </template>
+              <h3 class="pb-nombre h5" x-text="nombre || 'Nombre'"></h3>
+              <div class="pb-sub small" x-show="especialidad" x-text="especialidad"></div>
+              <p class="pb-sub fst-italic" style="font-size:.78rem" x-show="frase" x-text="frase"></p>
+              <div class="pb-social my-1" x-show="instagram||tiktok||pinterest||facebook||whatsapp">
+                <a href="#" @click.prevent x-show="instagram" style="width:34px;height:34px;font-size:.9rem">📷</a>
+                <a href="#" @click.prevent x-show="tiktok" style="width:34px;height:34px;font-size:.9rem">🎵</a>
+                <a href="#" @click.prevent x-show="pinterest" style="width:34px;height:34px;font-size:.9rem">📌</a>
+                <a href="#" @click.prevent x-show="facebook" style="width:34px;height:34px;font-size:.9rem">👍</a>
+                <a href="#" @click.prevent x-show="whatsapp" style="width:34px;height:34px;font-size:.9rem">💬</a>
+              </div>
+              <div class="d-flex flex-wrap justify-content-center gap-1 mb-1" x-show="habilidadesLista.length">
+                <template x-for="h in habilidadesLista" :key="h">
+                  <span class="badge rounded-pill" :style="`background:color-mix(in srgb,var(--acc) 14%,transparent);color:var(--acc);font-size:.6rem`" x-text="h"></span>
+                </template>
+              </div>
             </div>
-
-            <p class="text-muted small px-2" x-text="desc || 'La descripción aparecerá acá.'"></p>
-
-            <div class="d-flex justify-content-center gap-2 mb-3" x-show="instagram || whatsapp">
-              <span class="badge bg-light text-dark" x-show="instagram">📷 <span x-text="instagram"></span></span>
-              <span class="badge bg-light text-dark" x-show="whatsapp">💬 WhatsApp</span>
+            <div class="mt-2">
+              <a href="#" @click.prevent class="pb-btn" style="padding:.7rem">✨ Reservar un turno</a>
+              <a href="#" @click.prevent class="pb-btn" style="padding:.7rem">✂️ Servicios y precios</a>
+              <a href="#" @click.prevent class="pb-btn" style="padding:.7rem">📍 Ubicación</a>
             </div>
-
-            <button type="button" class="prof-btn">Reservar turno</button>
           </div>
         </div>
       </div>
-      <p class="text-muted small mt-2">Probá tipografías y estilos: se ven acá sin guardar.</p>
+      <p class="text-muted small text-center mt-2">Todo cambia al instante. Guardá para publicarlo.</p>
     </div>
   </div>
 </div>
 
 <script>
-function profesionalEditor(init) {
+function pbEditor(init) {
   return {
     ...init,
-    get color() { return this.usarAcento && this.acento ? this.acento : this.negColor; },
+    get acc() { return this.colorBoton; },
     get iniciales() {
-      const n = (this.nombre || '').trim();
-      if (!n) return '?';
-      const p = n.split(' ').filter(Boolean);
-      return (p[0][0] + (p[1] ? p[1][0] : '')).toUpperCase();
+      const n=(this.nombre||'').trim(); if(!n) return '?';
+      const p=n.split(' ').filter(Boolean); return (p[0][0]+(p[1]?p[1][0]:'')).toUpperCase();
     },
-    get habilidadesLista() {
-      return (this.habilidades || '').split(',').map(s => s.trim()).filter(Boolean);
+    get habilidadesLista() { return (this.habilidades||'').split(',').map(s=>s.trim()).filter(Boolean); },
+    get pageClasses() {
+      let c = `pb-fondo-${this.fondoTipo} pb-foto-${this.formaFoto} pb-estilo-${this.botonEstilo} pb-forma-${this.botonForma}`;
+      if (this.fondoTipo === 'patron') c += ` pb-patron-${this.fondoPatron}`;
+      return c;
     },
-    get cabeceraStyle() {
-      const c = this.color;
-      if (this.estiloCab === 'foto' && this.bannerPreview)
-        return `background:url('${this.bannerPreview}') center/cover`;
-      if (this.estiloCab === 'solido') return `background:${c}`;
-      return `background:linear-gradient(135deg, ${c}, ${c}99)`;
+    get pageStyle() {
+      return `--boton:${this.colorBoton}; --boton-tx:${this.colorBotonTexto}; --titulos:${this.colorTitulos};`
+           + `--fondo:${this.fondoColor}; --fondo2:${this.fondoColor2||this.fondoColor}; --acc:${this.acc};`
+           + `font-family:'${this.tipografia}',sans-serif`;
     },
-    cargarFoto(e) { const f = e.target.files[0]; if (f) this.fotoPreview = URL.createObjectURL(f); },
-    cargarBanner(e) { const f = e.target.files[0]; if (f) { this.bannerPreview = URL.createObjectURL(f); this.estiloCab = 'foto'; } },
+    cargarFoto(e){ const f=e.target.files[0]; if(f) this.fotoPreview=URL.createObjectURL(f); },
+    cargarBanner(e){ const f=e.target.files[0]; if(f){ this.bannerPreview=URL.createObjectURL(f); this.mostrarPortada=true; } },
   };
 }
 </script>

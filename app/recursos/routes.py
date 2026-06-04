@@ -145,6 +145,11 @@ def _aplicar_personalizacion(recurso, form):
     def limpio(v):
         return (v or "").strip() or None
 
+    from app.recursos import opciones as o
+
+    def opcion(valor, validos, default):
+        return valor if valor in validos else default
+
     recurso.especialidad = limpio(form.especialidad.data)
     recurso.frase = limpio(form.frase.data)
     recurso.descripcion = limpio(form.descripcion.data)
@@ -152,20 +157,34 @@ def _aplicar_personalizacion(recurso, form):
     recurso.anios_experiencia = form.anios_experiencia.data
     recurso.color_acento = limpio(form.color_acento.data)
     recurso.estilo_cabecera = form.estilo_cabecera.data or "degradado"
+
+    # Redes.
     recurso.instagram = limpio(form.instagram.data)
     recurso.whatsapp = limpio(form.whatsapp.data)
+    recurso.tiktok = limpio(form.tiktok.data)
+    recurso.pinterest = limpio(form.pinterest.data)
+    recurso.facebook = limpio(form.facebook.data)
 
-    # Tipografía / estilo / forma (validados contra el catálogo).
-    from app.recursos.opciones import (
-        FUENTES_VALIDAS, ESTILOS_VALIDOS, FORMAS_VALIDAS,
-        FUENTE_DEFAULT,
-    )
-    recurso.tipografia = (form.tipografia.data
-                          if form.tipografia.data in FUENTES_VALIDAS else FUENTE_DEFAULT)
-    recurso.estilo_pagina = (form.estilo_pagina.data
-                             if form.estilo_pagina.data in ESTILOS_VALIDOS else "minimal")
-    recurso.forma_foto = (form.forma_foto.data
-                          if form.forma_foto.data in FORMAS_VALIDAS else "circulo")
+    # Tipografía / forma / estilo (validados contra el catálogo).
+    recurso.tipografia = opcion(form.tipografia.data, o.FUENTES_VALIDAS, o.FUENTE_DEFAULT)
+    recurso.estilo_pagina = opcion(form.estilo_pagina.data, o.ESTILOS_VALIDOS, "minimal")
+    recurso.forma_foto = opcion(form.forma_foto.data, o.FORMAS_VALIDAS, "circulo")
+
+    # Page-builder: fondo.
+    recurso.fondo_tipo = opcion(form.fondo_tipo.data, o.FONDOS_VALIDOS, "gradiente")
+    recurso.fondo_patron = opcion(form.fondo_patron.data, o.PATRONES_VALIDOS, "puntos")
+    recurso.fondo_color = limpio(form.fondo_color.data)
+    recurso.fondo_color2 = limpio(form.fondo_color2.data)
+    # Botones.
+    recurso.boton_estilo = opcion(form.boton_estilo.data, o.BOTON_ESTILOS_VALIDOS, "sombra_suave")
+    recurso.boton_forma = opcion(form.boton_forma.data, o.BOTON_FORMAS_VALIDAS, "redondo")
+    recurso.color_boton = limpio(form.color_boton.data)
+    recurso.color_boton_texto = limpio(form.color_boton_texto.data)
+    recurso.color_titulos = limpio(form.color_titulos.data)
+    # Cabecera.
+    recurso.avatar_tamano = opcion(form.avatar_tamano.data, o.AVATAR_TAMANOS_VALIDOS, "grande")
+    recurso.mostrar_portada = bool(form.mostrar_portada.data)
+    recurso.portada_efecto = opcion(form.portada_efecto.data, o.PORTADA_EFECTOS_VALIDOS, "original")
 
 
 @recursos_bp.route("/nuevo", methods=["GET", "POST"])

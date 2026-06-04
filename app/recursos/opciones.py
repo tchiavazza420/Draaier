@@ -44,6 +44,28 @@ FORMAS_FOTO = [
 FORMAS_VALIDAS = {f[0] for f in FORMAS_FOTO}
 
 
+# ====== Page-builder ======
+FONDOS = [("solido", "Sólido"), ("gradiente", "Gradiente"),
+          ("patron", "Patrón"), ("animado", "Animado")]
+PATRONES = [("puntos", "Puntos"), ("cuadricula", "Cuadrícula"),
+            ("diagonal", "Diagonal"), ("ondas", "Ondas")]
+BOTON_ESTILOS = [("solido", "Sólido"), ("cristal", "Cristal"),
+                 ("contorno", "Contorno"), ("sombra_suave", "Sombra suave"),
+                 ("sombra_fuerte", "Sombra fuerte")]
+BOTON_FORMAS = [("recto", "Recto"), ("suave", "Suave"), ("redondo", "Redondo")]
+AVATAR_TAMANOS = [("pequeno", "Pequeño"), ("grande", "Grande")]
+PORTADA_EFECTOS = [("original", "Original"), ("blur", "Blur"),
+                   ("gradiente", "Gradiente"), ("fade", "Fade"),
+                   ("vineta", "Viñeta"), ("duotono", "Duotono")]
+
+FONDOS_VALIDOS = {x[0] for x in FONDOS}
+PATRONES_VALIDOS = {x[0] for x in PATRONES}
+BOTON_ESTILOS_VALIDOS = {x[0] for x in BOTON_ESTILOS}
+BOTON_FORMAS_VALIDAS = {x[0] for x in BOTON_FORMAS}
+AVATAR_TAMANOS_VALIDOS = {x[0] for x in AVATAR_TAMANOS}
+PORTADA_EFECTOS_VALIDOS = {x[0] for x in PORTADA_EFECTOS}
+
+
 def fuentes_css_url(familias):
     """
     Arma la URL de Google Fonts (CSS2) para una o varias familias.

@@ -479,3 +479,15 @@ h1, h2, h3, h4, h5, .fw-bold { letter-spacing: -.02em; }
   .pb-fondo-animado { animation: none; }
   .pb-btn, .pb-social a { transition: none; }
 }
+
+/* ---- Preview enmarcado (editor): neutraliza el full-bleed ---- */
+.pb-preview { max-width: 340px; margin: 0 auto; border: 9px solid #1f2937;
+  border-radius: 34px; overflow: hidden; box-shadow: var(--sombra-lg); background:#1f2937; }
+.pb-preview .pb-page { width: 100%; position: static; left: auto; right: auto;
+  margin: 0; padding-top: 0; min-height: 540px; }
+.pb-preview .pb-wrap { padding: 0 .8rem 1.4rem; max-width: 100%; }
+.pb-preview .pb-portada { border-radius: 0; }
+/* Selector visual (radios como tarjetas) */
+.pb-opt { cursor: pointer; border: 2px solid var(--borde, #e5e7eb); border-radius: 12px;
+  padding: .5rem; text-align: center; font-size: .8rem; background: var(--bs-body-bg); transition: border-color .15s; }
+.btn-check:checked + .pb-opt { border-color: var(--marca, #6d28d9); box-shadow: 0 0 0 3px rgba(109,40,217,.12); }

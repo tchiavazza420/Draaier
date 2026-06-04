@@ -45,6 +45,33 @@ def test_color_acento_vacio_hereda_negocio(client, crear_negocio):
     assert rec.color_acento is None
 
 
+def test_guardar_page_builder(client, crear_negocio):
+    """Se guardan los campos del page-builder (fondo, botones, colores, cabecera, redes)."""
+    neg, dueno = crear_negocio(email="pb@test.com")
+    client.post("/auth/login", data={"email": "pb@test.com", "password": "clave1234"})
+    client.post("/panel/recursos/nuevo", data={
+        "nombre": "Juca", "capacidad": "1", "activo": "y",
+        "fondo_tipo": "patron", "fondo_patron": "puntos", "fondo_color": "#fff1f2",
+        "fondo_color2": "#ffe4e6",
+        "boton_estilo": "contorno", "boton_forma": "redondo",
+        "color_boton": "#be185d", "color_boton_texto": "#ffffff", "color_titulos": "#83edf1",
+        "avatar_tamano": "grande", "mostrar_portada": "y", "portada_efecto": "fade",
+        "tiktok": "@juca", "pinterest": "juca", "facebook": "https://fb.com/juca",
+    })
+    rec = Recurso.query.filter_by(negocio_id=neg.id, nombre="Juca").first()
+    assert rec is not None
+    assert rec.fondo_tipo == "patron" and rec.fondo_patron == "puntos"
+    assert rec.boton_estilo == "contorno" and rec.boton_forma == "redondo"
+    assert rec.color_boton == "#be185d" and rec.color_titulos == "#83edf1"
+    assert rec.avatar_tamano == "grande" and rec.portada_efecto == "fade"
+    assert rec.mostrar_portada is True
+    assert rec.tiktok == "@juca" and rec.pinterest == "juca"
+    # Y la página pública aplica el fondo con patrón.
+    html = client.get(f"/{neg.slug}/recurso/{rec.slug}").get_data(as_text=True)
+    assert "pb-fondo-patron" in html and "pb-patron-puntos" in html
+    assert "pb-estilo-contorno" in html
+
+
 def test_guardar_fuente_estilo_y_forma(client, crear_negocio):
     neg, dueno = crear_negocio(email="diseno@test.com")
     client.post("/auth/login", data={"email": "diseno@test.com", "password": "clave1234"})
