@@ -243,4 +243,9 @@ def perfil_recurso(slug, recurso_slug):
     ).first()
     if recurso is None:
         abort(404)
-    return render_template("publico/recurso.html", negocio=negocio, recurso=recurso)
+    from app.models.galeria import GaleriaFoto
+    galeria = (
+        GaleriaFoto.query.filter_by(negocio_id=negocio.id)
+        .order_by(GaleriaFoto.orden, GaleriaFoto.id).limit(9).all()
+    )
+    return render_template("publico/recurso.html", negocio=negocio, recurso=recurso, galeria=galeria)

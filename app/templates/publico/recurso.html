@@ -4,127 +4,139 @@
 
 {% block head_extra %}
   {{ super() }}
-  {# Fuente propia del profesional #}
   <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family={{ recurso.tipografia|replace(' ', '+') }}:wght@400;600;700&display=swap">
+        href="https://fonts.googleapis.com/css2?family={{ recurso.tipografia|replace(' ', '+') }}:wght@400;600;700;800&display=swap">
 {% endblock %}
 
 {% block publico %}
-{% set acento = recurso.color_acento or negocio.color_primario %}
-{% if recurso.estilo_cabecera == 'foto' and recurso.banner_filename %}
-  {% set cabecera = "background:url('" ~ url_for('static', filename=recurso.banner_filename) ~ "') center/cover" %}
-{% elif recurso.estilo_cabecera == 'solido' %}
-  {% set cabecera = "background:" ~ acento %}
-{% else %}
-  {% set cabecera = "background:linear-gradient(135deg, " ~ acento ~ ", " ~ acento ~ "99)" %}
-{% endif %}
+{# ---- Valores efectivos de estilo ---- #}
+{% set boton    = recurso.estilo('color_boton') %}
+{% set boton_tx = recurso.estilo('color_boton_texto') %}
+{% set titulos  = recurso.color_titulos or recurso.color_acento or negocio.color_primario %}
+{% set fondo    = recurso.estilo('fondo_color') %}
+{% set fondo2   = recurso.fondo_color2 or fondo %}
+{% set acc      = recurso.color_acento or boton %}
+{% set fondo_tipo = recurso.estilo('fondo_tipo') %}
+{% set patron   = recurso.estilo('fondo_patron') %}
+{% set servicios = recurso.servicios | selectattr('activo') | list %}
 
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb small">
-    <li class="breadcrumb-item">
-      <a href="{{ url_for('publico.perfil_negocio', slug=negocio.slug) }}">{{ negocio.nombre }}</a>
-    </li>
-    <li class="breadcrumb-item active" aria-current="page">{{ recurso.nombre }}</li>
-  </ol>
-</nav>
+<div class="pb-page pb-fondo-{{ fondo_tipo }}
+            {% if fondo_tipo == 'patron' and patron != 'none' %}pb-patron-{{ patron }}{% endif %}
+            pb-foto-{{ recurso.forma_foto }}
+            pb-estilo-{{ recurso.estilo('boton_estilo') }}
+            pb-forma-{{ recurso.estilo('boton_forma') }}"
+     style="--boton:{{ boton }}; --boton-tx:{{ boton_tx }}; --titulos:{{ titulos }};
+            --fondo:{{ fondo }}; --fondo2:{{ fondo2 }}; --acc:{{ acc }};
+            font-family:'{{ recurso.tipografia }}', system-ui, sans-serif">
+  <div class="pb-wrap">
 
-<!-- ===== HERO DEL PROFESIONAL ===== -->
-<div class="prof-page prof-tema-{{ recurso.estilo_pagina }} prof-foto-{{ recurso.forma_foto }} fade-in"
-     style="--acc:{{ acento }}; font-family:'{{ recurso.tipografia }}', system-ui, sans-serif">
-  <div class="card prof-card shadow-sm mb-4">
-    <div class="prof-cab" style="{{ cabecera }}"></div>
-    <div class="card-body text-center" style="margin-top:-72px">
+    <div class="pt-2 pb-1">
+      <a href="{{ url_for('publico.perfil_negocio', slug=negocio.slug) }}"
+         class="small text-decoration-none" style="color:var(--titulos);opacity:.7">← {{ negocio.nombre }}</a>
+    </div>
+
+    {# ---- Portada ---- #}
+    {% if recurso.portada_visible and recurso.banner_filename %}
+      <div class="pb-portada pb-efecto-{{ recurso.estilo('portada_efecto') }} fade-in">
+        <div class="pb-portada-img" style="background-image:url('{{ url_for('static', filename=recurso.banner_filename) }}')"></div>
+      </div>
+      {% set avatar_mt = '-66px' if recurso.avatar_tamano != 'pequeno' else '-50px' %}
+    {% else %}
+      {% set avatar_mt = '1.5rem' %}
+    {% endif %}
+
+    {# ---- Avatar ---- #}
+    <div class="text-center" style="margin-top:{{ avatar_mt }}">
       {% if recurso.foto_filename %}
-        <img src="{{ url_for('static', filename=recurso.foto_filename) }}" alt="{{ recurso.nombre }}" class="prof-avatar">
+        <img src="{{ url_for('static', filename=recurso.foto_filename) }}" alt="{{ recurso.nombre }}"
+             class="pb-avatar pb-avatar-{{ recurso.avatar_tamano or 'grande' }} pop-in">
       {% else %}
-        <div class="prof-avatar">{{ recurso.nombre[:1]|upper }}</div>
+        <div class="pb-avatar pb-avatar-{{ recurso.avatar_tamano or 'grande' }} mx-auto pop-in">{{ recurso.nombre[:1]|upper }}</div>
       {% endif %}
 
-      <h1 class="h3 prof-nombre">{{ recurso.nombre }}</h1>
-      {% if recurso.especialidad %}
-        <span class="prof-chip mb-1">✦ {{ recurso.especialidad }}</span>
-      {% endif %}
-      {% if recurso.frase %}
-        <p class="prof-frase mb-2">“{{ recurso.frase }}”</p>
-      {% endif %}
+      <h1 class="pb-nombre h3">{{ recurso.nombre }}</h1>
+      {% if recurso.especialidad %}<div class="pb-sub mb-1">{{ recurso.especialidad }}</div>{% endif %}
+      {% if recurso.frase %}<p class="pb-sub fst-italic small mb-2">“{{ recurso.frase }}”</p>{% endif %}
 
-      {% if recurso.anios_experiencia or recurso.habilidades_lista %}
-        <div class="d-flex justify-content-center gap-4 my-3">
-          {% if recurso.anios_experiencia %}
-            <div><div class="h4 mb-0" style="color:{{ acento }}">{{ recurso.anios_experiencia }}</div>
-                 <small class="text-muted">años de experiencia</small></div>
-          {% endif %}
-          {% if recurso.habilidades_lista %}
-            <div><div class="h4 mb-0" style="color:{{ acento }}">{{ recurso.habilidades_lista|length }}</div>
-                 <small class="text-muted">especialidades</small></div>
-          {% endif %}
+      {# ---- Redes ---- #}
+      {% if recurso.instagram or recurso.tiktok or recurso.pinterest or recurso.facebook or recurso.whatsapp %}
+        <div class="pb-social my-2">
+          {% if recurso.instagram %}<a title="Instagram" target="_blank" href="https://instagram.com/{{ recurso.instagram|replace('@','') }}">📷</a>{% endif %}
+          {% if recurso.tiktok %}<a title="TikTok" target="_blank" href="https://tiktok.com/@{{ recurso.tiktok|replace('@','') }}">🎵</a>{% endif %}
+          {% if recurso.pinterest %}<a title="Pinterest" target="_blank" href="https://pinterest.com/{{ recurso.pinterest|replace('@','') }}">📌</a>{% endif %}
+          {% if recurso.facebook %}<a title="Facebook" target="_blank" href="{{ recurso.facebook }}">👍</a>{% endif %}
+          {% if recurso.whatsapp %}<a title="WhatsApp" target="_blank" href="https://wa.me/{{ recurso.whatsapp|replace('+','')|replace(' ','') }}">💬</a>{% endif %}
         </div>
       {% endif %}
 
       {% if recurso.habilidades_lista %}
-        <div class="d-flex flex-wrap justify-content-center gap-1 mb-3">
+        <div class="d-flex flex-wrap justify-content-center gap-1 mb-2">
           {% for h in recurso.habilidades_lista %}
-            <span class="prof-chip">{{ h }}</span>
+            <span class="badge rounded-pill" style="background:color-mix(in srgb, var(--acc) 14%, transparent);color:var(--acc)">{{ h }}</span>
           {% endfor %}
         </div>
       {% endif %}
-
       {% if recurso.descripcion %}
-        <p class="text-muted mb-3 mx-auto" style="max-width:580px">{{ recurso.descripcion }}</p>
+        <p class="small mb-3" style="color:color-mix(in srgb,var(--titulos) 75%,transparent)">{{ recurso.descripcion }}</p>
       {% endif %}
+    </div>
 
-      {% if recurso.instagram or recurso.whatsapp %}
-        <div class="d-flex justify-content-center gap-2">
-          {% if recurso.instagram %}
-            <a class="btn btn-sm btn-outline-secondary"
-               href="https://instagram.com/{{ recurso.instagram|replace('@','') }}" target="_blank">📷 Instagram</a>
-          {% endif %}
-          {% if recurso.whatsapp %}
-            <a class="btn btn-sm btn-outline-secondary"
-               href="https://wa.me/{{ recurso.whatsapp|replace('+','')|replace(' ','') }}" target="_blank">💬 WhatsApp</a>
-          {% endif %}
-        </div>
+    {# ---- Botones grandes (links) ---- #}
+    <div class="mt-3">
+      {% if servicios %}
+        <a class="pb-btn" href="#servicios">✨ Reservar un turno</a>
+        <a class="pb-btn" href="#servicios">✂️ Servicios y precios</a>
       {% endif %}
+      {% if negocio.ciudad %}
+        <a class="pb-btn" target="_blank"
+           href="https://www.google.com/maps/search/?api=1&query={{ (negocio.nombre ~ ' ' ~ negocio.ciudad)|urlencode }}">
+          📍 Ubicación del local
+        </a>
+      {% endif %}
+    </div>
+
+    {# ---- Servicios reservables ---- #}
+    {% if servicios %}
+      <h2 class="h6 mt-4 mb-2" id="servicios" style="color:var(--titulos)">Reservá con {{ recurso.nombre.split(' ')[0] }}</h2>
+      <div class="d-flex flex-column gap-2">
+        {% for s in servicios %}
+          <a href="{{ url_for('publico.perfil_servicio', slug=negocio.slug, servicio_slug=s.slug) }}"
+             class="card text-decoration-none lift" style="border:none;box-shadow:0 4px 14px rgba(0,0,0,.08)">
+            <div class="card-body d-flex justify-content-between align-items-center py-3">
+              <div>
+                <div class="fw-semibold text-body">{{ s.nombre }}</div>
+                <div class="text-muted small">⏱ {{ s.duracion_legible }}
+                  {% if s.requiere_sena and s.sena_monto %}· seña ${{ '%g'|format(s.sena_monto) }}{% endif %}</div>
+              </div>
+              <div class="text-end">
+                {% if s.precio and s.precio > 0 %}<div class="fw-bold" style="color:{{ acc }}">${{ '%g'|format(s.precio) }}</div>{% endif %}
+                <span class="badge" style="background:{{ boton }};color:{{ boton_tx }}">Reservar →</span>
+              </div>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="card mt-3"><div class="card-body text-center text-muted py-4">
+        Este profesional todavía no tiene servicios publicados.
+      </div></div>
+    {% endif %}
+
+    {# ---- Galería del negocio ---- #}
+    {% if galeria %}
+      <h2 class="h6 mt-4 mb-2" style="color:var(--titulos)">Galería</h2>
+      <div class="pb-galeria">
+        {% for foto in galeria %}
+          <img src="{{ url_for('static', filename=foto.filename) }}" alt="" loading="lazy">
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="text-center mt-4">
+      <span class="badge rounded-pill" style="background:color-mix(in srgb,var(--titulos) 8%,transparent);color:var(--titulos)">
+        Reservá con AgenPro
+      </span>
     </div>
   </div>
 </div>
-
-<!-- ===== SERVICIOS RESERVABLES ===== -->
-{% set servicios = recurso.servicios | selectattr('activo') | list %}
-<h2 class="h5 mb-3">Reservá un turno con {{ recurso.nombre.split(' ')[0] }}</h2>
-{% if servicios %}
-  <div class="row g-3">
-    {% for s in servicios %}
-      <div class="col-12 col-md-6">
-        <a href="{{ url_for('publico.perfil_servicio', slug=negocio.slug, servicio_slug=s.slug) }}"
-           class="card h-100 text-decoration-none lift" style="border-left:4px solid {{ acento }}">
-          <div class="card-body d-flex justify-content-between align-items-center">
-            <div>
-              <div class="fw-semibold text-body">{{ s.nombre }}</div>
-              <div class="text-muted small">
-                ⏱ {{ s.duracion_legible }}
-                {% if s.requiere_sena and s.sena_monto %}· seña ${{ '%g'|format(s.sena_monto) }}{% endif %}
-              </div>
-            </div>
-            <div class="text-end">
-              {% if s.precio and s.precio > 0 %}
-                <div class="fw-bold" style="color:{{ acento }}">${{ '%g'|format(s.precio) }}</div>
-              {% endif %}
-              <span class="btn btn-sm text-white mt-1" style="background:{{ acento }}">Reservar →</span>
-            </div>
-          </div>
-        </a>
-      </div>
-    {% endfor %}
-  </div>
-{% else %}
-  <div class="card"><div class="card-body text-center text-muted py-4">
-    Este profesional todavía no tiene servicios publicados.
-    <div class="mt-2">
-      <a href="{{ url_for('publico.perfil_negocio', slug=negocio.slug) }}" class="btn btn-outline-primary btn-sm">
-        Ver todos los servicios del local
-      </a>
-    </div>
-  </div></div>
-{% endif %}
 {% endblock %}

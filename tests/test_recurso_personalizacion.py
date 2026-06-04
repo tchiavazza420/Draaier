@@ -74,17 +74,22 @@ def test_fuente_invalida_cae_a_default(client, crear_negocio):
     assert rec.forma_foto == "circulo"
 
 
-def test_pagina_publica_aplica_fuente_y_tema(client, crear_negocio, crear_recurso):
+def test_pagina_publica_aplica_fuente_y_estilo(client, crear_negocio, crear_recurso):
+    """La página pública (page-builder) aplica fuente, forma de foto, fondo y botones."""
     neg, _ = crear_negocio()
     rec = crear_recurso(neg, nombre="Eli Glam")
     rec.tipografia = "Cormorant Garamond"
-    rec.estilo_pagina = "elegante"
     rec.forma_foto = "rounded"
+    rec.fondo_tipo = "gradiente"
+    rec.boton_estilo = "contorno"
+    rec.boton_forma = "redondo"
     from app.extensions import db
     db.session.commit()
     html = client.get(f"/{neg.slug}/recurso/{rec.slug}").get_data(as_text=True)
-    assert "prof-tema-elegante" in html
-    assert "prof-foto-rounded" in html
+    assert "pb-foto-rounded" in html
+    assert "pb-fondo-gradiente" in html
+    assert "pb-estilo-contorno" in html
+    assert "pb-forma-redondo" in html
     assert "Cormorant+Garamond" in html   # link de Google Fonts
 
 
