@@ -1,19 +1,16 @@
-name: Recordatorios diarios
+name: Recordatorios (manual / respaldo)
 
-# Cron GRATIS para plan free de Render (sin Celery beat).
-# Llama al endpoint /tareas/correr una vez por día para enviar los
-# recordatorios del día siguiente y vencer las suscripciones expiradas.
+# NOTA: en Render Starter el disparo diario lo hace el Cron Job nativo
+# (ver render.yaml). Este workflow queda solo como RESPALDO MANUAL para
+# ejecutarlo a mano desde Actions -> Run workflow, sin duplicar envíos.
 #
-# Requiere dos secrets en el repo (Settings -> Secrets -> Actions):
-#   - SITE_URL    ej: https://www.agenpro.com.ar
-#   - CRON_TOKEN  el mismo valor que la env var CRON_TOKEN del servicio en Render
-#
-# La hora es UTC. 11:00 UTC ~ 08:00 Argentina (UTC-3).
+# Si algún día NO usás el Cron Job de Render, descomentá el bloque "schedule"
+# de abajo y cargá los secrets SITE_URL y CRON_TOKEN en el repo.
 
 on:
-  schedule:
-    - cron: "0 11 * * *"
-  workflow_dispatch: {}   # permite ejecutarlo a mano desde la pestaña Actions
+  workflow_dispatch: {}   # solo manual (evita duplicar con el cron de Render)
+  # schedule:
+  #   - cron: "0 11 * * *"   # 11:00 UTC ≈ 08:00 Argentina
 
 jobs:
   disparar:

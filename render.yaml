@@ -1,12 +1,13 @@
 # ===========================================================================
-#  Render Blueprint — versión PLAN FREE (web + Postgres)
+#  Render Blueprint — PLAN STARTER (web + Postgres + Cron Job)
 #
-#  El plan free de Render no incluye background workers ni preDeployCommand,
-#  así que acá Celery corre en modo EAGER (las tareas se ejecutan dentro del
-#  proceso web, sin worker ni Redis). Las migraciones + seed corren al arrancar.
-#
-#  Para escalar a async real (worker + beat + Redis), descomentá la sección de
-#  más abajo y pasá los servicios a un plan pago (Starter).
+#  - Web en plan Starter (no se duerme por inactividad).
+#  - Cron Job nativo de Render que dispara los recordatorios y los vencimientos
+#    todos los días pegándole al endpoint /tareas/correr (reusa todo el entorno
+#    de la web: mail, WhatsApp, etc.). Ver INTEGRACIONES.md.
+#  - Celery sigue en modo EAGER (las notificaciones se envían dentro del request
+#    web). Si más adelante querés async real, descomentá la sección worker+beat+
+#    Redis del final y poné CELERY_EAGER=false.
 #
 #  Subí el repo a GitHub y en Render: New > Blueprint > seleccioná este repo.
 # ===========================================================================
@@ -14,6 +15,8 @@
 databases:
   - name: reservas-db
     databaseName: reservas_saas
+    # Nota: el Postgres free expira a los 90 días. Con cuenta Starter conviene
+    # pasarlo a un plan pago (basic-256mb o superior) para producción.
     plan: free
 
 services:
@@ -21,9 +24,9 @@ services:
   - type: web
     name: reservas-web
     runtime: python
-    plan: free
+    plan: starter
     buildCommand: pip install -r requirements.txt
-    # En free no hay preDeployCommand: migramos + seed al arrancar (idempotente).
+    # Migramos + seed al arrancar (idempotente).
     startCommand: flask db upgrade && flask seed-roles && gunicorn -c gunicorn.conf.py wsgi:app
     # Dominio propio (configurar también los DNS en el registrar — ver DOMINIO.md).
     domains:
@@ -39,12 +42,11 @@ services:
       # URL pública del sitio (back_urls de pagos, webhooks, links de emails).
       - key: SITE_URL
         value: https://www.agenpro.com.ar
-      # Token del endpoint de tareas programadas (/tareas/correr). Un cron
-      # externo gratis (GitHub Actions / cron-job.org) lo usa para disparar
-      # recordatorios y vencimientos en plan free. Ver RECORDATORIOS.md.
+      # Token del endpoint de tareas programadas (/tareas/correr). Lo usa el
+      # Cron Job de abajo (lo comparte vía fromService). Ver INTEGRACIONES.md.
       - key: CRON_TOKEN
         generateValue: true
-      # Sin worker en free -> Celery corre síncrono (eager).
+      # Notificaciones síncronas (sin worker). Cambiar a "false" si activás Celery.
       - key: CELERY_EAGER
         value: "true"
       - key: SECRET_KEY
@@ -53,6 +55,31 @@ services:
         fromDatabase:
           name: reservas-db
           property: connectionString
+
+  # --- Cron Job: recordatorios + vencimientos (diario) ---
+  # Le pega al endpoint /tareas/correr de la web (que ya tiene mail/WhatsApp
+  # configurados). Usa solo la stdlib de Python (sin dependencias ni build).
+  # 11:00 UTC ≈ 08:00 Argentina (UTC-3).
+  - type: cron
+    name: agenpro-recordatorios
+    runtime: python
+    plan: starter
+    schedule: "0 11 * * *"
+    buildCommand: "echo sin build"
+    startCommand: >-
+      python -c "import os,urllib.request as u;
+      req=u.Request(os.environ['SITE_URL'].rstrip('/')+'/tareas/correr?dias=1',
+      method='POST', headers={'X-Cron-Token':os.environ['CRON_TOKEN']});
+      print(u.urlopen(req, timeout=120).read().decode())"
+    envVars:
+      - key: SITE_URL
+        value: https://www.agenpro.com.ar
+      # Mismo token que la web (se copia automáticamente).
+      - key: CRON_TOKEN
+        fromService:
+          type: web
+          name: reservas-web
+          envVarKey: CRON_TOKEN
 
 # ===========================================================================
 #  ESCALADO A ASYNC (plan pago) — descomentar y poner plan: starter

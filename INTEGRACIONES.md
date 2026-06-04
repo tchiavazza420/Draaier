@@ -76,10 +76,9 @@ MODO) y sumamos las otras dos solo si conseguís acceso directo a sus APIs.
 
 ## 3) Recordatorios automáticos
 
-**Estado: listo, falta engancharle un disparador.** La lógica de recordatorios
-(reservas del día siguiente) y de vencimiento de suscripciones ya existe. En el
-plan **free de Render no hay Celery beat ni cron**, así que la disparamos con un
-**cron externo gratis** que pega a un endpoint protegido.
+**Estado: listo.** La lógica de recordatorios (reservas del día siguiente) y de
+vencimiento de suscripciones ya existe, y se dispara con un **Cron Job nativo de
+Render** (incluido en tu plan Starter) que pega a un endpoint protegido.
 
 ### Endpoint
 ```
@@ -89,29 +88,26 @@ Header:  X-Cron-Token: <CRON_TOKEN>
 Devuelve JSON con `recordatorios_enviados` y `suscripciones_vencidas`. Si no hay
 `CRON_TOKEN` configurado, el endpoint está deshabilitado (404).
 
-### Variable
-```
-CRON_TOKEN=<un secreto largo y aleatorio>
-```
-(El `render.yaml` ya lo genera automáticamente si desplegás por Blueprint.)
+### Cómo queda (Render Starter — recomendado)
+El `render.yaml` ya define un servicio **`type: cron`** (`agenpro-recordatorios`)
+que corre todos los días ~08:00 ARG y le pega al endpoint. Comparte el
+`CRON_TOKEN` con la web automáticamente (`fromService`), así que **no tenés que
+configurar nada extra**: al desplegar el Blueprint, queda andando.
 
-### Opción A — GitHub Actions (incluida, gratis)
-Ya hay un workflow en `.github/workflows/recordatorios.yml` que corre todos los
-días ~08:00 (hora Argentina). Solo cargá **dos secrets** en el repo
-(**Settings → Secrets and variables → Actions → New repository secret**):
+- Probarlo a mano: Render → servicio `agenpro-recordatorios` → **Trigger Run**.
+- Cambiar el horario: editá `schedule` en `render.yaml` (está en UTC).
 
-| Secret      | Valor                                   |
-|-------------|-----------------------------------------|
-| `SITE_URL`  | `https://www.agenpro.com.ar`            |
-| `CRON_TOKEN`| el **mismo** valor que pusiste en Render |
+> Como el cron le pega a la **web**, los envíos usan el mismo entorno (mail,
+> WhatsApp, etc.) que ya configuraste. No hay que duplicar variables.
 
-Podés probarlo a mano desde la pestaña **Actions → Recordatorios diarios → Run
-workflow**.
+### Respaldo manual (GitHub Actions)
+`.github/workflows/recordatorios.yml` quedó como **disparo manual** (Actions →
+Run workflow), por si alguna vez querés correrlo a mano. Su `schedule` está
+**comentado** para no duplicar envíos con el cron de Render. Si lo usaras como
+único disparador, descomentá el `schedule` y cargá los secrets `SITE_URL` y
+`CRON_TOKEN` en el repo.
 
-### Opción B — cron-job.org (sin tocar GitHub)
-1. Creá una cuenta gratis en **cron-job.org**.
+### Alternativa sin Render cron — cron-job.org
+1. Cuenta gratis en **cron-job.org**.
 2. Nuevo cronjob: URL `https://www.agenpro.com.ar/tareas/correr?dias=1`,
    método **POST**, header `X-Cron-Token: <tu CRON_TOKEN>`, schedule diario.
-
-> Tip: en Render free el servicio “se duerme” por inactividad. El propio
-> llamado del cron lo despierta; la primera request puede tardar unos segundos.
