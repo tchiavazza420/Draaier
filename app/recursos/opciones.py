@@ -54,6 +54,8 @@ BOTON_ESTILOS = [("solido", "Sólido"), ("cristal", "Cristal"),
                  ("sombra_fuerte", "Sombra fuerte")]
 BOTON_FORMAS = [("recto", "Recto"), ("suave", "Suave"), ("redondo", "Redondo")]
 AVATAR_TAMANOS = [("pequeno", "Pequeño"), ("grande", "Grande")]
+AVATAR_POSICIONES = [("izquierda", "Izquierda"), ("centro", "Centro"),
+                     ("derecha", "Derecha")]
 PORTADA_EFECTOS = [("original", "Original"), ("blur", "Blur"),
                    ("gradiente", "Gradiente"), ("fade", "Fade"),
                    ("vineta", "Viñeta"), ("duotono", "Duotono")]
@@ -63,6 +65,7 @@ PATRONES_VALIDOS = {x[0] for x in PATRONES}
 BOTON_ESTILOS_VALIDOS = {x[0] for x in BOTON_ESTILOS}
 BOTON_FORMAS_VALIDAS = {x[0] for x in BOTON_FORMAS}
 AVATAR_TAMANOS_VALIDOS = {x[0] for x in AVATAR_TAMANOS}
+AVATAR_POSICIONES_VALIDAS = {x[0] for x in AVATAR_POSICIONES}
 PORTADA_EFECTOS_VALIDOS = {x[0] for x in PORTADA_EFECTOS}
 
 

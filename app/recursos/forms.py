@@ -84,6 +84,7 @@ class RecursoForm(FlaskForm):
     color_titulos = _color("Color de títulos")
     # --- Cabecera ---
     avatar_tamano = SelectField("Tamaño del avatar", default="grande", validate_choice=False)
+    avatar_posicion = SelectField("Posición del avatar", default="centro", validate_choice=False)
     mostrar_portada = BooleanField("Mostrar portada", default=True)
     portada_efecto = SelectField("Efecto de portada", default="original", validate_choice=False)
     # --- Redes ---
@@ -121,4 +122,5 @@ class RecursoForm(FlaskForm):
         self.boton_estilo.choices = list(o.BOTON_ESTILOS)
         self.boton_forma.choices = list(o.BOTON_FORMAS)
         self.avatar_tamano.choices = list(o.AVATAR_TAMANOS)
+        self.avatar_posicion.choices = list(o.AVATAR_POSICIONES)
         self.portada_efecto.choices = list(o.PORTADA_EFECTOS)

@@ -70,6 +70,25 @@ def test_perfil_individual_es_el_page_builder(client, crear_negocio, crear_recur
     assert "Nuestro equipo" not in html      # no es la página de equipo
 
 
+def test_pagina_publica_compartir_mapa_y_avatar(client, crear_negocio, crear_recurso):
+    """La página pública trae botón de compartir por WhatsApp, mapa embebido
+    (no redirección a Google Maps) y respeta la posición del avatar."""
+    neg, _ = crear_negocio()
+    neg.direccion = "Independencia 1360, Villa María"
+    rec = crear_recurso(neg, nombre="Juca")
+    rec.avatar_posicion = "izquierda"
+    db.session.commit()
+
+    html = client.get(f"/{neg.slug}").get_data(as_text=True)
+    assert "Compartir por WhatsApp" in html
+    assert "wa.me/?text=" in html
+    # Mapa embebido inline (output=embed), no link de búsqueda externo.
+    assert "output=embed" in html
+    assert "maps/search/?api=1" not in html
+    # Posición del avatar aplicada.
+    assert "pb-header-izquierda" in html
+
+
 # ---------- Compresión de imágenes ----------
 def test_guardar_imagen_comprime_y_redimensiona(app):
     with app.app_context():
