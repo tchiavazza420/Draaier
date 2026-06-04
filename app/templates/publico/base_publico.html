@@ -37,14 +37,16 @@
 </style>
 {% endblock %}
 
+{% from "_redes.html" import icono_red %}
 {% block content %}
 <div class="tema-{{ negocio.template_publico.value }}">
-  <div class="d-flex align-items-center gap-3 mb-3">
-    {% if negocio.logo_filename %}
-      <img src="{{ media_url(negocio.logo_filename) }}"
-           alt="{{ negocio.nombre }}" style="height:54px;width:54px;object-fit:cover;border-radius:12px">
-    {% endif %}
-  </div>
+  {% if negocio.logo_filename %}
+    <div class="d-flex align-items-center gap-3 mb-3">
+      <img src="{{ media_url(negocio.logo_filename) }}" alt="{{ negocio.nombre }}"
+           onerror="this.style.display='none'"
+           style="height:54px;width:54px;object-fit:cover;border-radius:12px">
+    </div>
+  {% endif %}
 
   {% if negocio.banner_filename %}
     <div class="rounded mb-4"
@@ -54,10 +56,10 @@
   {% block publico %}{% endblock %}
 
   {% if negocio.instagram or negocio.facebook or negocio.whatsapp %}
-    <div class="text-center text-muted small mt-4">
-      {% if negocio.instagram %}<a href="https://instagram.com/{{ negocio.instagram|replace('@','') }}" class="me-2">Instagram</a>{% endif %}
-      {% if negocio.facebook %}<a href="{{ negocio.facebook }}" class="me-2">Facebook</a>{% endif %}
-      {% if negocio.whatsapp %}<a href="https://wa.me/{{ negocio.whatsapp|replace('+','')|replace(' ','') }}">WhatsApp</a>{% endif %}
+    <div class="d-flex justify-content-center gap-3 mt-4 text-muted">
+      {% if negocio.instagram %}<a class="text-reset" title="Instagram" target="_blank" href="https://instagram.com/{{ negocio.instagram|replace('@','') }}">{{ icono_red('instagram', 22) }}</a>{% endif %}
+      {% if negocio.facebook %}<a class="text-reset" title="Facebook" target="_blank" href="{{ negocio.facebook }}">{{ icono_red('facebook', 22) }}</a>{% endif %}
+      {% if negocio.whatsapp %}<a class="text-reset" title="WhatsApp" target="_blank" href="https://wa.me/{{ negocio.whatsapp|replace('+','')|replace(' ','') }}">{{ icono_red('whatsapp', 22) }}</a>{% endif %}
     </div>
   {% endif %}
 </div>

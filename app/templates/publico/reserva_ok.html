@@ -41,12 +41,10 @@
         </ul>
 
         {% if reserva.estado.value != 'pendiente_pago' %}
-          <div class="d-grid gap-2 mt-4" style="max-width:320px;margin:0 auto">
+          <p class="text-muted small mt-3 mb-2">Te enviamos la confirmación por email y WhatsApp 📩</p>
+          <div class="d-grid gap-2" style="max-width:320px;margin:0 auto">
             <a class="btn btn-primary" target="_blank" rel="noopener" href="{{ gcal_url }}">
               🗓️ Agregar a Google Calendar
-            </a>
-            <a class="btn btn-outline-success" target="_blank" rel="noopener" href="{{ wa_url }}">
-              💬 Avisar por WhatsApp
             </a>
           </div>
         {% endif %}
