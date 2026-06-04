@@ -59,7 +59,13 @@ def listar():
         .all()
     )
     tipos = query_tenant(TipoRecurso, _neg()).order_by(TipoRecurso.nombre).all()
-    return render_template("recursos/listar.html", recursos=recursos, tipos=tipos)
+    # En planes individuales (límite 1) no se pueden agregar más profesionales.
+    from app.planes import limite_agendas_de
+    limite = limite_agendas_de(current_user.negocio.plan)
+    puede_agregar = (limite is None) or (len(recursos) < limite)
+    individual = limite == 1
+    return render_template("recursos/listar.html", recursos=recursos, tipos=tipos,
+                           puede_agregar=puede_agregar, individual=individual)
 
 
 # ======================================================================
@@ -187,6 +193,28 @@ def _aplicar_personalizacion(recurso, form):
     recurso.portada_efecto = opcion(form.portada_efecto.data, o.PORTADA_EFECTOS_VALIDOS, "original")
 
 
+def _guardar_negocio_branding(form):
+    """Guarda la marca del negocio (logo, descripción, marketplace) — unificado
+    dentro del editor de la página. Devuelve None o un mensaje de error."""
+    negocio = current_user.negocio
+    try:
+        logo = guardar_imagen(form.neg_logo.data, _neg(), "logo")
+    except ValueError as exc:
+        return str(exc)
+    if logo:
+        negocio.logo_filename = logo
+    negocio.descripcion_publica = (form.neg_descripcion.data or "").strip() or None
+    negocio.visible_marketplace = form.neg_visible.data
+    return None
+
+
+def _prefill_negocio_branding(form):
+    """Precarga los campos de marca del negocio en GET."""
+    negocio = current_user.negocio
+    form.neg_descripcion.data = negocio.descripcion_publica
+    form.neg_visible.data = negocio.visible_marketplace
+
+
 @recursos_bp.route("/nuevo", methods=["GET", "POST"])
 @login_required
 @rol_required(*_ROLES_PANEL)
@@ -221,10 +249,16 @@ def recurso_nuevo():
             activo=form.activo.data,
         )
         _aplicar_personalizacion(recurso, form)
+        err = _guardar_negocio_branding(form)
+        if err:
+            flash(err, "danger")
+            return render_template("recursos/recurso_form.html", form=form, titulo="Nuevo profesional", recurso=None)
         db.session.add(recurso)
         db.session.commit()
         flash(f"Profesional '{recurso.nombre}' creado.", "success")
         return redirect(url_for("recursos.listar"))
+    if not form.is_submitted():
+        _prefill_negocio_branding(form)
     return render_template("recursos/recurso_form.html", form=form, titulo="Nuevo profesional", recurso=None)
 
 
@@ -257,9 +291,16 @@ def recurso_editar(recurso_id):
         recurso.capacidad = form.capacidad.data
         recurso.activo = form.activo.data
         _aplicar_personalizacion(recurso, form)
+        err = _guardar_negocio_branding(form)
+        if err:
+            flash(err, "danger")
+            return render_template("recursos/recurso_form.html", form=form,
+                                   titulo="Editar profesional", recurso=recurso)
         db.session.commit()
-        flash("Profesional actualizado.", "success")
+        flash("Página actualizada.", "success")
         return redirect(url_for("recursos.listar"))
+    if not form.is_submitted():
+        _prefill_negocio_branding(form)
     return render_template("recursos/recurso_form.html", form=form,
                            titulo="Editar profesional", recurso=recurso)
 

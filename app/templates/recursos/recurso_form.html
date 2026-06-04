@@ -285,6 +285,32 @@
         {{ render_checkbox(form.activo) }}
       </div></div>
 
+      <!-- ===== Marca del negocio (marketplace) — unificado ===== -->
+      <div class="card shadow-sm mb-3"><div class="card-body p-4">
+        <div class="ed-sec"><div class="ed-sec-ico">🏪</div>
+          <div><h2>Tu negocio en el Marketplace</h2><p>Logo, descripción y visibilidad</p></div></div>
+        <div class="row g-3 align-items-start">
+          <div class="col-sm-6">
+            <label class="form-label">{{ form.neg_logo.label.text }}</label>
+            {{ form.neg_logo(class="form-control", accept="image/*") }}
+            {% if current_user.negocio.logo_filename %}
+              <img src="{{ media_url(current_user.negocio.logo_filename) }}" class="mt-2"
+                   style="height:46px;border-radius:8px;object-fit:cover">
+            {% endif %}
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label">{{ form.neg_descripcion.label.text }}</label>
+            {{ form.neg_descripcion(class="form-control", rows="2", placeholder="Contá de qué se trata tu negocio…") }}
+          </div>
+        </div>
+        <div class="form-check form-switch mt-3">
+          {{ form.neg_visible(class="form-check-input", role="switch") }}
+          {{ form.neg_visible.label(class="form-check-label") }}
+        </div>
+        <small class="text-muted">Si está activo, tu negocio aparece en el
+          <a href="{{ url_for('marketplace.index') }}" target="_blank">Marketplace</a>.</small>
+      </div></div>
+
       <div class="d-flex justify-content-between align-items-center mb-5">
         <a class="btn btn-outline-secondary" href="{{ url_for('recursos.listar') }}">Cancelar</a>
         {{ form.submit(class="btn btn-primary px-4") }}

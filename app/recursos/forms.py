@@ -99,6 +99,14 @@ class RecursoForm(FlaskForm):
         default=1,
     )
     activo = BooleanField("Activo", default=True)
+
+    # --- Marca del negocio (para el marketplace) — unificado acá ---
+    neg_logo = FileField("Logo del negocio", validators=[
+        Optional(), FileAllowed(["png", "jpg", "jpeg", "webp", "gif"], "Solo imágenes.")])
+    neg_descripcion = TextAreaField("Descripción del negocio",
+                                    validators=[Optional(), Length(max=2000)])
+    neg_visible = BooleanField("Aparecer en el Marketplace")
+
     submit = SubmitField("Guardar")
 
     def __init__(self, *args, **kwargs):

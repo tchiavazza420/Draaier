@@ -5,7 +5,7 @@
    - Cache-first para estáticos (rápido).
    No cachea peticiones POST ni rutas de panel/pagos (datos sensibles/dinámicos).
 */
-const CACHE = "agenpro-v6";
+const CACHE = "agenpro-v7";
 const APP_SHELL = [
   "/",
   "/static/css/app.css",
@@ -41,7 +41,21 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Estáticos: cache-first.
+  // CSS/JS: network-first (así un deploy nuevo se ve sin esperar al cache).
+  if (url.pathname.endsWith(".css") || url.pathname.endsWith(".js")) {
+    event.respondWith(
+      fetch(req)
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(req, copy));
+          return res;
+        })
+        .catch(() => caches.match(req))
+    );
+    return;
+  }
+
+  // Otros estáticos (imágenes/íconos): cache-first (rápido, cambian poco).
   if (url.pathname.startsWith("/static/")) {
     event.respondWith(
       caches.match(req).then((hit) => hit || fetch(req).then((res) => {
