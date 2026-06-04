@@ -10,7 +10,7 @@ from flask_wtf.file import FileField, FileAllowed
 from wtforms import StringField, BooleanField, SelectField, SubmitField, TextAreaField
 from wtforms.validators import DataRequired, Length, Optional, Email, Regexp
 
-from app.models.negocio import RUBROS_BELLEZA, TemplatePublicoEnum, MetodoPagoEnum
+from app.models.negocio import RUBROS_BELLEZA, TemplatePublicoEnum
 
 _HEX = Regexp(r"^#[0-9A-Fa-f]{6}$", message="Color hex, ej: #0d6efd.")
 _FUENTES = ["Inter", "Roboto", "Poppins", "Montserrat", "Lora", "Nunito"]
@@ -23,15 +23,11 @@ class NegocioConfigForm(FlaskForm):
     telefono = StringField("Teléfono", validators=[Optional(), Length(max=40)])
     email = StringField("Email de contacto", validators=[DataRequired(), Email(), Length(max=120)])
     visible_marketplace = BooleanField("Aparecer en el Marketplace público")
-    metodo_pago = SelectField("Pasarela de pago (señas)")
     submit = SubmitField("Guardar cambios")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.rubro.choices = [(r.value, r.value.replace("_", " ").title()) for r in RUBROS_BELLEZA]
-        self.metodo_pago.choices = [
-            (m.value, m.value.replace("_", " ").title()) for m in MetodoPagoEnum
-        ]
 
 
 class MensajesForm(FlaskForm):

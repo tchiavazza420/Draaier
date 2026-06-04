@@ -15,7 +15,7 @@ from flask_login import login_required, current_user
 
 from app.extensions import db
 from app.auth.decorators import rol_required
-from app.models.negocio import RubroEnum, TemplatePublicoEnum, MetodoPagoEnum, PlanEnum
+from app.models.negocio import RubroEnum, TemplatePublicoEnum, PlanEnum
 from app.panel.forms import NegocioConfigForm, PersonalizacionForm, MensajesForm
 from app.uploads import guardar_imagen
 from app.planes import (
@@ -258,14 +258,12 @@ def configuracion():
         negocio.telefono = (form.telefono.data or "").strip() or None
         negocio.email = form.email.data.strip().lower()
         negocio.visible_marketplace = form.visible_marketplace.data
-        negocio.metodo_pago = MetodoPagoEnum(form.metodo_pago.data)
         db.session.commit()
         flash("Configuración actualizada.", "success")
         return redirect(url_for("panel.configuracion"))
-    # En GET, preseleccionar el rubro y método de pago actuales.
+    # En GET, preseleccionar el rubro actual.
     if not form.is_submitted():
         form.rubro.data = negocio.rubro.value
-        form.metodo_pago.data = negocio.metodo_pago.value
     return render_template("panel/configuracion.html", form=form, negocio=negocio)
 
 

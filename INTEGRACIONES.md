@@ -35,13 +35,11 @@ WHATSAPP_API_VERSION=v21.0   (opcional, ya viene por default)
 
 ---
 
-## 2) Pagos (señas)
+## 2) Pagos (señas) — Mercado Pago
 
-### MercadoPago — listo y recomendado
-Ya lo configuraste. **Checkout Pro de MercadoPago acepta tarjetas (incluida
-Naranja), dinero en cuenta y MODO**, así que para la mayoría de los salones
-**MercadoPago solo ya cubre esos medios de pago**. No necesitás integrar Naranja
-ni MODO por separado salvo que tengas un acuerdo de comercio directo con ellos.
+La única pasarela es **Mercado Pago (Checkout Pro)**. Igual cubre la mayoría de
+los medios: **tarjetas (incluida Naranja), dinero en cuenta y MODO** se pagan
+desde el mismo checkout de MP, así que no hace falta integrarlos por separado.
 
 ```
 MERCADOPAGO_ACCESS_TOKEN=<access token de producción APP_USR-...>
@@ -56,30 +54,8 @@ así que **no hay que configurar nada en el panel de MP**. Notas:
   es sandbox.
 - `auto_return` exige `back_urls` en **https** → ya lo cubre `SITE_URL`
   (`https://www.agenpro.com.ar`). En local (http) caería a simulación.
-
-### Naranja X y MODO como pasarelas separadas — scaffold
-Los adaptadores (`app/pagos/naranja_x.py`, `app/pagos/modo.py`) están armados
-con la **misma interfaz** que MercadoPago, pero los **endpoints y payloads son
-placeholders**: Naranja X y MODO **no** tienen una API pública de checkout tan
-simple como MercadoPago; requieren **onboarding de comercio** y te entregan sus
-specs/credenciales propias.
-
-Para activarlas de verdad necesito de tu lado:
-- Que tengas **cuenta de comercio con API** en Naranja X y/o MODO.
-- Su **documentación oficial** (endpoints de crear intención de pago, consultar
-  estado y formato del webhook) + las credenciales.
-
-Con eso ajusto `API_BASE`, los payloads y la verificación del webhook en cada
-adaptador. Mientras tanto, si seteás el token igual, el sistema intenta la
-llamada real; sin token, cae a **simulación** (checkout interno para probar).
-
-```
-NARANJA_X_ACCESS_TOKEN=<solo si tenés API de comercio>
-MODO_ACCESS_TOKEN=<solo si tenés API de comercio>
-```
-
-**Recomendación:** dejá MercadoPago como pasarela principal (cubre Naranja y
-MODO) y sumamos las otras dos solo si conseguís acceso directo a sus APIs.
+- Sin `MERCADOPAGO_ACCESS_TOKEN`, el cobro cae a un **checkout simulado** interno
+  (útil para desarrollo).
 
 ---
 

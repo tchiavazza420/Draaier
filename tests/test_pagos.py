@@ -43,37 +43,22 @@ def test_pago_rechazado_mantiene_pendiente(crear_negocio, crear_recurso, crear_s
     assert reserva.estado == EstadoReservaEnum.PENDIENTE_PAGO
 
 
-def test_gateway_segun_metodo_del_negocio(crear_negocio, crear_recurso, crear_servicio, proximo_lunes):
-    """El método de pago del negocio determina la pasarela; sin token -> simulado."""
-    from app.extensions import db
-    from app.models.negocio import MetodoPagoEnum
+def test_pago_sin_credenciales_cae_a_simulado(crear_negocio, crear_recurso, crear_servicio, proximo_lunes):
+    """Sin MERCADOPAGO_ACCESS_TOKEN, el cobro de la seña cae a checkout simulado."""
     from app.models.pago import ProveedorPagoEnum
-    from app.pagos.gateways import gateway_para
-    from app.pagos import naranja_x, modo
 
     neg, _ = crear_negocio()
-    neg.metodo_pago = MetodoPagoEnum.NARANJA_X
-    db.session.commit()
-
-    gw, prov = gateway_para(neg)
-    assert gw is naranja_x and prov == ProveedorPagoEnum.NARANJA_X
-
     rec = crear_recurso(neg)
     serv = crear_servicio(neg, rec, requiere_sena=True, sena_monto=Decimal("1500"))
     reserva = _reserva_con_sena(neg, rec, serv, proximo_lunes)
+
     pago, url = iniciar_pago_sena(reserva, serv)
-    # Sin credenciales de Naranja X -> checkout simulado, proveedor SIMULADO
+    # Sin credenciales -> checkout simulado, proveedor SIMULADO
     assert "checkout-simulado" in url
     assert pago.proveedor == ProveedorPagoEnum.SIMULADO
-    # Y el flujo de aprobación confirma igual
+    # Y el flujo de aprobación confirma la reserva igual
     aprobar_pago(pago)
     assert reserva.estado == EstadoReservaEnum.CONFIRMADO
-
-    # Modo también mapea correctamente
-    neg.metodo_pago = MetodoPagoEnum.MODO
-    db.session.commit()
-    gw2, prov2 = gateway_para(neg)
-    assert gw2 is modo and prov2 == ProveedorPagoEnum.MODO
 
 
 def test_aprobacion_idempotente(crear_negocio, crear_recurso, crear_servicio, proximo_lunes):
