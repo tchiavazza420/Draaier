@@ -15,9 +15,8 @@
 databases:
   - name: reservas-db
     databaseName: reservas_saas
-    # Nota: el Postgres free expira a los 90 días. Con cuenta Starter conviene
-    # pasarlo a un plan pago (basic-256mb o superior) para producción.
-    plan: free
+    # Postgres pago para producción (no expira como el free de 90 días).
+    plan: basic-256mb
 
 services:
   # --- Web (gunicorn) ---

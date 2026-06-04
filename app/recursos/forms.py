@@ -63,6 +63,11 @@ class RecursoForm(FlaskForm):
                  ("foto", "Foto de portada")],
         default="degradado",
     )
+    # validate_choice=False: si llega un valor fuera de catálogo (POST
+    # manipulado), no falla el form; la ruta lo mapea al default seguro.
+    tipografia = SelectField("Tipografía", default="Plus Jakarta Sans", validate_choice=False)
+    estilo_pagina = SelectField("Estilo de página", default="minimal", validate_choice=False)
+    forma_foto = SelectField("Forma de la foto", default="circulo", validate_choice=False)
     instagram = StringField("Instagram", validators=[Optional(), Length(max=120)])
     whatsapp = StringField("WhatsApp", validators=[Optional(), Length(max=40)])
     capacidad = IntegerField(
@@ -72,3 +77,11 @@ class RecursoForm(FlaskForm):
     )
     activo = BooleanField("Activo", default=True)
     submit = SubmitField("Guardar")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Poblamos las opciones de personalización desde el catálogo.
+        from app.recursos.opciones import FUENTES, ESTILOS_PAGINA, FORMAS_FOTO
+        self.tipografia.choices = [(f[0], f[1]) for f in FUENTES]
+        self.estilo_pagina.choices = list(ESTILOS_PAGINA)
+        self.forma_foto.choices = list(FORMAS_FOTO)

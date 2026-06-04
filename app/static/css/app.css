@@ -283,3 +283,67 @@ h1, h2, h3, h4, h5, .fw-bold { letter-spacing: -.02em; }
 @media (hover: none) {
   .btn, .form-control, .form-select, .list-group-item { min-height: 42px; }
 }
+
+/* =====================================================================
+   Página del profesional — temas, fuentes y formas (preview + público)
+   El acento se pasa inline: style="--acc: #xxxxxx"
+   ===================================================================== */
+.prof-page { --acc: #6d28d9; --r: 18px; }
+.prof-card { border-radius: var(--r); overflow: hidden; }
+.prof-cab { height: 140px; }
+
+/* Avatar + formas */
+.prof-avatar {
+  width: 120px; height: 120px; object-fit: cover;
+  border: 5px solid var(--bs-body-bg); box-shadow: 0 8px 24px rgba(0,0,0,.18);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 700; color: #fff; background: var(--acc); font-size: 2.6rem;
+}
+.prof-foto-circulo  .prof-avatar { border-radius: 50%; }
+.prof-foto-rounded  .prof-avatar { border-radius: 26px; }
+.prof-foto-hexagono .prof-avatar {
+  border-radius: 0; border: none;
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+}
+
+/* Elementos base */
+.prof-nombre { margin: .75rem 0 .25rem; color: var(--acc); }
+.prof-chip {
+  display: inline-block; background: color-mix(in srgb, var(--acc) 14%, transparent);
+  color: var(--acc); border-radius: 999px; padding: .35rem .8rem;
+  font-size: .8rem; font-weight: 600;
+}
+.prof-frase { font-style: italic; opacity: .8; }
+.prof-btn {
+  background: var(--acc); color: #fff; border: none; border-radius: 12px;
+  padding: .55rem 1rem; font-weight: 600; width: 100%;
+}
+
+/* ---- Tema: Minimalista (base, ya definido arriba) ---- */
+
+/* ---- Tema: Elegante ---- */
+.prof-tema-elegante { --r: 6px; }
+.prof-tema-elegante .prof-nombre { font-weight: 600; letter-spacing: .5px; }
+.prof-tema-elegante .prof-chip {
+  background: transparent; border: 1px solid var(--acc);
+  text-transform: uppercase; letter-spacing: 1.5px; font-size: .72rem;
+}
+.prof-tema-elegante .prof-btn { border-radius: 0; text-transform: uppercase; letter-spacing: 1.5px; }
+
+/* ---- Tema: Moderno ---- */
+.prof-tema-moderno { --r: 24px; }
+.prof-tema-moderno .prof-nombre { font-weight: 800; }
+.prof-tema-moderno .prof-btn { border-radius: 999px; }
+.prof-tema-moderno .prof-chip { font-weight: 700; }
+
+/* ---- Tema: Glam ---- */
+.prof-tema-glam { --r: 22px; }
+.prof-tema-glam .prof-cab { height: 165px; }
+.prof-tema-glam .prof-nombre { font-weight: 700; letter-spacing: .3px; }
+.prof-tema-glam .prof-chip {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--acc) 26%, transparent), transparent);
+}
+.prof-tema-glam .prof-btn {
+  border-radius: 999px;
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--acc) 40%, transparent);
+}

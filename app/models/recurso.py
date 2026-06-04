@@ -45,6 +45,12 @@ class Recurso(TenantMixin, TimestampMixin, db.Model):
     color_acento = db.Column(db.String(7), nullable=True)
     # Estilo visual de la cabecera de su página.
     estilo_cabecera = db.Column(db.String(20), nullable=False, default="degradado")
+    # Tipografía (familia de Google Fonts) de su página.
+    tipografia = db.Column(db.String(60), nullable=False, default="Plus Jakarta Sans")
+    # Tema visual de la página (minimal / elegante / moderno / glam).
+    estilo_pagina = db.Column(db.String(20), nullable=False, default="minimal")
+    # Forma del avatar (circulo / rounded / hexagono).
+    forma_foto = db.Column(db.String(20), nullable=False, default="circulo")
     anios_experiencia = db.Column(db.Integer, nullable=True)
     # Habilidades / etiquetas separadas por coma (se muestran como chips).
     habilidades = db.Column(db.String(400), nullable=True)
