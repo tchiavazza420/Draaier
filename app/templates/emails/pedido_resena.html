@@ -1,0 +1,15 @@
+{% extends "emails/_base_email.html" %}
+{% from "emails/_detalle.html" import detalle_reserva %}
+{% block cuerpo %}
+  <h2 style="margin-top:0">¿Cómo estuvo tu turno? 🌟</h2>
+  <p>Hola {{ reserva.cliente.nombre }}, gracias por elegirnos. Nos encantaría
+     saber cómo te fue con {{ reserva.servicio.nombre }}.</p>
+  {{ detalle_reserva(reserva) }}
+  <p style="text-align:center;margin:24px 0">
+    <a href="{{ url_resena }}"
+       style="background:#6d28d9;color:#fff;text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:700;display:inline-block">
+      ⭐ Dejar mi reseña
+    </a>
+  </p>
+  <p style="color:#6b7280;font-size:13px">Tu opinión ayuda a otros clientes y a que sigamos mejorando.</p>
+{% endblock %}

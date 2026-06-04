@@ -68,3 +68,39 @@ def test_sin_white_label_basico_muestra_navbar(client, crear_negocio, crear_recu
     rec = crear_recurso(neg, nombre="Vale")
     html = client.get(f"/{neg.slug}/recurso/{rec.slug}").get_data(as_text=True)
     assert 'class="navbar' in html
+
+
+# ---------- #17 panel de pagos ----------
+def test_panel_pagos(client, crear_negocio, login):
+    neg, dueno = crear_negocio()
+    login(dueno.email)
+    r = client.get("/panel/pagos")
+    assert r.status_code == 200
+    assert "Pagos" in r.get_data(as_text=True)
+
+
+# ---------- #11 reseña automática ----------
+def test_pedir_resenas_marca_y_no_repite(crear_negocio, crear_recurso, crear_servicio):
+    from app.notificaciones.service import pedir_resenas
+    neg, _ = crear_negocio()
+    rec = crear_recurso(neg)
+    serv = crear_servicio(neg, [rec])
+    r = _reserva_hoy(neg, rec, serv, estado=EstadoReservaEnum.FINALIZADO)
+    # tiene cliente con teléfono (lo crea _reserva_hoy)
+    n = pedir_resenas()
+    assert n >= 1
+    db.session.refresh(r)
+    assert r.resena_pedida is True
+    # Segunda corrida: no repite.
+    assert pedir_resenas() == 0
+
+
+# ---------- #2 confirmación con Google Calendar + WhatsApp ----------
+def test_confirmacion_tiene_calendar_y_whatsapp(client, crear_negocio, crear_recurso, crear_servicio):
+    neg, _ = crear_negocio()
+    rec = crear_recurso(neg)
+    serv = crear_servicio(neg, [rec])
+    r = _reserva_hoy(neg, rec, serv, estado=EstadoReservaEnum.CONFIRMADO)
+    html = client.get(f"/{neg.slug}/reserva/{r.codigo}").get_data(as_text=True)
+    assert "calendar.google.com" in html
+    assert "wa.me" in html

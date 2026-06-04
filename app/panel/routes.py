@@ -162,6 +162,29 @@ def plan():
     )
 
 
+@panel_bp.route("/pagos")
+@login_required
+@rol_required("dueno")
+def pagos():
+    """Panel de señas: cobradas, pendientes y total, con el detalle reciente."""
+    from app.models.pago import Pago, PagoEstadoEnum
+
+    negocio = current_user.negocio
+    pagos = (
+        Pago.query.filter_by(negocio_id=negocio.id)
+        .order_by(Pago.created_at.desc()).limit(100).all()
+    )
+    aprobados = [p for p in pagos if p.estado == PagoEstadoEnum.APROBADO]
+    pendientes = [p for p in pagos if p.estado == PagoEstadoEnum.PENDIENTE]
+    resumen = {
+        "cobrado": sum((p.monto or 0) for p in aprobados),
+        "pendiente": sum((p.monto or 0) for p in pendientes),
+        "n_aprobados": len(aprobados),
+        "n_pendientes": len(pendientes),
+    }
+    return render_template("panel/pagos.html", negocio=negocio, pagos=pagos, r=resumen)
+
+
 @panel_bp.route("/plan/cambiar", methods=["POST"])
 @login_required
 @rol_required("dueno")

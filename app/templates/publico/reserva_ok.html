@@ -40,14 +40,27 @@
           </li>
         </ul>
 
+        {% if reserva.estado.value != 'pendiente_pago' %}
+          <div class="d-grid gap-2 mt-4" style="max-width:320px;margin:0 auto">
+            <a class="btn btn-primary" target="_blank" rel="noopener" href="{{ gcal_url }}">
+              🗓️ Agregar a Google Calendar
+            </a>
+            <a class="btn btn-outline-success" target="_blank" rel="noopener" href="{{ wa_url }}">
+              💬 Avisar por WhatsApp
+            </a>
+          </div>
+        {% endif %}
+
         {% if puede_resenar %}
           <a class="btn btn-warning mt-3"
              href="{{ url_for('publico.reserva_resena', slug=negocio.slug, codigo=reserva.codigo) }}">
             ⭐ Dejar una reseña
           </a>
         {% endif %}
-        <a class="btn btn-outline-secondary mt-3"
-           href="{{ url_for('publico.perfil_negocio', slug=negocio.slug) }}">Volver</a>
+        <div class="mt-3">
+          <a class="small text-decoration-none text-muted"
+             href="{{ url_for('publico.perfil_negocio', slug=negocio.slug) }}">← Volver a {{ negocio.nombre }}</a>
+        </div>
       </div>
     </div>
   </div>

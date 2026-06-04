@@ -111,15 +111,17 @@ def tareas_cron():
     except ValueError:
         dias = 1
 
-    from app.notificaciones.service import enviar_recordatorios
+    from app.notificaciones.service import enviar_recordatorios, pedir_resenas
     from app.suscripciones import vencer_suscripciones
 
     recordatorios_enviados = enviar_recordatorios(dias)
     suscripciones_vencidas = vencer_suscripciones()
+    resenas_pedidas = pedir_resenas()
     return jsonify({
         "ok": True,
         "recordatorios_enviados": recordatorios_enviados,
         "suscripciones_vencidas": suscripciones_vencidas,
+        "resenas_pedidas": resenas_pedidas,
         "dias": dias,
     })
 

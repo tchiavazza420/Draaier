@@ -77,6 +77,9 @@ class Reserva(TenantMixin, TimestampMixin, db.Model):
     precio = db.Column(db.Numeric(10, 2), nullable=False, default=0)
     notas = db.Column(db.Text, nullable=True)
 
+    # True cuando ya se le pidió la reseña al cliente (evita repetir el envío).
+    resena_pedida = db.Column(db.Boolean, nullable=False, default=False)
+
     # --- Relaciones ---
     cliente = db.relationship("Cliente", back_populates="reservas")
     servicio = db.relationship("Servicio")
