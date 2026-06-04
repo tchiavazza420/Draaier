@@ -39,7 +39,10 @@
 
 {% block content %}
 <div class="d-flex align-items-center justify-content-between mb-3">
-  <h1 class="h4 mb-0">{{ titulo }}</h1>
+  <div>
+    <h1 class="h4 mb-0">{{ titulo }}</h1>
+    <small class="text-muted">Diseñá la página de tu profesional. Se ve en vivo →</small>
+  </div>
   <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('recursos.listar') }}">← Volver</a>
 </div>
 
@@ -49,15 +52,29 @@
     <form method="post" enctype="multipart/form-data" novalidate>
       {{ form.hidden_tag() }}
 
-      <!-- Identidad -->
+      <!-- ===== Identidad ===== -->
       <div class="card shadow-sm mb-3"><div class="card-body p-4">
-        <h2 class="h6 text-uppercase text-muted mb-3">📇 Identidad</h2>
-        <div class="row g-3">
-          <div class="col-sm-7">{{ render_field(form.nombre, placeholder="Ej: Sofía Pérez", **{"x-model":"nombre"}) }}</div>
-          <div class="col-sm-5">{{ render_field(form.especialidad, placeholder="Subtítulo: Manicurista profesional", **{"x-model":"especialidad"}) }}</div>
+        <div class="ed-sec"><div class="ed-sec-ico">📇</div>
+          <div><h2>Identidad</h2><p>Nombre, foto y lo que hace único al profesional</p></div></div>
+
+        <div class="mb-3">
+          <div class="d-flex justify-content-between"><label class="form-label mb-1">Nombre</label>
+            <span class="ed-count" x-text="(nombre.length)+'/120'"></span></div>
+          <input class="form-control" name="nombre" maxlength="120" x-model="nombre" placeholder="Ej: Sofía Pérez">
         </div>
-        {{ render_field(form.frase, placeholder="Frase / lema ✨", **{"x-model":"frase"}) }}
         <div class="row g-3">
+          <div class="col-sm-6">
+            <div class="d-flex justify-content-between"><label class="form-label mb-1">Subtítulo / especialidad</label>
+              <span class="ed-count" x-text="(especialidad.length)+'/80'"></span></div>
+            <input class="form-control" name="especialidad" maxlength="80" x-model="especialidad" placeholder="Manicurista profesional">
+          </div>
+          <div class="col-sm-6">
+            <div class="d-flex justify-content-between"><label class="form-label mb-1">Frase / lema</label>
+              <span class="ed-count" x-text="(frase.length)+'/160'"></span></div>
+            <input class="form-control" name="frase" maxlength="160" x-model="frase" placeholder="Tu mejor versión ✨">
+          </div>
+        </div>
+        <div class="row g-3 mt-1">
           <div class="col-sm-6">
             <label class="form-label">{{ form.foto.label.text }}</label>
             {{ form.foto(class="form-control", accept="image/*", **{"@change":"cargarFoto"}) }}
@@ -69,124 +86,183 @@
         </div>
       </div></div>
 
-      <!-- Fondo -->
+      <!-- ===== Fondo ===== -->
       <div class="card shadow-sm mb-3"><div class="card-body p-4">
-        <h2 class="h6 text-uppercase text-muted mb-3">🎨 Fondo</h2>
-        <div class="d-flex flex-wrap gap-2 mb-3">
+        <div class="ed-sec"><div class="ed-sec-ico">🎨</div>
+          <div><h2>Fondo</h2><p>El estilo del fondo de la página</p></div></div>
+
+        <div class="ed-seg mb-3">
           {% for val,label in form.fondo_tipo.choices %}
             <input type="radio" class="btn-check" name="fondo_tipo" id="ft-{{val}}" value="{{val}}" x-model="fondoTipo" autocomplete="off">
-            <label class="btn btn-outline-primary btn-sm" for="ft-{{val}}">{{ label }}</label>
+            <label class="ed-seg-opt" for="ft-{{val}}">{{ label }}</label>
           {% endfor %}
         </div>
-        <div class="row g-3 align-items-end">
-          <div class="col-auto">
-            <label class="form-label small mb-1">Color</label><br>
-            <input type="color" class="form-control form-control-color" name="fondo_color" x-model="fondoColor">
-          </div>
-          <div class="col-auto" x-show="fondoTipo==='gradiente' || fondoTipo==='animado'">
-            <label class="form-label small mb-1">Color 2</label><br>
-            <input type="color" class="form-control form-control-color" name="fondo_color2" x-model="fondoColor2">
-          </div>
-          <div class="col" x-show="fondoTipo==='patron'">
-            <label class="form-label small mb-1">Patrón</label>
-            <select name="fondo_patron" x-model="fondoPatron" class="form-select form-select-sm">
-              {% for val,label in form.fondo_patron.choices %}<option value="{{val}}">{{label}}</option>{% endfor %}
-            </select>
-          </div>
-        </div>
-      </div></div>
 
-      <!-- Botones -->
-      <div class="card shadow-sm mb-3"><div class="card-body p-4">
-        <h2 class="h6 text-uppercase text-muted mb-3">🔘 Botones</h2>
-        <label class="form-label small">Estilo</label>
-        <div class="row g-2 mb-3">
-          {% for val,label in form.boton_estilo.choices %}
-            <div class="col-4 col-sm-3">
-              <input type="radio" class="btn-check" name="boton_estilo" id="be-{{val}}" value="{{val}}" x-model="botonEstilo" autocomplete="off">
-              <label class="pb-opt d-block" for="be-{{val}}">{{ label }}</label>
-            </div>
-          {% endfor %}
+        <div class="row g-2">
+          <div class="col-6">
+            <label class="ed-color">
+              <span class="ed-color-sw" :style="`background:${fondoColor}`"></span>
+              <div class="flex-grow-1"><div class="small fw-semibold">Color</div><span class="hex" x-text="fondoColor"></span></div>
+              <span class="text-muted">✎</span>
+              <input type="color" name="fondo_color" x-model="fondoColor">
+            </label>
+          </div>
+          <div class="col-6" x-show="fondoTipo==='gradiente' || fondoTipo==='animado'">
+            <label class="ed-color">
+              <span class="ed-color-sw" :style="`background:${fondoColor2}`"></span>
+              <div class="flex-grow-1"><div class="small fw-semibold">Color 2</div><span class="hex" x-text="fondoColor2"></span></div>
+              <span class="text-muted">✎</span>
+              <input type="color" name="fondo_color2" x-model="fondoColor2">
+            </label>
+          </div>
         </div>
-        <label class="form-label small">Forma</label>
-        <div class="d-flex flex-wrap gap-2">
-          {% for val,label in form.boton_forma.choices %}
-            <input type="radio" class="btn-check" name="boton_forma" id="bf-{{val}}" value="{{val}}" x-model="botonForma" autocomplete="off">
-            <label class="btn btn-outline-secondary btn-sm" for="bf-{{val}}">{{ label }}</label>
-          {% endfor %}
-        </div>
-      </div></div>
 
-      <!-- Colores -->
-      <div class="card shadow-sm mb-3"><div class="card-body p-4">
-        <h2 class="h6 text-uppercase text-muted mb-3">🌈 Colores</h2>
-        <div class="row g-3">
-          <div class="col-4 text-center">
-            <label class="form-label small d-block">Títulos</label>
-            <input type="color" class="form-control form-control-color mx-auto" name="color_titulos" x-model="colorTitulos">
-          </div>
-          <div class="col-4 text-center">
-            <label class="form-label small d-block">Botones</label>
-            <input type="color" class="form-control form-control-color mx-auto" name="color_boton" x-model="colorBoton">
-          </div>
-          <div class="col-4 text-center">
-            <label class="form-label small d-block">Texto botón</label>
-            <input type="color" class="form-control form-control-color mx-auto" name="color_boton_texto" x-model="colorBotonTexto">
-          </div>
-        </div>
-      </div></div>
-
-      <!-- Cabecera -->
-      <div class="card shadow-sm mb-3"><div class="card-body p-4">
-        <h2 class="h6 text-uppercase text-muted mb-3">👤 Cabecera</h2>
-        <div class="row g-3">
-          <div class="col-sm-6">
-            <label class="form-label small">Tamaño del avatar</label>
-            <div class="d-flex gap-2">
-              {% for val,label in form.avatar_tamano.choices %}
-                <input type="radio" class="btn-check" name="avatar_tamano" id="av-{{val}}" value="{{val}}" x-model="avatarTamano" autocomplete="off">
-                <label class="btn btn-outline-secondary btn-sm" for="av-{{val}}">{{ label }}</label>
-              {% endfor %}
-            </div>
-          </div>
-          <div class="col-sm-6">
-            <label class="form-label small">Forma de la foto</label>
-            <div class="d-flex flex-wrap gap-2">
-              {% for val,label in form.forma_foto.choices %}
-                <input type="radio" class="btn-check" name="forma_foto" id="fm-{{val}}" value="{{val}}" x-model="formaFoto" autocomplete="off">
-                <label class="btn btn-outline-secondary btn-sm" for="fm-{{val}}">{{ label }}</label>
-              {% endfor %}
-            </div>
-          </div>
-        </div>
-        <div class="form-check form-switch mt-3 mb-2">
-          <input class="form-check-input" type="checkbox" name="mostrar_portada" id="mp" x-model="mostrarPortada">
-          <label class="form-check-label" for="mp">Mostrar portada</label>
-        </div>
-        <div x-show="mostrarPortada">
-          <label class="form-label small">Efecto de portada</label>
-          <div class="d-flex flex-wrap gap-2">
-            {% for val,label in form.portada_efecto.choices %}
-              <input type="radio" class="btn-check" name="portada_efecto" id="pe-{{val}}" value="{{val}}" x-model="portadaEfecto" autocomplete="off">
-              <label class="btn btn-outline-secondary btn-sm" for="pe-{{val}}">{{ label }}</label>
+        <div x-show="fondoTipo==='patron'" class="mt-3">
+          <label class="form-label small">Patrón</label>
+          <div class="ed-grid ed-grid-2">
+            {% for val,label in form.fondo_patron.choices %}
+              <input type="radio" class="btn-check" name="fondo_patron" id="fp-{{val}}" value="{{val}}" x-model="fondoPatron" autocomplete="off">
+              <label class="ed-card" for="fp-{{val}}">
+                <span class="ed-check">✓</span>
+                <span class="ed-fondo-demo pb-patron-{{val}}" :style="`background-color:${fondoColor}; --boton:${colorBoton}`"></span>
+                <span class="ed-card-lbl">{{ label }}</span>
+              </label>
             {% endfor %}
           </div>
         </div>
       </div></div>
 
-      <!-- Tipografía -->
+      <!-- ===== Botones ===== -->
       <div class="card shadow-sm mb-3"><div class="card-body p-4">
-        <h2 class="h6 text-uppercase text-muted mb-3">🔤 Tipografía</h2>
-        <select name="tipografia" x-model="tipografia" class="form-select" :style="`font-family:'${tipografia}',sans-serif`">
-          {% for val,label in form.tipografia.choices %}
-            <option value="{{val}}" style="font-family:'{{val}}',sans-serif">{{ label }}</option>
+        <div class="ed-sec"><div class="ed-sec-ico">🔘</div>
+          <div><h2>Botones</h2><p>Estilo y forma de los botones</p></div></div>
+
+        <label class="form-label small">Estilo</label>
+        <div class="ed-grid ed-grid-2 mb-3" :class="`ed-forma-${botonForma}`"
+             :style="`--marca:${colorBoton}; --marca-rgb:${rgbBoton}`">
+          {% for val,label in form.boton_estilo.choices %}
+            <input type="radio" class="btn-check" name="boton_estilo" id="be-{{val}}" value="{{val}}" x-model="botonEstilo" autocomplete="off">
+            <label class="ed-card" for="be-{{val}}">
+              <span class="ed-check">✓</span>
+              <span class="ed-btn-demo d{{val}}">Reservar</span>
+              <span class="ed-card-lbl">{{ label }}</span>
+            </label>
           {% endfor %}
-        </select>
+        </div>
+
+        <label class="form-label small">Forma</label>
+        <div class="ed-grid ed-grid-3" :style="`--marca:${colorBoton}; --marca-rgb:${rgbBoton}`">
+          {% for val,label in form.boton_forma.choices %}
+            <input type="radio" class="btn-check" name="boton_forma" id="bf-{{val}}" value="{{val}}" x-model="botonForma" autocomplete="off">
+            <label class="ed-card ed-forma-{{val}}" for="bf-{{val}}">
+              <span class="ed-check">✓</span>
+              <span class="ed-btn-demo dsolido">Link</span>
+              <span class="ed-card-lbl">{{ label }}</span>
+            </label>
+          {% endfor %}
+        </div>
       </div></div>
 
-      <!-- Redes -->
+      <!-- ===== Colores ===== -->
       <div class="card shadow-sm mb-3"><div class="card-body p-4">
-        <h2 class="h6 text-uppercase text-muted mb-3">🔗 Redes</h2>
+        <div class="ed-sec"><div class="ed-sec-ico">🌈</div>
+          <div><h2>Colores</h2><p>Paleta de tu página</p></div></div>
+        <div class="row g-2">
+          <div class="col-12 col-sm-4">
+            <label class="ed-color">
+              <span class="ed-color-sw" :style="`background:${colorTitulos}`"></span>
+              <div class="flex-grow-1"><div class="small fw-semibold">Títulos</div><span class="hex" x-text="colorTitulos"></span></div>
+              <input type="color" name="color_titulos" x-model="colorTitulos">
+            </label>
+          </div>
+          <div class="col-12 col-sm-4">
+            <label class="ed-color">
+              <span class="ed-color-sw" :style="`background:${colorBoton}`"></span>
+              <div class="flex-grow-1"><div class="small fw-semibold">Botones</div><span class="hex" x-text="colorBoton"></span></div>
+              <input type="color" name="color_boton" x-model="colorBoton">
+            </label>
+          </div>
+          <div class="col-12 col-sm-4">
+            <label class="ed-color">
+              <span class="ed-color-sw" :style="`background:${colorBotonTexto}`"></span>
+              <div class="flex-grow-1"><div class="small fw-semibold">Texto botón</div><span class="hex" x-text="colorBotonTexto"></span></div>
+              <input type="color" name="color_boton_texto" x-model="colorBotonTexto">
+            </label>
+          </div>
+        </div>
+      </div></div>
+
+      <!-- ===== Cabecera ===== -->
+      <div class="card shadow-sm mb-3"><div class="card-body p-4">
+        <div class="ed-sec"><div class="ed-sec-ico">👤</div>
+          <div><h2>Cabecera</h2><p>Avatar y portada</p></div></div>
+
+        <label class="form-label small">Tamaño del avatar</label>
+        <div class="ed-grid ed-grid-2 mb-3">
+          {% for val,label in form.avatar_tamano.choices %}
+            <input type="radio" class="btn-check" name="avatar_tamano" id="av-{{val}}" value="{{val}}" x-model="avatarTamano" autocomplete="off">
+            <label class="ed-card" for="av-{{val}}">
+              <span class="ed-check">✓</span>
+              <span class="ed-ava ed-ava-circulo {{ 'chico' if val=='pequeno' }}"></span>
+              <span class="ed-card-lbl">{{ label }}</span>
+            </label>
+          {% endfor %}
+        </div>
+
+        <label class="form-label small">Forma de la foto</label>
+        <div class="ed-grid ed-grid-3 mb-3">
+          {% for val,label in form.forma_foto.choices %}
+            <input type="radio" class="btn-check" name="forma_foto" id="fm-{{val}}" value="{{val}}" x-model="formaFoto" autocomplete="off">
+            <label class="ed-card" for="fm-{{val}}">
+              <span class="ed-check">✓</span>
+              <span class="ed-ava ed-ava-{{val}}"></span>
+              <span class="ed-card-lbl">{{ label }}</span>
+            </label>
+          {% endfor %}
+        </div>
+
+        <div class="d-flex align-items-center justify-content-between py-2 border-top">
+          <label class="form-label mb-0" for="mp">Mostrar portada</label>
+          <div class="form-check form-switch m-0">
+            <input class="form-check-input" type="checkbox" role="switch" name="mostrar_portada" id="mp" x-model="mostrarPortada" style="cursor:pointer">
+          </div>
+        </div>
+
+        <div x-show="mostrarPortada" class="mt-2">
+          <label class="form-label small">Efecto de portada</label>
+          <div class="ed-grid ed-grid-3">
+            {% for val,label in form.portada_efecto.choices %}
+              <input type="radio" class="btn-check" name="portada_efecto" id="pe-{{val}}" value="{{val}}" x-model="portadaEfecto" autocomplete="off">
+              <label class="ed-card" for="pe-{{val}}">
+                <span class="ed-check">✓</span>
+                <span class="ed-efx {{val}}"><span class="ed-efx-img"></span></span>
+                <span class="ed-card-lbl">{{ label }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+      </div></div>
+
+      <!-- ===== Tipografía ===== -->
+      <div class="card shadow-sm mb-3"><div class="card-body p-4">
+        <div class="ed-sec"><div class="ed-sec-ico">🔤</div>
+          <div><h2>Tipografía</h2><p>La letra de tu página</p></div></div>
+        <div class="ed-grid ed-grid-3">
+          {% for val,label in form.tipografia.choices %}
+            <input type="radio" class="btn-check" name="tipografia" id="tp-{{loop.index}}" value="{{val}}" x-model="tipografia" autocomplete="off">
+            <label class="ed-card" for="tp-{{loop.index}}" style="font-family:'{{val}}',sans-serif">
+              <span class="ed-check">✓</span>
+              <span style="font-size:1.6rem;line-height:1">Aa</span>
+              <span class="ed-card-lbl" style="font-family:inherit">{{ val }}</span>
+            </label>
+          {% endfor %}
+        </div>
+      </div></div>
+
+      <!-- ===== Redes ===== -->
+      <div class="card shadow-sm mb-3"><div class="card-body p-4">
+        <div class="ed-sec"><div class="ed-sec-ico">🔗</div>
+          <div><h2>Redes</h2><p>Conectá tus redes (se muestran como íconos)</p></div></div>
         <div class="row g-3">
           <div class="col-sm-6">{{ render_field(form.instagram, placeholder="@usuario", **{"x-model":"instagram"}) }}</div>
           <div class="col-sm-6">{{ render_field(form.tiktok, placeholder="@usuario", **{"x-model":"tiktok"}) }}</div>
@@ -196,9 +272,10 @@
         </div>
       </div></div>
 
-      <!-- Sobre + agenda -->
+      <!-- ===== Sobre + agenda ===== -->
       <div class="card shadow-sm mb-3"><div class="card-body p-4">
-        <h2 class="h6 text-uppercase text-muted mb-3">📝 Sobre el profesional</h2>
+        <div class="ed-sec"><div class="ed-sec-ico">📝</div>
+          <div><h2>Sobre el profesional</h2><p>Bio, habilidades y agenda</p></div></div>
         {{ form.descripcion(class="form-control mb-3", rows="3", placeholder="Experiencia, estilo, lo que lo hace único…", **{"x-model":"desc"}) }}
         <div class="row g-3">
           <div class="col-sm-8">{{ render_field(form.habilidades, placeholder="Soft Gel, Nail Art, Kapping", **{"x-model":"habilidades"}) }}</div>
@@ -217,7 +294,7 @@
 
   <!-- ================= PREVIEW ================= -->
   <div class="col-lg-5 order-1 order-lg-2">
-    <div class="position-sticky" style="top:84px">
+    <div class="position-sticky" style="top:80px">
       <p class="text-muted small text-center mb-2">Vista previa en vivo 👇</p>
       <div class="pb-preview">
         <div class="pb-page" :class="pageClasses" :style="pageStyle">
@@ -267,6 +344,9 @@
 function pbEditor(init) {
   return {
     ...init,
+    hexToRgb(h){ h=(h||'').replace('#',''); if(h.length===3) h=h.split('').map(x=>x+x).join('');
+      const n=parseInt(h||'6d28d9',16)||7153369; return `${(n>>16)&255},${(n>>8)&255},${n&255}`; },
+    get rgbBoton(){ return this.hexToRgb(this.colorBoton); },
     get acc() { return this.colorBoton; },
     get iniciales() {
       const n=(this.nombre||'').trim(); if(!n) return '?';
