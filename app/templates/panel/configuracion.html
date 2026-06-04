@@ -31,16 +31,34 @@
           </small>
         </div>
 
-        <h2 class="h6 text-uppercase text-muted mt-4">💳 Cobro de señas (Mercado Pago)</h2>
-        {{ render_field(form.mercadopago_token, placeholder="APP_USR-...") }}
-        <div class="alert alert-info border-0 small">
-          Pegá tu <strong>Access Token de producción</strong> de Mercado Pago para que las señas
-          se cobren <strong>a tu cuenta</strong>. Lo sacás de
-          <a href="https://www.mercadopago.com.ar/developers/panel" target="_blank">tu panel de desarrollador</a>
-          → Credenciales de producción. Sin esto, el cobro de seña queda en modo de prueba.
-        </div>
         {{ form.submit(class="btn btn-primary") }}
       </form>
+
+      <hr class="my-4">
+
+      <h2 class="h6 text-uppercase text-muted">💳 Cobro de señas (Mercado Pago)</h2>
+      {% if negocio.mp_conectado %}
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 border rounded p-3 bg-light">
+          <div>
+            <div class="fw-semibold text-success">✓ Mercado Pago conectado</div>
+            <small class="text-muted">Las señas se cobran directamente a tu cuenta de Mercado Pago.</small>
+          </div>
+          <form method="post" action="{{ url_for('pagos.mp_desconectar') }}"
+                onsubmit="return confirm('¿Desconectar Mercado Pago? Las señas volverán a modo de prueba.')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-outline-danger btn-sm" type="submit">Desconectar</button>
+          </form>
+        </div>
+      {% else %}
+        <p class="small text-muted mb-2">
+          Conectá tu cuenta de Mercado Pago con un clic para cobrar las señas
+          <strong>a tu cuenta</strong>. No tenés que pegar ningún token. Mientras no la conectes,
+          el cobro de seña queda en modo de prueba.
+        </p>
+        <a href="{{ url_for('pagos.mp_conectar') }}" class="btn btn-info text-white">
+          🔗 Conectar con Mercado Pago
+        </a>
+      {% endif %}
     </div></div>
   </div>
 </div>

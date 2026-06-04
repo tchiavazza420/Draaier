@@ -61,6 +61,65 @@ def test_pago_sin_credenciales_cae_a_simulado(crear_negocio, crear_recurso, crea
     assert reserva.estado == EstadoReservaEnum.CONFIRMADO
 
 
+def test_conectar_mp_redirige_a_autorizacion(client, crear_negocio, login, monkeypatch):
+    """El botón 'Conectar' manda al negocio a la URL de autorización de MP."""
+    from app.pagos import mercadopago
+    neg, dueno = crear_negocio()
+    login(dueno.email)
+    monkeypatch.setattr(mercadopago, "oauth_configurado", lambda: True)
+    monkeypatch.setattr(mercadopago, "url_autorizacion",
+                        lambda state, ru: f"https://auth.mp/authorization?state={state}")
+
+    r = client.get("/pagos/mp/conectar", follow_redirects=False)
+    assert r.status_code == 302
+    assert r.headers["Location"].startswith("https://auth.mp/authorization")
+
+
+def test_callback_mp_guarda_tokens(client, crear_negocio, login, monkeypatch):
+    """El callback canjea el code y deja el negocio conectado."""
+    from app.pagos import mercadopago
+    from app.models.negocio import Negocio
+    from app.extensions import db
+    neg, dueno = crear_negocio()
+    login(dueno.email)
+
+    monkeypatch.setattr(mercadopago, "oauth_configurado", lambda: True)
+    monkeypatch.setattr(mercadopago, "url_autorizacion",
+                        lambda state, ru: f"https://auth.mp/x?state={state}")
+    monkeypatch.setattr(mercadopago, "intercambiar_codigo", lambda code, ru: {
+        "access_token": "APP_USR-neg", "refresh_token": "TG-ref",
+        "user_id": 12345, "public_key": "APP_USR-pub", "expires_in": 15552000,
+    })
+
+    # Primero conectar para fijar el state en sesión.
+    client.get("/pagos/mp/conectar", follow_redirects=False)
+    with client.session_transaction() as s:
+        state = s["mp_oauth_state"]
+
+    r = client.get(f"/pagos/mp/callback?code=abc&state={state}", follow_redirects=False)
+    assert r.status_code == 302
+
+    actualizado = db.session.get(Negocio, neg.id)
+    assert actualizado.mp_conectado is True
+    assert actualizado.mercadopago_token == "APP_USR-neg"
+    assert actualizado.mp_user_id == "12345"
+
+
+def test_callback_mp_rechaza_state_invalido(client, crear_negocio, login, monkeypatch):
+    """Sin state válido (CSRF), el callback no conecta nada."""
+    from app.pagos import mercadopago
+    from app.models.negocio import Negocio
+    from app.extensions import db
+    neg, dueno = crear_negocio()
+    login(dueno.email)
+    monkeypatch.setattr(mercadopago, "intercambiar_codigo",
+                        lambda code, ru: (_ for _ in ()).throw(AssertionError("no debe llamarse")))
+
+    r = client.get("/pagos/mp/callback?code=abc&state=falso", follow_redirects=False)
+    assert r.status_code == 302
+    assert db.session.get(Negocio, neg.id).mp_conectado is False
+
+
 def test_aprobacion_idempotente(crear_negocio, crear_recurso, crear_servicio, proximo_lunes):
     neg, _ = crear_negocio()
     rec = crear_recurso(neg)

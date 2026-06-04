@@ -103,9 +103,20 @@ class Negocio(TimestampMixin, db.Model):
     ciudad = db.Column(db.String(80), nullable=True, index=True)
     direccion = db.Column(db.String(200), nullable=True)  # para el mapa en la página
 
-    # Access token de Mercado Pago propio del negocio (para cobrar las señas a
-    # SU cuenta). Si está vacío, la seña cae a checkout simulado.
-    mercadopago_token = db.Column(db.String(255), nullable=True)
+    # --- Mercado Pago del negocio (conexión OAuth "Connect") ---
+    # El negocio conecta su cuenta con un clic; guardamos los tokens que nos
+    # devuelve Mercado Pago. Con ellos cobramos las señas a SU cuenta. Si no
+    # está conectado, la seña cae a checkout simulado.
+    mercadopago_token = db.Column(db.String(255), nullable=True)   # access_token
+    mp_refresh_token = db.Column(db.String(255), nullable=True)
+    mp_user_id = db.Column(db.String(40), nullable=True)           # id del vendedor
+    mp_public_key = db.Column(db.String(120), nullable=True)
+    mp_token_expira = db.Column(db.DateTime(timezone=True), nullable=True)
+
+    @property
+    def mp_conectado(self):
+        """True si el negocio conectó su cuenta de Mercado Pago."""
+        return bool(self.mercadopago_token and self.mp_user_id)
 
     # --- Marketplace ---
     visible_marketplace = db.Column(db.Boolean, nullable=False, default=False)

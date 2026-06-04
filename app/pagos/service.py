@@ -26,6 +26,61 @@ class PagoError(Exception):
     """Error de dominio en el flujo de pagos."""
 
 
+# ======================================================================
+#  Conexión de la cuenta de Mercado Pago del negocio (OAuth "Connect")
+# ======================================================================
+def _expira_dt(expires_in):
+    from datetime import datetime, timezone, timedelta
+    try:
+        segs = int(expires_in)
+    except (TypeError, ValueError):
+        segs = 0
+    return datetime.now(timezone.utc) + timedelta(seconds=max(segs - 60, 0))
+
+
+def conectar_negocio_mp(negocio, datos):
+    """Guarda en el negocio los tokens devueltos por Mercado Pago tras el OAuth."""
+    negocio.mercadopago_token = datos.get("access_token")
+    negocio.mp_refresh_token = datos.get("refresh_token")
+    negocio.mp_user_id = str(datos.get("user_id")) if datos.get("user_id") else None
+    negocio.mp_public_key = datos.get("public_key")
+    negocio.mp_token_expira = _expira_dt(datos.get("expires_in"))
+    db.session.commit()
+    return negocio
+
+
+def desconectar_negocio_mp(negocio):
+    """Olvida la conexión de Mercado Pago del negocio."""
+    negocio.mercadopago_token = None
+    negocio.mp_refresh_token = None
+    negocio.mp_user_id = None
+    negocio.mp_public_key = None
+    negocio.mp_token_expira = None
+    db.session.commit()
+    return negocio
+
+
+def token_mp_vigente(negocio):
+    """
+    Devuelve un access_token usable para el negocio, refrescándolo si está por
+    vencer. Si el negocio no conectó su cuenta, devuelve None.
+    """
+    if not negocio or not negocio.mercadopago_token:
+        return None
+    from datetime import datetime, timezone
+    exp = negocio.mp_token_expira
+    if exp is not None:
+        if exp.tzinfo is None:
+            exp = exp.replace(tzinfo=timezone.utc)
+        if exp <= datetime.now(timezone.utc) and negocio.mp_refresh_token:
+            try:
+                datos = mercadopago.refrescar_token(negocio.mp_refresh_token)
+                conectar_negocio_mp(negocio, datos)
+            except Exception:
+                pass  # si falla el refresh, intentamos con el token actual
+    return negocio.mercadopago_token
+
+
 def iniciar_pago_sena(reserva, servicio):
     """
     Crea un Pago de seña para la reserva y devuelve (pago, url_checkout).
@@ -37,10 +92,10 @@ def iniciar_pago_sena(reserva, servicio):
     if monto <= 0:
         raise PagoError("El servicio no tiene un monto de seña válido.")
 
-    # La seña se cobra a la cuenta de Mercado Pago DEL NEGOCIO. Sin su token,
-    # cae a checkout simulado (para probar sin cobrar de verdad).
+    # La seña se cobra a la cuenta de Mercado Pago DEL NEGOCIO (conectada por
+    # OAuth). Sin conexión, cae a checkout simulado (probar sin cobrar).
     negocio = db.session.get(Negocio, reserva.negocio_id)
-    token_neg = negocio.mercadopago_token if negocio else None
+    token_neg = token_mp_vigente(negocio)
     simulado = not token_neg
 
     pago = Pago(

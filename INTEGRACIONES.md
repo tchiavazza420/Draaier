@@ -41,21 +41,42 @@ La única pasarela es **Mercado Pago (Checkout Pro)**. Igual cubre la mayoría d
 los medios: **tarjetas (incluida Naranja), dinero en cuenta y MODO** se pagan
 desde el mismo checkout de MP, así que no hace falta integrarlos por separado.
 
+### 2.1) Suscripciones de planes (cuenta de la plataforma)
+Los pagos de **planes** los cobra AgenPro a su propia cuenta:
 ```
 MERCADOPAGO_ACCESS_TOKEN=<access token de producción APP_USR-...>
 MERCADOPAGO_PUBLIC_KEY=<public key>
 ```
 
-**Production-ready.** El código arma una preferencia de Checkout Pro válida
-(items en ARS, `auto_return=approved`, `back_urls` y `notification_url` con tu
-`SITE_URL`). El webhook (`/pagos/webhook/mercadopago`) viaja en cada preferencia,
-así que **no hay que configurar nada en el panel de MP**. Notas:
-- Usá el token **de producción** (`APP_USR-…`) para cobrar de verdad; el `TEST-…`
-  es sandbox.
-- `auto_return` exige `back_urls` en **https** → ya lo cubre `SITE_URL`
-  (`https://www.agenpro.com.ar`). En local (http) caería a simulación.
-- Sin `MERCADOPAGO_ACCESS_TOKEN`, el cobro cae a un **checkout simulado** interno
-  (útil para desarrollo).
+### 2.2) Señas — cada negocio conecta SU Mercado Pago (OAuth "Connect")
+El negocio **no pega ningún token**: en **Configuración** toca
+**“🔗 Conectar con Mercado Pago”**, autoriza en MP y volvemos con sus tokens
+guardados. A partir de ahí, las señas se cobran **directo a su cuenta**.
+
+Para que el botón funcione, registrá **nuestra** aplicación de Mercado Pago y
+cargá sus credenciales en Render:
+```
+MP_CLIENT_ID=<App ID numérico de la app de MP>
+MP_CLIENT_SECRET=<Client Secret de la app>
+MP_MARKETPLACE_FEE=0   (opcional: % de comisión que retiene la plataforma)
+```
+
+Cómo dar de alta la app (una sola vez):
+1. **mercadopago.com.ar/developers** → **Tus integraciones** → crear aplicación.
+   Producto: **Pagos online / Checkout Pro**, con **OAuth** habilitado.
+2. En la app, agregá la **Redirect URI**:
+   `https://www.agenpro.com.ar/pagos/mp/callback` (debe coincidir EXACTO).
+3. Copiá **App ID** → `MP_CLIENT_ID` y **Client Secret** → `MP_CLIENT_SECRET`.
+4. Listo: cada negocio ve el botón “Conectar con Mercado Pago” en Configuración.
+
+Notas técnicas:
+- Guardamos `access_token`, `refresh_token`, `user_id`, `public_key` y la
+  expiración por negocio; el token se **refresca solo** cuando vence.
+- El webhook (`/pagos/webhook/mercadopago?neg=<id>`) reconcilia cada seña con el
+  token del negocio correspondiente.
+- `auto_return` exige `back_urls` en **https** → ya lo cubre `SITE_URL`. En local
+  (http) o si el negocio **no conectó** su cuenta, la seña cae a un **checkout
+  simulado** interno (útil para desarrollo / probar sin cobrar).
 
 ---
 
