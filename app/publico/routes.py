@@ -199,9 +199,34 @@ def reserva_confirmacion(slug, codigo):
     if reserva is None:
         abort(404)
     from app.resenas.service import puede_resenar
+    from urllib.parse import quote
+
+    # Link "Agregar a Google Calendar".
+    fmt = "%Y%m%dT%H%M%S"
+    cal_text = quote(f"{reserva.servicio.nombre} · {negocio.nombre}")
+    cal_dates = f"{reserva.inicio.strftime(fmt)}/{reserva.fin.strftime(fmt)}"
+    cal_det = quote(f"Reserva {reserva.codigo} con {reserva.recurso.nombre}.")
+    cal_loc = quote(negocio.ciudad or negocio.nombre)
+    gcal_url = (
+        "https://calendar.google.com/calendar/render?action=TEMPLATE"
+        f"&text={cal_text}&dates={cal_dates}&details={cal_det}&location={cal_loc}"
+    )
+
+    # Aviso por WhatsApp (al WhatsApp del negocio si lo tiene; si no, share libre).
+    msg = quote(
+        f"¡Hola {negocio.nombre}! Reservé un turno: {reserva.servicio.nombre} "
+        f"el {reserva.inicio.strftime('%d/%m a las %H:%M')}. Código {reserva.codigo}."
+    )
+    if negocio.whatsapp:
+        num = negocio.whatsapp.replace("+", "").replace(" ", "")
+        wa_url = f"https://wa.me/{num}?text={msg}"
+    else:
+        wa_url = f"https://wa.me/?text={msg}"
+
     return render_template(
         "publico/reserva_ok.html",
         negocio=negocio, reserva=reserva, puede_resenar=puede_resenar(reserva),
+        gcal_url=gcal_url, wa_url=wa_url,
     )
 
 

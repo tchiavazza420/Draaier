@@ -84,6 +84,20 @@ def _enviar_pendiente(reserva, url_pago=None):
     _wa(reserva, neg, msg)
 
 
+def _enviar_pedido_resena(reserva):
+    """Pide una reseña al cliente tras un turno finalizado (email + WhatsApp)."""
+    from flask import url_for
+    neg = _negocio(reserva)
+    link = current_app.config.get("SITE_URL", "") + url_for(
+        "publico.reserva_resena", slug=neg.slug, codigo=reserva.codigo)
+    _email(neg, reserva.cliente.email,
+           f"¿Cómo estuvo tu turno? · {reserva.servicio.nombre}",
+           "pedido_resena", reserva=reserva, negocio=neg, url_resena=link)
+    _wa(reserva, neg,
+        f"🌟 ¿Cómo estuvo tu turno de {reserva.servicio.nombre}? "
+        f"Dejanos tu reseña acá: {link}")
+
+
 def _enviar_recordatorio(reserva):
     neg = _negocio(reserva)
     if neg is not None and not neg.notif_recordatorio:
@@ -138,4 +152,29 @@ def enviar_recordatorios(dias=1):
         if r.cliente and (r.cliente.email or r.cliente.telefono):
             _enviar_recordatorio(r)
             enviados += 1
+    return enviados
+
+
+def pedir_resenas():
+    """
+    Pide reseña a los clientes de turnos FINALIZADOS a los que aún no se les
+    pidió (resena_pedida=False) y que tienen un canal de contacto. Marca cada
+    uno como pedido para no repetir. Devuelve la cantidad enviada.
+    Pensado para correr a diario (cron).
+    """
+    from app.models.reserva import Reserva, EstadoReservaEnum
+
+    pendientes = (
+        Reserva.query
+        .filter(Reserva.estado == EstadoReservaEnum.FINALIZADO)
+        .filter(Reserva.resena_pedida.is_(False))
+        .all()
+    )
+    enviados = 0
+    for r in pendientes:
+        if r.cliente and (r.cliente.email or r.cliente.telefono):
+            _enviar_pedido_resena(r)
+            enviados += 1
+        r.resena_pedida = True
+    db.session.commit()
     return enviados

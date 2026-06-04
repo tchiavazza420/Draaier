@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Pagos · Panel{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+  <h1 class="h3 mb-0">Pagos (señas)</h1>
+  <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('panel.dashboard') }}">← Panel</a>
+</div>
+
+<div class="row g-3 mb-4 stagger">
+  <div class="col-6 col-md-3"><div class="card text-center h-100"><div class="card-body">
+    <div class="h3 mb-0 stat-num text-success">${{ '{:,.0f}'.format(r.cobrado).replace(',','.') }}</div>
+    <small class="text-muted">Cobrado</small>
+  </div></div></div>
+  <div class="col-6 col-md-3"><div class="card text-center h-100"><div class="card-body">
+    <div class="h3 mb-0 stat-num text-warning">${{ '{:,.0f}'.format(r.pendiente).replace(',','.') }}</div>
+    <small class="text-muted">Pendiente</small>
+  </div></div></div>
+  <div class="col-6 col-md-3"><div class="card text-center h-100"><div class="card-body">
+    <div class="h3 mb-0 stat-num">{{ r.n_aprobados }}</div><small class="text-muted">Señas cobradas</small>
+  </div></div></div>
+  <div class="col-6 col-md-3"><div class="card text-center h-100"><div class="card-body">
+    <div class="h3 mb-0 stat-num">{{ r.n_pendientes }}</div><small class="text-muted">Pendientes</small>
+  </div></div></div>
+</div>
+
+<div class="card"><div class="card-body">
+  {% if pagos %}
+    <div class="table-responsive">
+      <table class="table align-middle mb-0 tabla-mobile">
+        <thead><tr><th>Fecha</th><th>Reserva</th><th>Monto</th><th>Medio</th><th>Estado</th></tr></thead>
+        <tbody>
+          {% for p in pagos %}
+            <tr {% if p.reserva %}style="cursor:pointer" onclick="location.href='{{ url_for('reservas.detalle', reserva_id=p.reserva_id) }}'"{% endif %}>
+              <td class="celda-principal" data-label="Fecha">{{ p.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+              <td data-label="Reserva"><span class="font-monospace">{{ p.reserva.codigo if p.reserva else '—' }}</span></td>
+              <td data-label="Monto">${{ '%g'|format(p.monto) }}{% if p.es_sena %} <small class="text-muted">seña</small>{% endif %}</td>
+              <td data-label="Medio">{{ p.proveedor.value.title() }}</td>
+              <td data-label="Estado">
+                {% set cls = {'aprobado':'success','pendiente':'warning','rechazado':'danger','reembolsado':'secondary'} %}
+                <span class="badge bg-{{ cls.get(p.estado.value, 'secondary') }}">{{ p.estado.value.title() }}</span>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="text-center text-muted py-4">
+      Todavía no hay pagos. Las señas aparecen acá cuando un cliente paga al reservar.
+    </div>
+  {% endif %}
+</div></div>
+{% endblock %}

@@ -40,10 +40,16 @@ class Pago(TenantMixin, TimestampMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     # negocio_id lo aporta TenantMixin.
 
+    # Nullable: los pagos de SUSCRIPCIÓN (planes) no están atados a una reserva.
     reserva_id = db.Column(
         db.Integer, db.ForeignKey("reservas.id", ondelete="CASCADE"),
-        nullable=False, index=True,
+        nullable=True, index=True,
     )
+
+    # Qué se está pagando: "sena" (reserva) o "suscripcion" (plan).
+    concepto = db.Column(db.String(20), nullable=False, default="sena")
+    # Para suscripción: el plan que se activa al aprobarse (PlanEnum.value).
+    plan_destino = db.Column(db.String(20), nullable=True)
 
     monto = db.Column(db.Numeric(10, 2), nullable=False)
     estado = db.Column(
