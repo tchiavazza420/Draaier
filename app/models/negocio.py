@@ -101,6 +101,11 @@ class Negocio(TimestampMixin, db.Model):
     email = db.Column(db.String(120), nullable=False)
     telefono = db.Column(db.String(40), nullable=True)
     ciudad = db.Column(db.String(80), nullable=True, index=True)
+    direccion = db.Column(db.String(200), nullable=True)  # para el mapa en la página
+
+    # Access token de Mercado Pago propio del negocio (para cobrar las señas a
+    # SU cuenta). Si está vacío, la seña cae a checkout simulado.
+    mercadopago_token = db.Column(db.String(255), nullable=True)
 
     # --- Marketplace ---
     visible_marketplace = db.Column(db.Boolean, nullable=False, default=False)

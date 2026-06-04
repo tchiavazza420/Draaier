@@ -372,9 +372,11 @@ def configuracion():
         negocio.nombre = form.nombre.data.strip()
         negocio.rubro = RubroEnum(form.rubro.data)
         negocio.ciudad = (form.ciudad.data or "").strip() or None
+        negocio.direccion = (form.direccion.data or "").strip() or None
         negocio.telefono = (form.telefono.data or "").strip() or None
         negocio.email = form.email.data.strip().lower()
         negocio.visible_marketplace = form.visible_marketplace.data
+        negocio.mercadopago_token = (form.mercadopago_token.data or "").strip() or None
         db.session.commit()
         flash("Configuración actualizada.", "success")
         return redirect(url_for("panel.configuracion"))

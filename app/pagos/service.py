@@ -16,6 +16,7 @@ from decimal import Decimal
 from flask import current_app, url_for
 
 from app.extensions import db
+from app.models.negocio import Negocio
 from app.models.pago import Pago, PagoEstadoEnum, ProveedorPagoEnum
 from app.models.reserva import EstadoReservaEnum
 from app.pagos import mercadopago
@@ -36,7 +37,11 @@ def iniciar_pago_sena(reserva, servicio):
     if monto <= 0:
         raise PagoError("El servicio no tiene un monto de seña válido.")
 
-    simulado = not mercadopago.esta_configurado()
+    # La seña se cobra a la cuenta de Mercado Pago DEL NEGOCIO. Sin su token,
+    # cae a checkout simulado (para probar sin cobrar de verdad).
+    negocio = db.session.get(Negocio, reserva.negocio_id)
+    token_neg = negocio.mercadopago_token if negocio else None
+    simulado = not token_neg
 
     pago = Pago(
         negocio_id=reserva.negocio_id,
@@ -53,9 +58,11 @@ def iniciar_pago_sena(reserva, servicio):
         url = url_for("pagos.checkout_simulado", pago_id=pago.id)
     else:
         back = current_app.config["SITE_URL"] + url_for("pagos.retorno")
-        notif = current_app.config["SITE_URL"] + url_for("pagos.webhook_mercadopago")
+        # El webhook lleva el negocio para reconciliar con SU token.
+        notif = current_app.config["SITE_URL"] + url_for(
+            "pagos.webhook_mercadopago", neg=reserva.negocio_id)
         titulo = f"Seña - {servicio.nombre}"
-        ref, checkout_url = mercadopago.crear_preferencia(pago, titulo, back, notif)
+        ref, checkout_url = mercadopago.crear_preferencia(pago, titulo, back, notif, token=token_neg)
         pago.preference_id = ref
         pago.init_point = checkout_url
         url = checkout_url
@@ -141,12 +148,12 @@ def rechazar_pago(pago, external_id=None):
     return pago
 
 
-def procesar_notificacion_mp(payment_id):
+def procesar_notificacion_mp(payment_id, token=None):
     """
-    Concilia una notificación de Mercado Pago: consulta el pago real y
-    actualiza el Pago local + la reserva según su estado.
+    Concilia una notificación de Mercado Pago: consulta el pago real (con el
+    token del negocio para señas, o la plataforma) y actualiza el Pago local.
     """
-    data = mercadopago.obtener_pago(payment_id)
+    data = mercadopago.obtener_pago(payment_id, token=token)
     estado_mp = data.get("status")
     external_reference = data.get("external_reference")
     if not external_reference:

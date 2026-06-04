@@ -35,7 +35,13 @@ def retorno():
 @csrf.exempt
 def webhook_mercadopago():
     """Recibe notificaciones de Mercado Pago y concilia el pago."""
-    if not mercadopago.esta_configurado():
+    # ?neg=<id> indica una seña (cuenta del negocio); sin él, es la plataforma.
+    neg_id = request.args.get("neg", type=int)
+    token = None
+    if neg_id:
+        negocio = db.session.get(Negocio, neg_id)
+        token = negocio.mercadopago_token if negocio else None
+    if not mercadopago.esta_configurado(token):
         abort(404)
 
     # MP envía el id del pago por querystring (?id= o ?data.id=) o en el body.
@@ -48,7 +54,7 @@ def webhook_mercadopago():
 
     if payment_id and (tipo in (None, "payment")):
         try:
-            service.procesar_notificacion_mp(payment_id)
+            service.procesar_notificacion_mp(payment_id, token=token)
         except Exception:
             # Devolvemos 200 igual para que MP no reintente en loop ante
             # errores no recuperables; el estado se puede reconciliar luego.
