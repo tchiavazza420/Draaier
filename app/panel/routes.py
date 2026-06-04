@@ -54,6 +54,10 @@ def dashboard():
     # --- Métricas del día ---
     hoy_metricas = _metricas_del_dia(negocio)
 
+    # Saludo según la hora.
+    h = hoy.hour
+    saludo = "Buenos días" if h < 13 else ("Buenas tardes" if h < 20 else "Buenas noches")
+
     return render_template(
         "panel/dashboard.html",
         negocio=negocio,
@@ -61,33 +65,55 @@ def dashboard():
         wa=wa, wa_renueva=wa_renueva,
         plan_vence=negocio.vencimiento,
         onboarding=onboarding,
-        hoy=hoy_metricas,
+        hoy=hoy_metricas, saludo=saludo,
     )
 
 
 def _metricas_del_dia(negocio):
-    """Turnos de hoy, ingresos del día y próximos turnos del negocio."""
+    """
+    Resumen del día (estilo agora): cobros (cobrado/pendiente), asistencias
+    (completadas/ausentes/sin confirmar) y la agenda del día completa.
+    """
     from datetime import date, time as _time
-    from app.models.reserva import Reserva, EstadoReservaEnum
+    from app.models.reserva import Reserva, EstadoReservaEnum as E
 
     ini = datetime.combine(date.today(), _time.min)
     fin = ini + timedelta(days=1)
     ahora = datetime.now()
 
-    del_dia = (
+    # Turnos de hoy que cuentan (no cancelados/reprogramados).
+    agenda = (
         Reserva.query.filter_by(negocio_id=negocio.id)
         .filter(Reserva.inicio >= ini, Reserva.inicio < fin)
         .filter(Reserva.estado.in_([
-            EstadoReservaEnum.CONFIRMADO, EstadoReservaEnum.FINALIZADO,
+            E.PENDIENTE_PAGO, E.CONFIRMADO, E.EN_PROCESO, E.FINALIZADO, E.AUSENTE,
         ]))
         .order_by(Reserva.inicio).all()
     )
-    ingresos = sum((r.precio or 0) for r in del_dia)
-    proximos = [r for r in del_dia if r.fin >= ahora][:4]
+
+    finalizados = [r for r in agenda if r.estado == E.FINALIZADO]
+    a_cobrar = [r for r in agenda if r.estado in (E.CONFIRMADO, E.EN_PROCESO)]
+    ausentes = [r for r in agenda if r.estado == E.AUSENTE]
+    sin_confirmar = [r for r in agenda if r.estado == E.PENDIENTE_PAGO]
+    atendibles = [r for r in agenda if r.estado != E.AUSENTE]
+
+    cobrado = sum((r.precio or 0) for r in finalizados)
+    pendiente = sum((r.precio or 0) for r in a_cobrar)
+    meta = cobrado + pendiente  # objetivo del día = lo agendado
+
     return {
-        "cantidad": len(del_dia),
-        "ingresos": ingresos,
-        "proximos": proximos,
+        "agenda": agenda,
+        "total": len(agenda),
+        "cobrado": cobrado,
+        "pendiente": pendiente,
+        "meta": meta,
+        "pct_cobrado": round(cobrado / meta * 100) if meta else 0,
+        "completados": len(finalizados),
+        "atendibles": len(atendibles),
+        "pct_asistencia": round(len(finalizados) / len(atendibles) * 100) if atendibles else 0,
+        "ausentes": len(ausentes),
+        "sin_confirmar": len(sin_confirmar),
+        "proximos": [r for r in agenda if r.fin >= ahora and r.estado != E.AUSENTE][:5],
     }
 
 
