@@ -44,9 +44,18 @@ Naranja), dinero en cuenta y MODO**, así que para la mayoría de los salones
 ni MODO por separado salvo que tengas un acuerdo de comercio directo con ellos.
 
 ```
-MERCADOPAGO_ACCESS_TOKEN=<access token de producción>
+MERCADOPAGO_ACCESS_TOKEN=<access token de producción APP_USR-...>
 MERCADOPAGO_PUBLIC_KEY=<public key>
 ```
+
+**Production-ready.** El código arma una preferencia de Checkout Pro válida
+(items en ARS, `auto_return=approved`, `back_urls` y `notification_url` con tu
+`SITE_URL`). El webhook (`/pagos/webhook/mercadopago`) viaja en cada preferencia,
+así que **no hay que configurar nada en el panel de MP**. Notas:
+- Usá el token **de producción** (`APP_USR-…`) para cobrar de verdad; el `TEST-…`
+  es sandbox.
+- `auto_return` exige `back_urls` en **https** → ya lo cubre `SITE_URL`
+  (`https://www.agenpro.com.ar`). En local (http) caería a simulación.
 
 ### Naranja X y MODO como pasarelas separadas — scaffold
 Los adaptadores (`app/pagos/naranja_x.py`, `app/pagos/modo.py`) están armados
@@ -73,6 +82,32 @@ MODO_ACCESS_TOKEN=<solo si tenés API de comercio>
 MODO) y sumamos las otras dos solo si conseguís acceso directo a sus APIs.
 
 ---
+
+## 2.b) Email (Brevo / SMTP)
+
+**Listo en código** (Flask-Mail). Sin `MAIL_SERVER`, los emails van a una
+bandeja de desarrollo. Con SMTP de Brevo, se envían de verdad.
+
+### Variables (Render → Environment)
+```
+MAIL_SERVER=smtp-relay.brevo.com
+MAIL_PORT=587
+MAIL_USE_TLS=true
+MAIL_USERNAME=<tu login SMTP de Brevo, p.ej. 8xxxxx@smtp-brevo.com>
+MAIL_PASSWORD=<tu SMTP key de Brevo (NO la clave de tu cuenta)>
+MAIL_DEFAULT_SENDER=AgenPro <no-reply@agenpro.com.ar>
+```
+
+> Dónde sacar usuario/clave: en Brevo → **SMTP & API → SMTP**. El usuario es el
+> "login" que muestra ahí; la password es la **SMTP key** (la generás en esa
+> misma pantalla), no la contraseña de tu cuenta.
+
+### ⚠️ Lo más importante: remitente verificado
+`MAIL_DEFAULT_SENDER` **debe** usar un email/dominio **verificado** en Brevo
+(Senders & Domains). Si mandás desde `no-reply@agenpro.com.ar`, verificá el
+dominio `agenpro.com.ar` en Brevo (te da unos registros DNS: SPF, DKIM y
+DMARC para agregar en tu DNS). Sin esto, Brevo rechaza o los correos caen en
+spam. Es la causa #1 de que "no lleguen los mails".
 
 ## 3) Recordatorios automáticos
 
