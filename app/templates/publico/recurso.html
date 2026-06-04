@@ -141,6 +141,35 @@
       </div>
     {% endif %}
 
+    {# ---- Reseñas ---- #}
+    {% if resenas %}
+      <div class="text-center mt-4 mb-3">
+        <span class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill"
+              style="background:var(--bs-body-bg);box-shadow:0 4px 14px rgba(0,0,0,.08)">
+          <span class="fs-5 fw-bold" style="color:var(--titulos)">{{ rating_promedio }}</span>
+          <span style="color:#f59e0b">{{ '★' * (rating_promedio|round(0,'floor')|int) }}{{ '☆' * (5 - (rating_promedio|round(0,'floor')|int)) }}</span>
+          <small class="text-muted">{{ rating_cantidad }} reseña{{ 's' if rating_cantidad != 1 }}</small>
+        </span>
+      </div>
+      <div class="d-flex flex-column gap-2">
+        {% for r in resenas %}
+          <div class="card" style="border:none;box-shadow:0 3px 12px rgba(0,0,0,.07)">
+            <div class="card-body py-3">
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="d-inline-flex align-items-center justify-content-center fw-bold text-white flex-shrink-0"
+                      style="width:34px;height:34px;border-radius:50%;background:{{ acc }}">{{ r.cliente.nombre[:1]|upper }}</span>
+                <div class="flex-grow-1">
+                  <div class="fw-semibold small text-body">{{ r.cliente.nombre }}</div>
+                  <div style="color:#f59e0b;font-size:.8rem">{{ '★' * r.calificacion }}{{ '☆' * (5 - r.calificacion) }}</div>
+                </div>
+              </div>
+              {% if r.comentario %}<p class="small text-muted mb-0">{{ r.comentario }}</p>{% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
     <div class="text-center mt-4">
       <span class="badge rounded-pill" style="background:color-mix(in srgb,var(--titulos) 8%,transparent);color:var(--titulos)">
         Reservá con AgenPro
