@@ -60,12 +60,14 @@
     {% endif %}
 
     {# ---- Avatar ---- #}
-    <div class="text-center" style="margin-top:{{ avatar_mt }}">
+    {% set _avpos = recurso.avatar_posicion or 'centro' %}
+    <div class="pb-header pb-header-{{ _avpos }}" style="margin-top:{{ avatar_mt }}">
       {% if recurso.foto_filename %}
         <img src="{{ media_url(recurso.foto_filename) }}" alt="{{ recurso.nombre }}"
              class="pb-avatar pb-avatar-{{ recurso.avatar_tamano or 'grande' }} pop-in">
       {% else %}
-        <div class="pb-avatar pb-avatar-{{ recurso.avatar_tamano or 'grande' }} mx-auto pop-in">{{ recurso.nombre[:1]|upper }}</div>
+        <div class="pb-avatar pb-avatar-{{ recurso.avatar_tamano or 'grande' }} pop-in"
+             style="{% if _avpos == 'centro' %}margin-left:auto;margin-right:auto{% endif %}">{{ recurso.nombre[:1]|upper }}</div>
       {% endif %}
 
       <h1 class="pb-nombre h3">{{ recurso.nombre }}</h1>
@@ -95,42 +97,62 @@
       {% endif %}
     </div>
 
-    {# ---- Botones grandes (links) ---- #}
-    <div class="mt-3">
+    {# ---- Botones grandes + secciones desplegables ---- #}
+    {% set _dir = negocio.direccion or (negocio.nombre ~ ' ' ~ (negocio.ciudad or '')) %}
+    {% set _url_pagina = url_for('publico.perfil_negocio', slug=negocio.slug, _external=True) %}
+    <div class="mt-3" x-data="{ ver: '' }">
       {% if servicios %}
-        <a class="pb-btn" href="#servicios">✨ Reservar un turno</a>
-        <a class="pb-btn" href="#servicios">✂️ Servicios y precios</a>
+        <a class="pb-btn" href="#" @click.prevent="ver = (ver==='serv' ? '' : 'serv')"
+           :class="ver==='serv' && 'pb-btn-activo'">✨ Reservar un turno</a>
+        <a class="pb-btn" href="#" @click.prevent="ver = (ver==='serv' ? '' : 'serv')"
+           :class="ver==='serv' && 'pb-btn-activo'">✂️ Servicios y precios</a>
       {% endif %}
-      {% if negocio.ciudad %}
-        <a class="pb-btn" target="_blank"
-           href="https://www.google.com/maps/search/?api=1&query={{ (negocio.nombre ~ ' ' ~ negocio.ciudad)|urlencode }}">
-          📍 Ubicación del local
-        </a>
+      {% if negocio.direccion or negocio.ciudad %}
+        <a class="pb-btn" href="#" @click.prevent="ver = (ver==='mapa' ? '' : 'mapa')"
+           :class="ver==='mapa' && 'pb-btn-activo'">📍 Ubicación del local</a>
+      {% endif %}
+      <a class="pb-btn" target="_blank" rel="noopener"
+         href="https://wa.me/?text={{ ('¡Reservá con ' ~ negocio.nombre ~ '! ' ~ _url_pagina)|urlencode }}">
+        💬 Compartir por WhatsApp
+      </a>
+
+      {# ---- Servicios reservables (se despliega con el botón) ---- #}
+      {% if servicios %}
+        <div x-show="ver==='serv'" x-cloak x-transition class="mt-3">
+          <div class="d-flex flex-column gap-2">
+            {% for s in servicios %}
+              <a href="{{ url_for('publico.perfil_servicio', slug=negocio.slug, servicio_slug=s.slug) }}"
+                 class="card text-decoration-none lift" style="border:none;box-shadow:0 4px 14px rgba(0,0,0,.08)">
+                <div class="card-body d-flex justify-content-between align-items-center py-3">
+                  <div>
+                    <div class="fw-semibold text-body">{{ s.nombre }}</div>
+                    <div class="text-muted small">⏱ {{ s.duracion_legible }}
+                      {% if s.requiere_sena and s.sena_monto %}· seña ${{ '%g'|format(s.sena_monto) }}{% endif %}</div>
+                  </div>
+                  <div class="text-end">
+                    {% if s.precio and s.precio > 0 %}<div class="fw-bold" style="color:{{ acc }}">${{ '%g'|format(s.precio) }}</div>{% endif %}
+                    <span class="badge" style="background:{{ boton }};color:{{ boton_tx }}">Reservar →</span>
+                  </div>
+                </div>
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      {# ---- Mapa embebido (se despliega; no redirige a Google Maps) ---- #}
+      {% if negocio.direccion or negocio.ciudad %}
+        <div x-show="ver==='mapa'" x-cloak x-transition class="mt-3">
+          <div class="ratio ratio-4x3 rounded overflow-hidden" style="box-shadow:0 4px 14px rgba(0,0,0,.08)">
+            <iframe loading="lazy" style="border:0" referrerpolicy="no-referrer-when-downgrade"
+                    src="https://www.google.com/maps?q={{ _dir|urlencode }}&output=embed"></iframe>
+          </div>
+          {% if negocio.direccion %}<p class="small text-muted mt-2 mb-0 text-center">📍 {{ negocio.direccion }}</p>{% endif %}
+        </div>
       {% endif %}
     </div>
 
-    {# ---- Servicios reservables ---- #}
-    {% if servicios %}
-      <h2 class="h6 mt-4 mb-2" id="servicios" style="color:var(--titulos)">Reservá con {{ recurso.nombre.split(' ')[0] }}</h2>
-      <div class="d-flex flex-column gap-2">
-        {% for s in servicios %}
-          <a href="{{ url_for('publico.perfil_servicio', slug=negocio.slug, servicio_slug=s.slug) }}"
-             class="card text-decoration-none lift" style="border:none;box-shadow:0 4px 14px rgba(0,0,0,.08)">
-            <div class="card-body d-flex justify-content-between align-items-center py-3">
-              <div>
-                <div class="fw-semibold text-body">{{ s.nombre }}</div>
-                <div class="text-muted small">⏱ {{ s.duracion_legible }}
-                  {% if s.requiere_sena and s.sena_monto %}· seña ${{ '%g'|format(s.sena_monto) }}{% endif %}</div>
-              </div>
-              <div class="text-end">
-                {% if s.precio and s.precio > 0 %}<div class="fw-bold" style="color:{{ acc }}">${{ '%g'|format(s.precio) }}</div>{% endif %}
-                <span class="badge" style="background:{{ boton }};color:{{ boton_tx }}">Reservar →</span>
-              </div>
-            </div>
-          </a>
-        {% endfor %}
-      </div>
-    {% else %}
+    {% if not servicios %}
       <div class="card mt-3"><div class="card-body text-center text-muted py-4">
         Este profesional todavía no tiene servicios publicados.
       </div></div>

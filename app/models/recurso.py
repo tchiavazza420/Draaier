@@ -51,6 +51,8 @@ class Recurso(TenantMixin, TimestampMixin, db.Model):
     estilo_pagina = db.Column(db.String(20), nullable=False, default="minimal")
     # Forma del avatar (circulo / rounded / hexagono).
     forma_foto = db.Column(db.String(20), nullable=False, default="circulo")
+    # Posición del avatar (centro / izquierda).
+    avatar_posicion = db.Column(db.String(12), nullable=True)  # None=centro
     anios_experiencia = db.Column(db.Integer, nullable=True)
     # Habilidades / etiquetas separadas por coma (se muestran como chips).
     habilidades = db.Column(db.String(400), nullable=True)

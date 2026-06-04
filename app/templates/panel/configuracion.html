@@ -17,6 +17,7 @@
           <div class="col-md-6">{{ render_field(form.rubro) }}</div>
           <div class="col-md-6">{{ render_field(form.ciudad, placeholder="Ej: Córdoba") }}</div>
         </div>
+        {{ render_field(form.direccion, placeholder="Ej: Independencia 1360, Villa María") }}
         <div class="row">
           <div class="col-md-6">{{ render_field(form.telefono) }}</div>
           <div class="col-md-6">{{ render_field(form.email) }}</div>
@@ -28,6 +29,15 @@
             <a href="{{ url_for('marketplace.index') }}" target="_blank">Marketplace público</a>
             y los clientes pueden encontrarte por ciudad, rubro o servicio.
           </small>
+        </div>
+
+        <h2 class="h6 text-uppercase text-muted mt-4">💳 Cobro de señas (Mercado Pago)</h2>
+        {{ render_field(form.mercadopago_token, placeholder="APP_USR-...") }}
+        <div class="alert alert-info border-0 small">
+          Pegá tu <strong>Access Token de producción</strong> de Mercado Pago para que las señas
+          se cobren <strong>a tu cuenta</strong>. Lo sacás de
+          <a href="https://www.mercadopago.com.ar/developers/panel" target="_blank">tu panel de desarrollador</a>
+          → Credenciales de producción. Sin esto, el cobro de seña queda en modo de prueba.
         </div>
         {{ form.submit(class="btn btn-primary") }}
       </form>

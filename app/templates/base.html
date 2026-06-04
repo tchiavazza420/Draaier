@@ -134,7 +134,11 @@
     <a href="{{ url_for('reservas.agenda') }}"><span class="bn-ico">🗓️</span>Calendario</a>
     <a href="{{ url_for('reservas.listar') }}"><span class="bn-ico">📋</span>Actividad</a>
     <a href="{{ url_for('reservas.nueva') }}" class="bn-fab" aria-label="Nueva reserva">+</a>
-    <a href="{{ url_for('recursos.listar') }}"><span class="bn-ico">💇</span>Profesionales</a>
+    {% if es_plan_individual %}
+      <a href="{{ url_for('recursos.listar') }}"><span class="bn-ico">🎨</span>Mi página</a>
+    {% else %}
+      <a href="{{ url_for('recursos.listar') }}"><span class="bn-ico">💇</span>Profesionales</a>
+    {% endif %}
     <a href="{{ url_for('panel.dashboard') }}"><span class="bn-ico">🏠</span>Panel</a>
   </nav>
   {% endif %}

@@ -35,9 +35,18 @@ _ROLES_PANEL = ("dueno", "staff")
 
 @recursos_bp.app_context_processor
 def _inyectar_opciones_profesional():
-    """Expone a las plantillas la URL con todas las fuentes (para el preview)."""
+    """Expone a las plantillas la URL con todas las fuentes (para el preview)
+    y si el negocio actual es de plan individual (una sola agenda)."""
     from app.recursos.opciones import url_todas_las_fuentes
-    return {"fuentes_url_todas": url_todas_las_fuentes()}
+    individual = False
+    try:
+        if current_user.is_authenticated and getattr(current_user, "negocio", None):
+            from app.planes import limite_agendas_de
+            individual = limite_agendas_de(current_user.negocio.plan) == 1
+    except Exception:
+        individual = False
+    return {"fuentes_url_todas": url_todas_las_fuentes(),
+            "es_plan_individual": individual}
 
 
 def _neg():
@@ -189,6 +198,7 @@ def _aplicar_personalizacion(recurso, form):
     recurso.color_titulos = limpio(form.color_titulos.data)
     # Cabecera.
     recurso.avatar_tamano = opcion(form.avatar_tamano.data, o.AVATAR_TAMANOS_VALIDOS, "grande")
+    recurso.avatar_posicion = opcion(form.avatar_posicion.data, o.AVATAR_POSICIONES_VALIDAS, "centro")
     recurso.mostrar_portada = bool(form.mostrar_portada.data)
     recurso.portada_efecto = opcion(form.portada_efecto.data, o.PORTADA_EFECTOS_VALIDOS, "original")
 
