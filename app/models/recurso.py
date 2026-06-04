@@ -57,6 +57,44 @@ class Recurso(TenantMixin, TimestampMixin, db.Model):
     # Redes propias del profesional.
     instagram = db.Column(db.String(120), nullable=True)
     whatsapp = db.Column(db.String(40), nullable=True)
+    tiktok = db.Column(db.String(120), nullable=True)
+    pinterest = db.Column(db.String(120), nullable=True)
+    facebook = db.Column(db.String(120), nullable=True)
+
+    # ====== Page-builder estilo Linktree (todos nullable; defaults app-side) ======
+    # Fondo del sitio.
+    fondo_tipo = db.Column(db.String(20), nullable=True)     # solido/gradiente/patron/animado
+    fondo_color = db.Column(db.String(7), nullable=True)
+    fondo_color2 = db.Column(db.String(7), nullable=True)    # 2do color del gradiente
+    fondo_patron = db.Column(db.String(20), nullable=True)   # puntos/ondas/cuadricula/diagonal
+    # Botones.
+    boton_estilo = db.Column(db.String(20), nullable=True)   # solido/cristal/contorno/sombra_suave/sombra_fuerte
+    boton_forma = db.Column(db.String(20), nullable=True)    # recto/suave/redondo
+    color_boton = db.Column(db.String(7), nullable=True)
+    color_boton_texto = db.Column(db.String(7), nullable=True)
+    # Colores de texto.
+    color_titulos = db.Column(db.String(7), nullable=True)
+    # Cabecera.
+    avatar_tamano = db.Column(db.String(12), nullable=True)  # pequeno/grande
+    mostrar_portada = db.Column(db.Boolean, nullable=True)   # None=True
+    portada_efecto = db.Column(db.String(16), nullable=True) # original/blur/gradiente/fade/vineta/duotono
+
+    # Valores por defecto efectivos (si el campo está vacío en la DB).
+    _DEFAULTS = {
+        "fondo_tipo": "gradiente", "fondo_color": "#fff1f2", "fondo_patron": "none",
+        "boton_estilo": "sombra_suave", "boton_forma": "redondo",
+        "color_boton": "#6d28d9", "color_boton_texto": "#ffffff",
+        "avatar_tamano": "grande", "portada_efecto": "original",
+    }
+
+    def estilo(self, campo):
+        """Valor efectivo de un campo de estilo (con su default si está vacío)."""
+        return getattr(self, campo, None) or self._DEFAULTS.get(campo)
+
+    @property
+    def portada_visible(self):
+        """True salvo que se haya desactivado explícitamente la portada."""
+        return self.mostrar_portada is not False
 
     @property
     def habilidades_lista(self):

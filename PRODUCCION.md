@@ -78,9 +78,8 @@ configurarlo a mano, pero podés verificarlo en el panel de MP.
 **Probar sin cobrar de verdad:** usá las **credenciales de prueba** (sandbox)
 y las tarjetas de test de Mercado Pago antes de pasar a producción.
 
-> **Naranja X / Modo:** mismo mecanismo. Conseguí el token del comercio y
-> cargá `NARANJA_X_ACCESS_TOKEN` o `MODO_ACCESS_TOKEN`. Sin token, esa pasarela
-> sigue en modo simulado. El negocio elige su pasarela en Configuración.
+> Mercado Pago es la única pasarela. Igual cubre tarjetas (incluida Naranja),
+> dinero en cuenta y MODO desde el mismo Checkout Pro.
 
 ---
 

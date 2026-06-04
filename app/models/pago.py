@@ -3,9 +3,10 @@ app/models/pago.py
 ------------------
 Pago: un cobro asociado a una reserva (seña o pago total).
 
-Diseñado para múltiples proveedores (Mercado Pago hoy; Naranja X / Modo
-después) mediante el campo `proveedor`. El `external_id` guarda el id del
-pago en el proveedor; `preference_id` el id de la preferencia/checkout.
+El cobro se hace con Mercado Pago (Checkout Pro). El campo `proveedor`
+distingue además los pagos simulados (desarrollo) y los manuales (efectivo).
+El `external_id` guarda el id del pago en el proveedor; `preference_id` el id
+de la preferencia/checkout.
 
 Estados:
   - pendiente : creado, esperando que el cliente pague.
@@ -29,8 +30,6 @@ class PagoEstadoEnum(enum.Enum):
 
 class ProveedorPagoEnum(enum.Enum):
     MERCADOPAGO = "mercadopago"
-    NARANJA_X = "naranja_x"
-    MODO = "modo"
     SIMULADO = "simulado"   # checkout interno de desarrollo (sin credenciales)
     MANUAL = "manual"       # registrado a mano por el negocio (efectivo, etc.)
 

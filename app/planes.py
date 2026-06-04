@@ -47,7 +47,7 @@ PLANES = {
         "precio": 20000, "max_prof": 1, "wa_incluido": 100,
         "resumen": "Para profesionales que cobran señas.",
         "features": [
-            "1 profesional (vos)", "Cobro de señas (Mercado Pago / Naranja X / Modo)",
+            "1 profesional (vos)", "Cobro de señas (Mercado Pago)",
             "Recordatorios por email y WhatsApp", "100 mensajes de WhatsApp/mes",
             "Reportes e ingresos", "Personalización de tu página",
         ],

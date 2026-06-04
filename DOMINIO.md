@@ -73,8 +73,8 @@ verificá que esté en **Settings → Environment** del servicio web y redeploy�
 - [ ] `agenpro.com.ar` redirige a `www`
 - [ ] La PWA se instala desde el celular con el ícono de AgenPro
 - [ ] `SITE_URL = https://www.agenpro.com.ar` en el entorno de Render
-- [ ] (Si usás pagos reales) actualizar las **URLs de retorno/webhook** en
-      Mercado Pago / Naranja X / Modo con el dominio nuevo
+- [ ] (Si usás pagos reales) `SITE_URL` con el dominio nuevo ya hace que las
+      **back_urls y el webhook** de Mercado Pago usen `agenpro.com.ar`
 
 ---
 

@@ -68,8 +68,31 @@ class RecursoForm(FlaskForm):
     tipografia = SelectField("Tipografía", default="Plus Jakarta Sans", validate_choice=False)
     estilo_pagina = SelectField("Estilo de página", default="minimal", validate_choice=False)
     forma_foto = SelectField("Forma de la foto", default="circulo", validate_choice=False)
+
+    # --- Page-builder: fondo ---
+    fondo_tipo = SelectField("Fondo", default="gradiente", validate_choice=False)
+    fondo_patron = SelectField("Patrón", default="puntos", validate_choice=False)
+    _color = lambda label: StringField(label, validators=[  # noqa: E731
+        Optional(), Regexp(r"^#[0-9A-Fa-f]{6}$", message="Color inválido.")])
+    fondo_color = _color("Color de fondo")
+    fondo_color2 = _color("Color de fondo 2")
+    # --- Botones ---
+    boton_estilo = SelectField("Estilo de botones", default="sombra_suave", validate_choice=False)
+    boton_forma = SelectField("Forma de botones", default="redondo", validate_choice=False)
+    color_boton = _color("Color de botones")
+    color_boton_texto = _color("Texto de botones")
+    color_titulos = _color("Color de títulos")
+    # --- Cabecera ---
+    avatar_tamano = SelectField("Tamaño del avatar", default="grande", validate_choice=False)
+    mostrar_portada = BooleanField("Mostrar portada", default=True)
+    portada_efecto = SelectField("Efecto de portada", default="original", validate_choice=False)
+    # --- Redes ---
     instagram = StringField("Instagram", validators=[Optional(), Length(max=120)])
     whatsapp = StringField("WhatsApp", validators=[Optional(), Length(max=40)])
+    tiktok = StringField("TikTok", validators=[Optional(), Length(max=120)])
+    pinterest = StringField("Pinterest", validators=[Optional(), Length(max=120)])
+    facebook = StringField("Facebook (URL)", validators=[Optional(), Length(max=120)])
+
     capacidad = IntegerField(
         "Cupos por turno",
         validators=[DataRequired(), NumberRange(min=1, max=10000)],
@@ -81,7 +104,13 @@ class RecursoForm(FlaskForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Poblamos las opciones de personalización desde el catálogo.
-        from app.recursos.opciones import FUENTES, ESTILOS_PAGINA, FORMAS_FOTO
-        self.tipografia.choices = [(f[0], f[1]) for f in FUENTES]
-        self.estilo_pagina.choices = list(ESTILOS_PAGINA)
-        self.forma_foto.choices = list(FORMAS_FOTO)
+        from app.recursos import opciones as o
+        self.tipografia.choices = [(f[0], f[1]) for f in o.FUENTES]
+        self.estilo_pagina.choices = list(o.ESTILOS_PAGINA)
+        self.forma_foto.choices = list(o.FORMAS_FOTO)
+        self.fondo_tipo.choices = list(o.FONDOS)
+        self.fondo_patron.choices = list(o.PATRONES)
+        self.boton_estilo.choices = list(o.BOTON_ESTILOS)
+        self.boton_forma.choices = list(o.BOTON_FORMAS)
+        self.avatar_tamano.choices = list(o.AVATAR_TAMANOS)
+        self.portada_efecto.choices = list(o.PORTADA_EFECTOS)
