@@ -45,6 +45,43 @@ def test_color_acento_vacio_hereda_negocio(client, crear_negocio):
     assert rec.color_acento is None
 
 
+def test_disenar_pagina_va_al_profesional(client, crear_negocio, crear_recurso, login):
+    """'Diseñá tu página' lleva directo a editar el (único) profesional."""
+    neg, dueno = crear_negocio()
+    rec = crear_recurso(neg, nombre="Yo")
+    login(dueno.email)
+    r = client.get("/panel/disenar", follow_redirects=False)
+    assert r.status_code == 302
+    assert f"/panel/recursos/{rec.id}/editar" in r.headers["Location"]
+
+
+def test_editor_guarda_marca_del_negocio(client, crear_negocio):
+    """La marca del negocio (logo/descr/marketplace) se guarda desde el editor."""
+    neg, dueno = crear_negocio(email="marca@test.com")
+    client.post("/auth/login", data={"email": "marca@test.com", "password": "clave1234"})
+    client.post("/panel/recursos/nuevo", data={
+        "nombre": "Sol", "capacidad": "1", "activo": "y",
+        "neg_descripcion": "El mejor salón", "neg_visible": "y",
+    })
+    from app.extensions import db
+    db.session.refresh(neg)
+    assert neg.descripcion_publica == "El mejor salón"
+    assert neg.visible_marketplace is True
+
+
+def test_solo_plan_oculta_agregar_profesional(client, crear_negocio, crear_recurso, login):
+    from app.models.negocio import PlanEnum
+    from app.extensions import db
+    neg, dueno = crear_negocio()
+    neg.plan = PlanEnum.BASICO  # individual, límite 1
+    crear_recurso(neg, nombre="Yo")
+    db.session.commit()
+    login(dueno.email)
+    html = client.get("/panel/recursos/").get_data(as_text=True)
+    assert "+ Profesional" not in html
+    assert "Tu página" in html
+
+
 def test_guardar_page_builder(client, crear_negocio):
     """Se guardan los campos del page-builder (fondo, botones, colores, cabecera, redes)."""
     neg, dueno = crear_negocio(email="pb@test.com")
