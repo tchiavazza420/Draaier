@@ -1,11 +1,12 @@
 {% extends "base.html" %}
+{% from "reservas/_estado.html" import badge_estado %}
 
 {% block title %}Panel · {{ negocio.nombre }}{% endblock %}
 
 {% block content %}
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4 animar">
   <div>
-    <h1 class="h3 mb-0">Hola, {{ current_user.nombre }} 👋</h1>
+    <h1 class="h3 mb-0">{{ saludo }}, {{ current_user.nombre.split(' ')[0] }} 👋</h1>
     <p class="text-muted mb-0">{{ negocio.nombre }}</p>
   </div>
   <a class="btn btn-outline-primary btn-sm"
@@ -25,43 +26,78 @@
   </div>
 {% endif %}
 
-<!-- ===== Hoy: métricas del día ===== -->
+<!-- ===== Resumen del día ===== -->
+<div class="d-flex align-items-center gap-2 mb-2">
+  <span class="dot-vivo"></span>
+  <h2 class="h6 text-uppercase text-muted mb-0">Resumen del día</h2>
+  <span class="ms-auto small text-muted">{{ hoy.total }} turno{{ 's' if hoy.total != 1 }}</span>
+</div>
 <div class="row g-3 mb-4 stagger">
-  <div class="col-6 col-lg-3">
-    <a class="text-decoration-none text-reset" href="{{ url_for('reservas.agenda') }}">
-      <div class="card hover-lift h-100"><div class="card-body">
-        <div class="feature-ico mb-1">🗓️</div>
-        <div class="h3 mb-0 stat-num">{{ hoy.cantidad }}</div>
-        <small class="text-muted">Turnos hoy ›</small>
-      </div></div>
-    </a>
-  </div>
-  <div class="col-6 col-lg-3">
-    <div class="card h-100"><div class="card-body">
-      <div class="feature-ico mb-1">💰</div>
-      <div class="h3 mb-0 stat-num text-success">${{ '{:,.0f}'.format(hoy.ingresos).replace(',','.') }}</div>
-      <small class="text-muted">Ingresos del día</small>
-    </div></div>
-  </div>
+  <!-- Cobros -->
   <div class="col-12 col-lg-6">
     <div class="card h-100"><div class="card-body">
-      <div class="d-flex justify-content-between align-items-center mb-1">
-        <small class="text-muted text-uppercase">Próximos turnos</small>
-        <a class="small text-decoration-none" href="{{ url_for('reservas.agenda') }}">Ver agenda →</a>
+      <div class="d-flex justify-content-between align-items-baseline">
+        <small class="text-muted text-uppercase">💰 Cobros</small>
+        <small class="text-muted">meta ${{ '{:,.0f}'.format(hoy.meta).replace(',','.') }}</small>
       </div>
-      {% if hoy.proximos %}
-        {% for r in hoy.proximos %}
+      <div class="d-flex align-items-baseline gap-2">
+        <span class="h3 mb-0 stat-num text-success">${{ '{:,.0f}'.format(hoy.cobrado).replace(',','.') }}</span>
+        <span class="badge bg-success-subtle text-success-emphasis">{{ hoy.pct_cobrado }}%</span>
+      </div>
+      <div class="progress mt-2" style="height:8px" role="progressbar" aria-valuenow="{{ hoy.pct_cobrado }}">
+        <div class="progress-bar bg-success" style="width:{{ hoy.pct_cobrado }}%"></div>
+      </div>
+      <div class="d-flex justify-content-between mt-2 small">
+        <span><span class="text-warning">●</span> Pendiente <strong>${{ '{:,.0f}'.format(hoy.pendiente).replace(',','.') }}</strong></span>
+        <span><span class="text-success">●</span> Cobrado <strong>${{ '{:,.0f}'.format(hoy.cobrado).replace(',','.') }}</strong></span>
+      </div>
+    </div></div>
+  </div>
+  <!-- Asistencias -->
+  <div class="col-12 col-lg-6">
+    <div class="card h-100"><div class="card-body">
+      <small class="text-muted text-uppercase">✅ Asistencias</small>
+      <div class="d-flex align-items-baseline gap-2">
+        <span class="h3 mb-0 stat-num">{{ hoy.completados }}<span class="text-muted fs-6">/{{ hoy.atendibles }}</span></span>
+        <span class="badge bg-primary-subtle text-primary-emphasis">{{ hoy.pct_asistencia }}%</span>
+      </div>
+      <div class="progress mt-2" style="height:8px" role="progressbar" aria-valuenow="{{ hoy.pct_asistencia }}">
+        <div class="progress-bar" style="width:{{ hoy.pct_asistencia }}%"></div>
+      </div>
+      <div class="d-flex justify-content-between mt-2 small">
+        <span><span class="text-danger">●</span> Ausentes <strong>{{ hoy.ausentes }}</strong></span>
+        <span><span class="text-secondary">●</span> Sin confirmar <strong>{{ hoy.sin_confirmar }}</strong></span>
+      </div>
+    </div></div>
+  </div>
+</div>
+
+<!-- ===== Agenda del día ===== -->
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h2 class="h6 text-uppercase text-muted mb-0">Agenda de hoy</h2>
+      <a class="small text-decoration-none" href="{{ url_for('reservas.agenda') }}">Ver calendario →</a>
+    </div>
+    {% if hoy.agenda %}
+      <div class="d-flex flex-column">
+        {% for r in hoy.agenda %}
           <a href="{{ url_for('reservas.detalle', reserva_id=r.id) }}"
-             class="d-flex align-items-center gap-2 text-decoration-none text-reset py-1 {{ '' if loop.last else 'border-bottom' }}">
-            <span class="badge bg-light text-dark">{{ r.inicio.strftime('%H:%M') }}</span>
-            <span class="fw-semibold flex-grow-1 text-truncate">{{ r.servicio.nombre }}</span>
-            <small class="text-muted text-truncate d-none d-sm-block">{{ r.cliente.nombre }} · {{ r.recurso.nombre }}</small>
+             class="d-flex align-items-center gap-3 text-decoration-none text-reset py-2 {{ '' if loop.last else 'border-bottom' }}">
+            <div class="text-center" style="min-width:48px">
+              <div class="fw-bold small">{{ r.inicio.strftime('%H:%M') }}</div>
+            </div>
+            <div class="flex-grow-1 text-truncate">
+              <div class="fw-semibold text-truncate">{{ r.servicio.nombre }}</div>
+              <small class="text-muted text-truncate">{{ r.cliente.nombre }} · {{ r.recurso.nombre }}</small>
+            </div>
+            {{ badge_estado(r.estado) }}
           </a>
         {% endfor %}
-      {% else %}
-        <p class="text-muted small mb-0 py-2">No quedan turnos por hoy. 🎉</p>
-      {% endif %}
-    </div></div>
+      </div>
+    {% else %}
+      <p class="text-muted small mb-0 py-2">No tenés turnos para hoy. 🌿</p>
+    {% endif %}
   </div>
 </div>
 

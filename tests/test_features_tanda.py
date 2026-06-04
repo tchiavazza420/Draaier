@@ -33,9 +33,9 @@ def test_dashboard_metricas_del_dia(client, crear_negocio, crear_recurso, crear_
     _reserva_hoy(neg, rec, serv, precio=5000)
     login(dueno.email)
     html = client.get("/panel/").get_data(as_text=True)
-    assert "Turnos hoy" in html
-    assert "Ingresos del día" in html
-    assert "Próximos turnos" in html
+    assert "Resumen del día" in html
+    assert "Cobros" in html and "Asistencias" in html
+    assert "Agenda de hoy" in html
 
 
 # ---------- #14 Open Graph con foto del profesional ----------
