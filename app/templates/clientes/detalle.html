@@ -7,12 +7,34 @@
   <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('clientes.listar') }}">← Clientes</a>
 </div>
 
+<!-- Métricas del cliente -->
+<div class="row g-3 mb-4 stagger">
+  <div class="col-6 col-lg-3"><div class="card text-center h-100"><div class="card-body py-3">
+    <div class="h3 mb-0 stat-num">{{ m.visitas }}</div><small class="text-muted">Visitas</small>
+  </div></div></div>
+  <div class="col-6 col-lg-3"><div class="card text-center h-100"><div class="card-body py-3">
+    <div class="h3 mb-0 stat-num text-success">${{ '{:,.0f}'.format(m.total_gastado).replace(',','.') }}</div><small class="text-muted">Total gastado</small>
+  </div></div></div>
+  <div class="col-6 col-lg-3"><div class="card text-center h-100"><div class="card-body py-3">
+    <div class="fw-bold">{{ m.ultima.strftime('%d/%m/%y') if m.ultima else '—' }}</div><small class="text-muted">Última visita</small>
+  </div></div></div>
+  <div class="col-6 col-lg-3"><div class="card text-center h-100"><div class="card-body py-3">
+    <div class="fw-bold">{{ m.proxima.strftime('%d/%m %H:%M') if m.proxima else '—' }}</div><small class="text-muted">Próximo turno</small>
+  </div></div></div>
+</div>
+
 <div class="row g-4">
   <div class="col-md-4">
     <div class="card"><div class="card-body">
       <h2 class="h6 text-muted">Contacto</h2>
       <p class="mb-1">📧 {{ cliente.email or '—' }}</p>
-      <p class="mb-0">📞 {{ cliente.telefono or '—' }}</p>
+      <p class="mb-1">📞 {{ cliente.telefono or '—' }}</p>
+      {% if cliente.telefono %}
+        <a class="btn btn-sm btn-outline-success w-100 mt-2" target="_blank"
+           href="https://wa.me/{{ cliente.telefono|replace('+','')|replace(' ','') }}">💬 WhatsApp</a>
+      {% endif %}
+      <hr>
+      <small class="text-muted">Cliente desde {{ cliente.created_at.strftime('%m/%Y') }}</small>
     </div></div>
   </div>
   <div class="col-md-8">
@@ -20,14 +42,15 @@
       <h2 class="h6 text-muted mb-3">Historial de reservas ({{ reservas|length }})</h2>
       {% if reservas %}
         <div class="table-responsive">
-          <table class="table table-sm align-middle mb-0">
-            <thead><tr><th>Fecha</th><th>Servicio</th><th>Estado</th></tr></thead>
+          <table class="table table-sm align-middle mb-0 tabla-mobile">
+            <thead><tr><th>Fecha</th><th>Servicio</th><th>Precio</th><th>Estado</th></tr></thead>
             <tbody>
               {% for r in reservas %}
                 <tr style="cursor:pointer" onclick="location.href='{{ url_for('reservas.detalle', reserva_id=r.id) }}'">
-                  <td>{{ r.inicio.strftime('%d/%m/%Y %H:%M') }}</td>
-                  <td>{{ r.servicio.nombre }}</td>
-                  <td>{{ badge_estado(r.estado) }}</td>
+                  <td class="celda-principal" data-label="Fecha">{{ r.inicio.strftime('%d/%m/%Y %H:%M') }}</td>
+                  <td data-label="Servicio">{{ r.servicio.nombre }}</td>
+                  <td data-label="Precio">${{ '%g'|format(r.precio or 0) }}</td>
+                  <td data-label="Estado">{{ badge_estado(r.estado) }}</td>
                 </tr>
               {% endfor %}
             </tbody>

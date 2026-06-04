@@ -41,6 +41,9 @@ def listar():
 @login_required
 @rol_required(*_ROLES_PANEL)
 def detalle(cliente_id):
+    from datetime import datetime
+    from app.models.reserva import EstadoReservaEnum
+
     cliente = obtener_tenant_o_404(Cliente, _neg(), cliente_id)
     reservas = (
         query_tenant(Reserva, _neg())
@@ -48,4 +51,18 @@ def detalle(cliente_id):
         .order_by(Reserva.inicio.desc())
         .all()
     )
-    return render_template("clientes/detalle.html", cliente=cliente, reservas=reservas)
+    ahora = datetime.now()
+    finalizadas = [r for r in reservas if r.estado == EstadoReservaEnum.FINALIZADO]
+    ausentes = [r for r in reservas if r.estado == EstadoReservaEnum.AUSENTE]
+    metricas = {
+        "visitas": len(finalizadas),
+        "total_gastado": sum((r.precio or 0) for r in finalizadas),
+        "ultima": finalizadas[0].inicio if finalizadas else None,
+        "proxima": min((r.inicio for r in reservas
+                        if r.inicio >= ahora and r.estado == EstadoReservaEnum.CONFIRMADO),
+                       default=None),
+        "total": len(reservas),
+        "ausencias": len(ausentes),
+    }
+    return render_template("clientes/detalle.html", cliente=cliente,
+                           reservas=reservas, m=metricas)
