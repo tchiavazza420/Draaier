@@ -491,3 +491,87 @@ h1, h2, h3, h4, h5, .fw-bold { letter-spacing: -.02em; }
 .pb-opt { cursor: pointer; border: 2px solid var(--borde, #e5e7eb); border-radius: 12px;
   padding: .5rem; text-align: center; font-size: .8rem; background: var(--bs-body-bg); transition: border-color .15s; }
 .btn-check:checked + .pb-opt { border-color: var(--marca, #6d28d9); box-shadow: 0 0 0 3px rgba(109,40,217,.12); }
+
+/* =====================================================================
+   EDITOR PREMIUM del profesional (estilo agora): tarjetas visuales,
+   swatches de color, segmented control, contadores.
+   ===================================================================== */
+/* Encabezado de sección (icono + título + subtítulo) */
+.ed-sec { display:flex; align-items:center; gap:.8rem; margin-bottom:1rem; }
+.ed-sec-ico { flex:0 0 auto; width:42px; height:42px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center; font-size:1.2rem;
+  background: rgba(var(--marca-rgb,109,40,217), .12); }
+.ed-sec h2 { font-size:1.05rem; font-weight:700; margin:0; }
+.ed-sec p { font-size:.82rem; color: var(--gris,#6b7280); margin:0; }
+
+/* Grilla de tarjetas seleccionables */
+.ed-grid { display:grid; gap:.7rem; }
+.ed-grid-2 { grid-template-columns: repeat(2,1fr); }
+.ed-grid-3 { grid-template-columns: repeat(3,1fr); }
+
+/* Tarjeta seleccionable con check */
+.ed-card { position:relative; cursor:pointer; border:2px solid var(--borde,#e5e7eb);
+  border-radius:16px; padding:.85rem; background:var(--bs-body-bg);
+  transition: border-color .15s, box-shadow .15s, transform .1s;
+  display:flex; flex-direction:column; align-items:center; gap:.55rem; text-align:center; }
+.ed-card:hover { border-color: color-mix(in srgb, var(--marca,#6d28d9) 45%, var(--borde,#e5e7eb)); }
+.ed-card:active { transform: scale(.985); }
+.btn-check:checked + .ed-card { border-color: var(--marca,#6d28d9);
+  box-shadow: 0 0 0 3px rgba(var(--marca-rgb,109,40,217), .14); }
+.ed-card .ed-check { opacity:0; transition:opacity .15s; position:absolute; top:7px; right:7px;
+  width:22px; height:22px; border-radius:50%; background:var(--marca,#6d28d9); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-size:.7rem; font-weight:700; }
+.btn-check:checked + .ed-card .ed-check { opacity:1; }
+.ed-card-lbl { font-size:.8rem; font-weight:600; }
+
+/* Muestra de botón dentro de las tarjetas de estilo */
+.ed-btn-demo { width:100%; padding:.5rem; border-radius:10px; font-size:.72rem; font-weight:800;
+  text-align:center; color:#fff; background: var(--marca,#6d28d9); border:2px solid transparent; }
+.ed-btn-demo.dsolido        { }
+.ed-btn-demo.dsombra_suave  { box-shadow:0 6px 14px rgba(var(--marca-rgb,109,40,217),.4); }
+.ed-btn-demo.dsombra_fuerte { box-shadow:4px 4px 0 0 rgba(0,0,0,.85); border-color:rgba(0,0,0,.85); }
+.ed-btn-demo.dcontorno      { background:transparent; color:var(--marca,#6d28d9); border-color:var(--marca,#6d28d9); }
+.ed-btn-demo.dcristal       { background: rgba(var(--marca-rgb,109,40,217),.16); color:var(--marca,#6d28d9);
+  border-color: rgba(var(--marca-rgb,109,40,217),.3); backdrop-filter: blur(4px); }
+.ed-forma-recto .ed-btn-demo   { border-radius:0; }
+.ed-forma-suave .ed-btn-demo   { border-radius:12px; }
+.ed-forma-redondo .ed-btn-demo { border-radius:999px; }
+
+/* Muestra de avatar / forma */
+.ed-ava { width:54px; height:54px; background:linear-gradient(135deg,#fb923c,#f59e0b); }
+.ed-ava.chico { width:38px; height:38px; }
+.ed-ava-circulo  { border-radius:50%; }
+.ed-ava-rounded  { border-radius:14px; }
+.ed-ava-hexagono { clip-path: polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%); }
+
+/* Muestra de efecto de portada */
+.ed-efx { width:100%; height:52px; border-radius:10px; overflow:hidden; position:relative; }
+.ed-efx .ed-efx-img { position:absolute; inset:0; background:linear-gradient(120deg,#c084fc,#fb7185,#f0abfc); }
+.ed-efx.blur .ed-efx-img     { filter: blur(5px); transform: scale(1.15); }
+.ed-efx.duotono .ed-efx-img  { filter: grayscale(1) contrast(1.05); }
+.ed-efx.duotono::before { content:''; position:absolute; inset:0; background:rgba(109,40,217,.5); mix-blend-mode:color; }
+.ed-efx.gradiente::after { content:''; position:absolute; inset:0; background:linear-gradient(transparent,#fff); }
+.ed-efx.fade::after      { content:''; position:absolute; inset:0; background:linear-gradient(transparent 40%,#fff); }
+.ed-efx.vineta::after    { content:''; position:absolute; inset:0; box-shadow: inset 0 0 22px 8px rgba(0,0,0,.55); }
+
+/* Muestra de fondo / patrón */
+.ed-fondo-demo { width:100%; height:46px; border-radius:10px; }
+
+/* Tarjeta de color (swatch + hex + lápiz) */
+.ed-color { position:relative; display:flex; align-items:center; gap:.7rem;
+  border:1px solid var(--borde,#e5e7eb); border-radius:14px; padding:.6rem .8rem;
+  cursor:pointer; background:var(--bs-body-bg); }
+.ed-color:hover { border-color: color-mix(in srgb, var(--marca,#6d28d9) 40%, var(--borde,#e5e7eb)); }
+.ed-color-sw { width:40px; height:40px; border-radius:10px; border:1px solid rgba(0,0,0,.12); flex:0 0 auto; }
+.ed-color input[type=color] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+.ed-color .hex { font-family: ui-monospace, monospace; font-size:.82rem; color:var(--gris,#6b7280); }
+
+/* Segmented control (tabs) */
+.ed-seg { display:flex; background: rgba(var(--marca-rgb,109,40,217),.08); border-radius:12px; padding:4px; gap:4px; }
+.ed-seg-opt { flex:1; text-align:center; padding:.5rem .2rem; border-radius:9px; font-size:.82rem;
+  font-weight:600; cursor:pointer; color:var(--gris,#6b7280); transition: all .15s; }
+.btn-check:checked + .ed-seg-opt { background: var(--bs-body-bg); color: var(--tinta,#111827);
+  box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+
+/* Contador de caracteres */
+.ed-count { font-size:.72rem; color:var(--gris,#9ca3af); }

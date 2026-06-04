@@ -89,6 +89,12 @@ def registro():
             )
             dueno.set_password(form.password.data)
             db.session.add(dueno)
+            db.session.flush()
+
+            # En planes individuales el profesional es el propio dueño: lo
+            # creamos automáticamente con su nombre (no hace falta cargarlo).
+            from app.recursos.service import crear_profesional_default
+            crear_profesional_default(negocio.id, dueno.nombre)
 
             db.session.commit()
         except Exception:

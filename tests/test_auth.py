@@ -21,6 +21,12 @@ def test_registro_crea_negocio_y_dueno(client):
     assert neg.slug == "mi-negocio"
     assert neg.estado_suscripcion == EstadoSuscripcionEnum.TRIAL
 
+    # Plan individual: el profesional (el dueño) se crea automáticamente.
+    from app.models.recurso import Recurso
+    profesionales = Recurso.query.filter_by(negocio_id=neg.id).all()
+    assert len(profesionales) == 1
+    assert profesionales[0].nombre == "Juan"
+
 
 def test_email_duplicado_rechazado(client, crear_negocio):
     neg, dueno = crear_negocio(email="dup@test.com")

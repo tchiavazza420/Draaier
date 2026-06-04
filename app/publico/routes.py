@@ -244,8 +244,17 @@ def perfil_recurso(slug, recurso_slug):
     if recurso is None:
         abort(404)
     from app.models.galeria import GaleriaFoto
+    from app.models.resena import Resena
+    from app.resenas.service import rating_negocio
     galeria = (
         GaleriaFoto.query.filter_by(negocio_id=negocio.id)
         .order_by(GaleriaFoto.orden, GaleriaFoto.id).limit(9).all()
     )
-    return render_template("publico/recurso.html", negocio=negocio, recurso=recurso, galeria=galeria)
+    promedio, cantidad = rating_negocio(negocio.id)
+    resenas = (
+        Resena.query.filter_by(negocio_id=negocio.id, oculta=False)
+        .order_by(Resena.created_at.desc()).limit(6).all()
+    )
+    return render_template("publico/recurso.html", negocio=negocio, recurso=recurso,
+                           galeria=galeria, rating_promedio=promedio,
+                           rating_cantidad=cantidad, resenas=resenas)
