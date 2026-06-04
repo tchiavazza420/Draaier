@@ -5,7 +5,7 @@
 {% block content %}
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
   <h1 class="h3 mb-0">Profesionales</h1>
-  <div>
+  <div class="d-flex flex-wrap gap-2">
     <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('panel.dashboard') }}">← Panel</a>
     <a class="btn btn-primary btn-sm" href="{{ url_for('recursos.recurso_nuevo') }}">+ Profesional</a>
   </div>
@@ -20,7 +20,7 @@
   <div class="card-body">
     {% if recursos %}
       <div class="table-responsive">
-        <table class="table align-middle mb-0">
+        <table class="table align-middle mb-0 tabla-mobile">
           <thead>
             <tr>
               <th>Nombre</th><th>Cupos por turno</th><th>Estado</th><th class="text-end">Acciones</th>
@@ -29,16 +29,16 @@
           <tbody>
             {% for r in recursos %}
               <tr class="{{ '' if r.activo else 'text-muted' }}">
-                <td class="fw-semibold">{{ r.nombre }}</td>
-                <td>{{ r.capacidad }}</td>
-                <td>
+                <td class="fw-semibold celda-principal" data-label="Nombre">{{ r.nombre }}</td>
+                <td data-label="Cupos por turno">{{ r.capacidad }}</td>
+                <td data-label="Estado">
                   {% if r.activo %}
                     <span class="badge bg-success">Activo</span>
                   {% else %}
                     <span class="badge bg-secondary">Inactivo</span>
                   {% endif %}
                 </td>
-                <td class="text-end">
+                <td class="text-end celda-acciones">
                   <a class="btn btn-sm btn-outline-secondary"
                      href="{{ url_for('disponibilidad.recurso', recurso_id=r.id) }}">Agenda</a>
                   <a class="btn btn-sm btn-outline-secondary"

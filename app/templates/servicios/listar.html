@@ -3,9 +3,9 @@
 {% block title %}Servicios · Panel{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
   <h1 class="h3 mb-0">Servicios</h1>
-  <div>
+  <div class="d-flex flex-wrap gap-2">
     <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('panel.dashboard') }}">← Panel</a>
     <a class="btn btn-outline-primary btn-sm" href="{{ url_for('servicios.sugeridos') }}">✨ Sugeridos</a>
     <a class="btn btn-primary btn-sm" href="{{ url_for('servicios.nuevo') }}">+ Servicio</a>
@@ -16,7 +16,7 @@
   <div class="card-body">
     {% if servicios %}
       <div class="table-responsive">
-        <table class="table align-middle mb-0">
+        <table class="table align-middle mb-0 tabla-mobile">
           <thead>
             <tr>
               <th></th><th>Servicio</th><th>Duración</th><th>Precio</th>
@@ -26,14 +26,17 @@
           <tbody>
             {% for s in servicios %}
               <tr class="{{ '' if s.activo else 'text-muted' }}">
-                <td>
+                <td class="d-none d-md-table-cell">
                   <span class="d-inline-block rounded-circle" title="{{ s.color }}"
                         style="width:14px;height:14px;background:{{ s.color }}"></span>
                 </td>
-                <td class="fw-semibold">{{ s.nombre }}</td>
-                <td>{{ s.duracion_legible }}</td>
-                <td>${{ '%.2f'|format(s.precio) }}</td>
-                <td>
+                <td class="fw-semibold celda-principal" data-label="Servicio">
+                  <span class="d-inline-block rounded-circle me-2 d-md-none" style="width:12px;height:12px;background:{{ s.color }};vertical-align:middle"></span>
+                  {{ s.nombre }}
+                </td>
+                <td data-label="Duración">{{ s.duracion_legible }}</td>
+                <td data-label="Precio">${{ '%.2f'|format(s.precio) }}</td>
+                <td data-label="Lo realizan">
                   {% if s.recursos %}
                     <span class="badge bg-light text-dark">{{ s.recursos|length }}</span>
                     <small class="text-muted">{{ s.recursos|map(attribute='nombre')|join(', ') }}</small>
@@ -41,14 +44,14 @@
                     <small class="text-warning">sin asignar</small>
                   {% endif %}
                 </td>
-                <td>
+                <td data-label="Estado">
                   {% if s.activo %}
                     <span class="badge bg-success">Activo</span>
                   {% else %}
                     <span class="badge bg-secondary">Inactivo</span>
                   {% endif %}
                 </td>
-                <td class="text-end">
+                <td class="text-end celda-acciones">
                   <a class="btn btn-sm btn-outline-secondary"
                      href="{{ url_for('servicios.editar', servicio_id=s.id) }}">Editar</a>
                   <form method="post" action="{{ url_for('servicios.toggle', servicio_id=s.id) }}" class="d-inline">

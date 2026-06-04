@@ -16,18 +16,18 @@
 <div class="card"><div class="card-body">
   {% if negocios %}
     <div class="table-responsive">
-      <table class="table align-middle mb-0">
+      <table class="table align-middle mb-0 tabla-mobile">
         <thead><tr><th>Negocio</th><th>Rubro</th><th>Plan</th><th>Suscripción</th><th>Activo</th><th>Acciones</th></tr></thead>
         <tbody>
           {% for n in negocios %}
             <tr>
-              <td>
+              <td class="celda-principal" data-label="Negocio">
                 <a href="{{ url_for('publico.perfil_negocio', slug=n.slug) }}" target="_blank">{{ n.nombre }}</a>
                 <div><small class="text-muted">/{{ n.slug }} · {{ n.email }}</small></div>
               </td>
-              <td>{{ n.rubro.value.replace('_',' ').title() }}</td>
-              <td>{{ n.plan.value if n.plan else '—' }}</td>
-              <td>
+              <td data-label="Rubro">{{ n.rubro.value.replace('_',' ').title() }}</td>
+              <td data-label="Plan">{{ n.plan.value if n.plan else '—' }}</td>
+              <td data-label="Suscripción">
                 <form method="post" action="{{ url_for('super_admin.negocio_suscripcion', negocio_id=n.id) }}" class="d-flex gap-1">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <select name="estado" class="form-select form-select-sm" style="width:auto">
@@ -44,9 +44,9 @@
                   <button class="btn btn-sm btn-outline-primary">✓</button>
                 </form>
               </td>
-              <td>{% if n.activo %}<span class="badge bg-success">Sí</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
-              <td>
-                <div class="d-flex flex-column gap-1" x-data="{ borrar:false, txt:'' }">
+              <td data-label="Activo">{% if n.activo %}<span class="badge bg-success">Sí</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
+              <td class="celda-acciones">
+                <div class="d-flex flex-column gap-1 w-100" x-data="{ borrar:false, txt:'' }">
                   <form method="post" action="{{ url_for('super_admin.negocio_toggle', negocio_id=n.id) }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button class="btn btn-sm btn-outline-{{ 'warning' if n.activo else 'success' }} w-100">

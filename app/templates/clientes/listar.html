@@ -16,15 +16,15 @@
 <div class="card"><div class="card-body">
   {% if clientes %}
     <div class="table-responsive">
-      <table class="table align-middle mb-0">
+      <table class="table align-middle mb-0 tabla-mobile">
         <thead><tr><th>Nombre</th><th>Email</th><th>Teléfono</th><th>Reservas</th></tr></thead>
         <tbody>
           {% for cl in clientes %}
             <tr style="cursor:pointer" onclick="location.href='{{ url_for('clientes.detalle', cliente_id=cl.id) }}'">
-              <td class="fw-semibold">{{ cl.nombre }}</td>
-              <td>{{ cl.email or '—' }}</td>
-              <td>{{ cl.telefono or '—' }}</td>
-              <td><span class="badge bg-light text-dark">{{ cl.reservas|length }}</span></td>
+              <td class="fw-semibold celda-principal" data-label="Nombre">{{ cl.nombre }}</td>
+              <td data-label="Email">{{ cl.email or '—' }}</td>
+              <td data-label="Teléfono">{{ cl.telefono or '—' }}</td>
+              <td data-label="Reservas"><span class="badge bg-light text-dark">{{ cl.reservas|length }}</span></td>
             </tr>
           {% endfor %}
         </tbody>
