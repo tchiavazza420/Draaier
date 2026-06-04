@@ -45,6 +45,49 @@ def test_color_acento_vacio_hereda_negocio(client, crear_negocio):
     assert rec.color_acento is None
 
 
+def test_guardar_fuente_estilo_y_forma(client, crear_negocio):
+    neg, dueno = crear_negocio(email="diseno@test.com")
+    client.post("/auth/login", data={"email": "diseno@test.com", "password": "clave1234"})
+    client.post("/panel/recursos/nuevo", data={
+        "nombre": "Vale", "capacidad": "1", "activo": "y",
+        "tipografia": "Playfair Display", "estilo_pagina": "glam", "forma_foto": "hexagono",
+        "estilo_cabecera": "degradado",
+    })
+    rec = Recurso.query.filter_by(negocio_id=neg.id, nombre="Vale").first()
+    assert rec is not None
+    assert rec.tipografia == "Playfair Display"
+    assert rec.estilo_pagina == "glam"
+    assert rec.forma_foto == "hexagono"
+
+
+def test_fuente_invalida_cae_a_default(client, crear_negocio):
+    neg, _ = crear_negocio(email="badfont@test.com")
+    client.post("/auth/login", data={"email": "badfont@test.com", "password": "clave1234"})
+    client.post("/panel/recursos/nuevo", data={
+        "nombre": "Tito", "capacidad": "1", "activo": "y",
+        "tipografia": "Comic Sans Hackeada", "estilo_pagina": "marciano", "forma_foto": "raro",
+    })
+    rec = Recurso.query.filter_by(negocio_id=neg.id, nombre="Tito").first()
+    assert rec is not None
+    assert rec.tipografia == "Plus Jakarta Sans"   # default seguro
+    assert rec.estilo_pagina == "minimal"
+    assert rec.forma_foto == "circulo"
+
+
+def test_pagina_publica_aplica_fuente_y_tema(client, crear_negocio, crear_recurso):
+    neg, _ = crear_negocio()
+    rec = crear_recurso(neg, nombre="Eli Glam")
+    rec.tipografia = "Cormorant Garamond"
+    rec.estilo_pagina = "elegante"
+    rec.forma_foto = "rounded"
+    from app.extensions import db
+    db.session.commit()
+    html = client.get(f"/{neg.slug}/recurso/{rec.slug}").get_data(as_text=True)
+    assert "prof-tema-elegante" in html
+    assert "prof-foto-rounded" in html
+    assert "Cormorant+Garamond" in html   # link de Google Fonts
+
+
 def test_pagina_publica_muestra_personalizacion(client, crear_negocio, crear_recurso):
     neg, _ = crear_negocio()
     rec = crear_recurso(neg, nombre="Juli Barber")

@@ -33,6 +33,13 @@ recursos_bp = Blueprint("recursos", __name__)
 _ROLES_PANEL = ("dueno", "staff")
 
 
+@recursos_bp.app_context_processor
+def _inyectar_opciones_profesional():
+    """Expone a las plantillas la URL con todas las fuentes (para el preview)."""
+    from app.recursos.opciones import url_todas_las_fuentes
+    return {"fuentes_url_todas": url_todas_las_fuentes()}
+
+
 def _neg():
     """negocio_id del usuario logueado (atajo legible)."""
     return current_user.negocio_id
@@ -147,6 +154,18 @@ def _aplicar_personalizacion(recurso, form):
     recurso.estilo_cabecera = form.estilo_cabecera.data or "degradado"
     recurso.instagram = limpio(form.instagram.data)
     recurso.whatsapp = limpio(form.whatsapp.data)
+
+    # Tipografía / estilo / forma (validados contra el catálogo).
+    from app.recursos.opciones import (
+        FUENTES_VALIDAS, ESTILOS_VALIDOS, FORMAS_VALIDAS,
+        FUENTE_DEFAULT,
+    )
+    recurso.tipografia = (form.tipografia.data
+                          if form.tipografia.data in FUENTES_VALIDAS else FUENTE_DEFAULT)
+    recurso.estilo_pagina = (form.estilo_pagina.data
+                             if form.estilo_pagina.data in ESTILOS_VALIDOS else "minimal")
+    recurso.forma_foto = (form.forma_foto.data
+                          if form.forma_foto.data in FORMAS_VALIDAS else "circulo")
 
 
 @recursos_bp.route("/nuevo", methods=["GET", "POST"])

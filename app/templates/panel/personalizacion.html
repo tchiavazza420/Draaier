@@ -15,13 +15,13 @@
 </div>
 
 <div class="row g-4"
-     x-data="{
-       primario: '{{ negocio.color_primario }}',
-       secundario: '{{ negocio.color_secundario }}',
-       fuente: '{{ negocio.tipografia }}',
-       plantilla: '{{ negocio.template_publico.value }}',
-       desc: {{ (negocio.descripcion_publica or '')|tojson }}
-     }">
+     x-data='{
+       primario: {{ negocio.color_primario|tojson }},
+       secundario: {{ negocio.color_secundario|tojson }},
+       fuente: {{ negocio.tipografia|tojson }},
+       plantilla: {{ negocio.template_publico.value|tojson }},
+       desc: {{ (negocio.descripcion_publica or "")|tojson }}
+     }'>
 
   <!-- ===== FORMULARIO ===== -->
   <div class="col-lg-7">

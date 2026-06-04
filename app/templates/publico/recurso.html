@@ -2,6 +2,13 @@
 
 {% block title %}{{ recurso.nombre }} · {{ negocio.nombre }}{% endblock %}
 
+{% block head_extra %}
+  {{ super() }}
+  {# Fuente propia del profesional #}
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family={{ recurso.tipografia|replace(' ', '+') }}:wght@400;600;700&display=swap">
+{% endblock %}
+
 {% block publico %}
 {% set acento = recurso.color_acento or negocio.color_primario %}
 {% if recurso.estilo_cabecera == 'foto' and recurso.banner_filename %}
@@ -22,69 +29,63 @@
 </nav>
 
 <!-- ===== HERO DEL PROFESIONAL ===== -->
-<div class="card shadow-sm overflow-hidden mb-4 fade-in">
-  <div style="height:150px;{{ cabecera }}"></div>
-  <div class="card-body text-center" style="margin-top:-72px">
-    {% if recurso.foto_filename %}
-      <img src="{{ url_for('static', filename=recurso.foto_filename) }}" alt="{{ recurso.nombre }}"
-           style="width:130px;height:130px;border-radius:50%;object-fit:cover;border:5px solid var(--bs-body-bg);box-shadow:0 8px 24px rgba(0,0,0,.2)">
-    {% else %}
-      <div class="d-inline-flex align-items-center justify-content-center fw-bold text-white"
-           style="width:130px;height:130px;border-radius:50%;border:5px solid var(--bs-body-bg);font-size:2.8rem;background:{{ acento }};box-shadow:0 8px 24px rgba(0,0,0,.2)">
-        {{ recurso.nombre[:1]|upper }}
-      </div>
-    {% endif %}
+<div class="prof-page prof-tema-{{ recurso.estilo_pagina }} prof-foto-{{ recurso.forma_foto }} fade-in"
+     style="--acc:{{ acento }}; font-family:'{{ recurso.tipografia }}', system-ui, sans-serif">
+  <div class="card prof-card shadow-sm mb-4">
+    <div class="prof-cab" style="{{ cabecera }}"></div>
+    <div class="card-body text-center" style="margin-top:-72px">
+      {% if recurso.foto_filename %}
+        <img src="{{ url_for('static', filename=recurso.foto_filename) }}" alt="{{ recurso.nombre }}" class="prof-avatar">
+      {% else %}
+        <div class="prof-avatar">{{ recurso.nombre[:1]|upper }}</div>
+      {% endif %}
 
-    <h1 class="h3 mt-3 mb-1" style="color:{{ acento }}">{{ recurso.nombre }}</h1>
-    {% if recurso.especialidad %}
-      <span class="badge rounded-pill px-3 py-2 mb-1"
-            style="background:color-mix(in srgb, {{ acento }} 14%, transparent);color:{{ acento }}">
-        ✦ {{ recurso.especialidad }}
-      </span>
-    {% endif %}
-    {% if recurso.frase %}
-      <p class="text-muted fst-italic mb-2">“{{ recurso.frase }}”</p>
-    {% endif %}
+      <h1 class="h3 prof-nombre">{{ recurso.nombre }}</h1>
+      {% if recurso.especialidad %}
+        <span class="prof-chip mb-1">✦ {{ recurso.especialidad }}</span>
+      {% endif %}
+      {% if recurso.frase %}
+        <p class="prof-frase mb-2">“{{ recurso.frase }}”</p>
+      {% endif %}
 
-    <!-- Métricas rápidas -->
-    {% if recurso.anios_experiencia or recurso.habilidades_lista %}
-      <div class="d-flex justify-content-center gap-4 my-3">
-        {% if recurso.anios_experiencia %}
-          <div><div class="h4 mb-0" style="color:{{ acento }}">{{ recurso.anios_experiencia }}</div>
-               <small class="text-muted">años de experiencia</small></div>
-        {% endif %}
-        {% if recurso.habilidades_lista %}
-          <div><div class="h4 mb-0" style="color:{{ acento }}">{{ recurso.habilidades_lista|length }}</div>
-               <small class="text-muted">especialidades</small></div>
-        {% endif %}
-      </div>
-    {% endif %}
+      {% if recurso.anios_experiencia or recurso.habilidades_lista %}
+        <div class="d-flex justify-content-center gap-4 my-3">
+          {% if recurso.anios_experiencia %}
+            <div><div class="h4 mb-0" style="color:{{ acento }}">{{ recurso.anios_experiencia }}</div>
+                 <small class="text-muted">años de experiencia</small></div>
+          {% endif %}
+          {% if recurso.habilidades_lista %}
+            <div><div class="h4 mb-0" style="color:{{ acento }}">{{ recurso.habilidades_lista|length }}</div>
+                 <small class="text-muted">especialidades</small></div>
+          {% endif %}
+        </div>
+      {% endif %}
 
-    {% if recurso.habilidades_lista %}
-      <div class="d-flex flex-wrap justify-content-center gap-1 mb-3">
-        {% for h in recurso.habilidades_lista %}
-          <span class="badge rounded-pill" style="background:color-mix(in srgb, {{ acento }} 12%, transparent);color:{{ acento }}">{{ h }}</span>
-        {% endfor %}
-      </div>
-    {% endif %}
+      {% if recurso.habilidades_lista %}
+        <div class="d-flex flex-wrap justify-content-center gap-1 mb-3">
+          {% for h in recurso.habilidades_lista %}
+            <span class="prof-chip">{{ h }}</span>
+          {% endfor %}
+        </div>
+      {% endif %}
 
-    {% if recurso.descripcion %}
-      <p class="text-muted mb-3 mx-auto" style="max-width:580px">{{ recurso.descripcion }}</p>
-    {% endif %}
+      {% if recurso.descripcion %}
+        <p class="text-muted mb-3 mx-auto" style="max-width:580px">{{ recurso.descripcion }}</p>
+      {% endif %}
 
-    <!-- Redes del profesional -->
-    {% if recurso.instagram or recurso.whatsapp %}
-      <div class="d-flex justify-content-center gap-2">
-        {% if recurso.instagram %}
-          <a class="btn btn-sm btn-outline-secondary"
-             href="https://instagram.com/{{ recurso.instagram|replace('@','') }}" target="_blank">📷 Instagram</a>
-        {% endif %}
-        {% if recurso.whatsapp %}
-          <a class="btn btn-sm btn-outline-secondary"
-             href="https://wa.me/{{ recurso.whatsapp|replace('+','')|replace(' ','') }}" target="_blank">💬 WhatsApp</a>
-        {% endif %}
-      </div>
-    {% endif %}
+      {% if recurso.instagram or recurso.whatsapp %}
+        <div class="d-flex justify-content-center gap-2">
+          {% if recurso.instagram %}
+            <a class="btn btn-sm btn-outline-secondary"
+               href="https://instagram.com/{{ recurso.instagram|replace('@','') }}" target="_blank">📷 Instagram</a>
+          {% endif %}
+          {% if recurso.whatsapp %}
+            <a class="btn btn-sm btn-outline-secondary"
+               href="https://wa.me/{{ recurso.whatsapp|replace('+','')|replace(' ','') }}" target="_blank">💬 WhatsApp</a>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
   </div>
 </div>
 
