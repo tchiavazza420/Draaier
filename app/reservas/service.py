@@ -151,8 +151,9 @@ _TRANSICIONES = {
         EstadoReservaEnum.CONFIRMADO, EstadoReservaEnum.CANCELADO,
     },
     EstadoReservaEnum.CONFIRMADO: {
-        EstadoReservaEnum.EN_PROCESO, EstadoReservaEnum.CANCELADO,
-        EstadoReservaEnum.AUSENTE, EstadoReservaEnum.REPROGRAMADO,
+        EstadoReservaEnum.EN_PROCESO, EstadoReservaEnum.FINALIZADO,
+        EstadoReservaEnum.CANCELADO, EstadoReservaEnum.AUSENTE,
+        EstadoReservaEnum.REPROGRAMADO,
     },
     EstadoReservaEnum.EN_PROCESO: {
         EstadoReservaEnum.FINALIZADO, EstadoReservaEnum.CANCELADO,

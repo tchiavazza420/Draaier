@@ -119,10 +119,43 @@ def agenda_eventos():
 @login_required
 @rol_required(*_ROLES_PANEL)
 def detalle(reserva_id):
+    from app.models.pago import PagoEstadoEnum
     reserva = obtener_tenant_o_404(Reserva, _neg(), reserva_id)
+    aprobados = [p for p in reserva.pagos if p.estado == PagoEstadoEnum.APROBADO]
+    pagado = sum((p.monto or 0) for p in aprobados)
+    pago = {
+        "pagado": pagado,
+        "saldo": max((reserva.precio or 0) - pagado, 0),
+        "tiene_sena": any(p.es_sena for p in aprobados),
+        "aprobados": aprobados,
+    }
     return render_template(
-        "reservas/detalle.html", reserva=reserva, estados=EstadoReservaEnum,
+        "reservas/detalle.html", reserva=reserva, estados=EstadoReservaEnum, pago=pago,
     )
+
+
+@reservas_bp.route("/<int:reserva_id>/cobrar-saldo", methods=["POST"])
+@login_required
+@rol_required(*_ROLES_PANEL)
+@negocio_operativo_required
+def cobrar_saldo(reserva_id):
+    """Registra a mano el cobro del saldo pendiente de la reserva (efectivo, etc.)."""
+    from decimal import Decimal
+    from app.models.pago import Pago, PagoEstadoEnum, ProveedorPagoEnum
+    reserva = obtener_tenant_o_404(Reserva, _neg(), reserva_id)
+    aprobados = [p for p in reserva.pagos if p.estado == PagoEstadoEnum.APROBADO]
+    saldo = (reserva.precio or 0) - sum((p.monto or 0) for p in aprobados)
+    if saldo <= 0:
+        flash("No hay saldo pendiente.", "info")
+        return redirect(url_for("reservas.detalle", reserva_id=reserva.id))
+    db.session.add(Pago(
+        negocio_id=_neg(), reserva_id=reserva.id, monto=Decimal(str(saldo)),
+        estado=PagoEstadoEnum.APROBADO, proveedor=ProveedorPagoEnum.MANUAL,
+        concepto="sena", es_sena=False,
+    ))
+    db.session.commit()
+    flash(f"Cobro de saldo registrado (${'%g' % saldo}).", "success")
+    return redirect(url_for("reservas.detalle", reserva_id=reserva.id))
 
 
 @reservas_bp.route("/<int:reserva_id>/estado", methods=["POST"])
