@@ -65,6 +65,16 @@ def perfil_negocio(slug):
         GaleriaFoto.query.filter_by(negocio_id=negocio.id)
         .order_by(GaleriaFoto.orden, GaleriaFoto.id).limit(12).all()
     )
+    # Plan individual (un solo profesional): la página principal ES la página
+    # del profesional (la que se edita en el page-builder). Así lo que ves y
+    # compartís es el diseño que personalizaste.
+    if len(recursos) == 1:
+        return render_template(
+            "publico/recurso.html",
+            negocio=negocio, recurso=recursos[0], galeria=galeria,
+            rating_promedio=promedio, rating_cantidad=cantidad, resenas=resenas,
+            principal=True,
+        )
     return render_template(
         "publico/perfil.html",
         negocio=negocio, recursos=recursos, servicios=servicios,

@@ -15,6 +15,14 @@
   </div>
 </div>
 
+<!-- Switcher de vista propio (solo mobile): siempre visible arriba, no lo tapa la barra inferior -->
+<div class="btn-group w-100 mb-3 d-md-none" role="group" id="vista-switcher">
+  <button type="button" class="btn btn-outline-primary btn-sm active" data-vista="listWeek">Lista</button>
+  <button type="button" class="btn btn-outline-primary btn-sm" data-vista="timeGridDay">Día</button>
+  <button type="button" class="btn btn-outline-primary btn-sm" data-vista="timeGridWeek">Semana</button>
+  <button type="button" class="btn btn-outline-primary btn-sm" data-vista="dayGridMonth">Mes</button>
+</div>
+
 <div class="card"><div class="card-body">
   <div id="calendario"></div>
 </div></div>
@@ -35,8 +43,8 @@
         ? { left: 'prev,next', center: 'title', right: 'today' }
         : { left: 'prev,next today', center: 'title',
             right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek' },
-      // En celular, los botones de vista van abajo (más cómodos para el pulgar).
-      footerToolbar: esMobile ? { center: 'listWeek,timeGridDay,dayGridMonth' } : false,
+      // En mobile el switcher de vistas es nuestro (arriba), no el footer.
+      footerToolbar: false,
       buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', day: 'Día', list: 'Lista' },
       slotMinTime: '07:00:00',
       slotMaxTime: '23:00:00',
@@ -58,6 +66,18 @@
       }
     });
     cal.render();
+
+    // Switcher de vista propio (mobile): cambia la vista y marca el activo.
+    const switcher = document.getElementById('vista-switcher');
+    if (switcher) {
+      switcher.querySelectorAll('button[data-vista]').forEach((b) => {
+        b.addEventListener('click', () => {
+          cal.changeView(b.dataset.vista);
+          switcher.querySelectorAll('button').forEach((x) => x.classList.remove('active'));
+          b.classList.add('active');
+        });
+      });
+    }
 
     // Si rota el teléfono / cambia el tamaño, ajustamos la vista por defecto.
     let eraMobile = esMobile;

@@ -1,4 +1,5 @@
 {% extends "publico/base_publico.html" %}
+{% from "_redes.html" import icono_red %}
 
 {% block title %}{{ recurso.nombre }} · {{ negocio.nombre }}{% endblock %}
 
@@ -17,7 +18,9 @@
         href="https://fonts.googleapis.com/css2?family={{ recurso.tipografia|replace(' ', '+') }}:wght@400;600;700;800&display=swap">
 {% endblock %}
 
-{% block publico %}
+{# Página completa (sin el header/logo del negocio de base_publico): el
+   page-builder tiene su propio diseño. #}
+{% block content %}
 {# ---- Valores efectivos de estilo ---- #}
 {% set boton    = recurso.estilo('color_boton') %}
 {% set boton_tx = recurso.estilo('color_boton_texto') %}
@@ -39,10 +42,12 @@
             font-family:'{{ recurso.tipografia }}', system-ui, sans-serif">
   <div class="pb-wrap">
 
-    <div class="pt-2 pb-1">
-      <a href="{{ url_for('publico.perfil_negocio', slug=negocio.slug) }}"
-         class="small text-decoration-none" style="color:var(--titulos);opacity:.7">← {{ negocio.nombre }}</a>
-    </div>
+    {% if not principal %}
+      <div class="pt-2 pb-1">
+        <a href="{{ url_for('publico.perfil_negocio', slug=negocio.slug) }}"
+           class="small text-decoration-none" style="color:var(--titulos);opacity:.7">← {{ negocio.nombre }}</a>
+      </div>
+    {% endif %}
 
     {# ---- Portada ---- #}
     {% if recurso.portada_visible and recurso.banner_filename %}
@@ -70,11 +75,11 @@
       {# ---- Redes ---- #}
       {% if recurso.instagram or recurso.tiktok or recurso.pinterest or recurso.facebook or recurso.whatsapp %}
         <div class="pb-social my-2">
-          {% if recurso.instagram %}<a title="Instagram" target="_blank" href="https://instagram.com/{{ recurso.instagram|replace('@','') }}">📷</a>{% endif %}
-          {% if recurso.tiktok %}<a title="TikTok" target="_blank" href="https://tiktok.com/@{{ recurso.tiktok|replace('@','') }}">🎵</a>{% endif %}
-          {% if recurso.pinterest %}<a title="Pinterest" target="_blank" href="https://pinterest.com/{{ recurso.pinterest|replace('@','') }}">📌</a>{% endif %}
-          {% if recurso.facebook %}<a title="Facebook" target="_blank" href="{{ recurso.facebook }}">👍</a>{% endif %}
-          {% if recurso.whatsapp %}<a title="WhatsApp" target="_blank" href="https://wa.me/{{ recurso.whatsapp|replace('+','')|replace(' ','') }}">💬</a>{% endif %}
+          {% if recurso.instagram %}<a title="Instagram" target="_blank" href="https://instagram.com/{{ recurso.instagram|replace('@','') }}">{{ icono_red('instagram') }}</a>{% endif %}
+          {% if recurso.tiktok %}<a title="TikTok" target="_blank" href="https://tiktok.com/@{{ recurso.tiktok|replace('@','') }}">{{ icono_red('tiktok') }}</a>{% endif %}
+          {% if recurso.pinterest %}<a title="Pinterest" target="_blank" href="https://pinterest.com/{{ recurso.pinterest|replace('@','') }}">{{ icono_red('pinterest') }}</a>{% endif %}
+          {% if recurso.facebook %}<a title="Facebook" target="_blank" href="{{ recurso.facebook }}">{{ icono_red('facebook') }}</a>{% endif %}
+          {% if recurso.whatsapp %}<a title="WhatsApp" target="_blank" href="https://wa.me/{{ recurso.whatsapp|replace('+','')|replace(' ','') }}">{{ icono_red('whatsapp') }}</a>{% endif %}
         </div>
       {% endif %}
 

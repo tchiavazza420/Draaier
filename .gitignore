@@ -57,3 +57,5 @@ logs/
 
 # ===== Claude =====
 .claude/
+.tmp_bugs/
+.tmp_mej/

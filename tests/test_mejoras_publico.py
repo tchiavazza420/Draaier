@@ -41,18 +41,33 @@ def test_open_graph_en_pagina_publica(client, crear_negocio):
     assert "El mejor salón de la ciudad" in html  # description del negocio
 
 
-# ---------- Grilla de profesionales ----------
-def test_perfil_muestra_profesionales(client, crear_negocio, crear_recurso):
+# ---------- Grilla de profesionales (varios) ----------
+def test_perfil_muestra_equipo_con_varios(client, crear_negocio, crear_recurso):
+    """Con 2+ profesionales, /<slug> muestra la grilla del equipo."""
     neg, _ = crear_negocio()
     rec = crear_recurso(neg, nombre="Juli Barber")
     rec.especialidad = "Barbero"
     rec.color_acento = "#10b981"
+    crear_recurso(neg, nombre="Sofi Color")
     db.session.commit()
 
     html = client.get(f"/{neg.slug}").get_data(as_text=True)
     assert "Nuestro equipo" in html
     assert "Juli Barber" in html and "Barbero" in html
     assert "#10b981" in html
+
+
+def test_perfil_individual_es_el_page_builder(client, crear_negocio, crear_recurso):
+    """Plan individual (1 profesional): /<slug> ES la página del profesional (page-builder)."""
+    neg, _ = crear_negocio()
+    rec = crear_recurso(neg, nombre="Juca")
+    rec.fondo_tipo = "gradiente"
+    rec.boton_estilo = "contorno"
+    db.session.commit()
+    html = client.get(f"/{neg.slug}").get_data(as_text=True)
+    assert "pb-fondo-gradiente" in html      # es la página del page-builder
+    assert "pb-estilo-contorno" in html
+    assert "Nuestro equipo" not in html      # no es la página de equipo
 
 
 # ---------- Compresión de imágenes ----------

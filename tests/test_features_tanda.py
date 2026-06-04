@@ -96,11 +96,12 @@ def test_pedir_resenas_marca_y_no_repite(crear_negocio, crear_recurso, crear_ser
 
 
 # ---------- #2 confirmación con Google Calendar + WhatsApp ----------
-def test_confirmacion_tiene_calendar_y_whatsapp(client, crear_negocio, crear_recurso, crear_servicio):
+def test_confirmacion_tiene_google_calendar_sin_avisar_wpp(client, crear_negocio, crear_recurso, crear_servicio):
     neg, _ = crear_negocio()
     rec = crear_recurso(neg)
     serv = crear_servicio(neg, [rec])
     r = _reserva_hoy(neg, rec, serv, estado=EstadoReservaEnum.CONFIRMADO)
     html = client.get(f"/{neg.slug}/reserva/{r.codigo}").get_data(as_text=True)
     assert "calendar.google.com" in html
-    assert "wa.me" in html
+    # El botón manual "Avisar por WhatsApp" se quitó: la notificación la manda AgenPro.
+    assert "Avisar por WhatsApp" not in html

@@ -48,7 +48,7 @@ PLANES = {
         "resumen": "Para profesionales que cobran señas.",
         "features": [
             "1 profesional (vos)", "Cobro de señas (Mercado Pago)",
-            "Recordatorios por email y WhatsApp", "100 mensajes de WhatsApp/mes",
+            "Recordatorios por email y WhatsApp",
             "Reportes e ingresos", "Personalización de tu página",
         ],
         "no": ["Marketplace destacado", "Multi-staff"],
@@ -59,7 +59,6 @@ PLANES = {
         "resumen": "Todo, con presencia destacada en el marketplace.",
         "features": [
             "1 profesional (vos)", "Todo lo de Pro",
-            "500 mensajes de WhatsApp/mes",
             "Página sin marca AgenPro (white-label)",
             "Aparición destacada en el Marketplace", "Reseñas y reputación",
             "Soporte prioritario",
@@ -76,7 +75,6 @@ PLANES = {
             "Desde 2 profesionales (hasta 5)",
             "$18.000 por cada profesional adicional",
             "Multi-staff (varios usuarios)", "Cobro de señas",
-            "100 mensajes de WhatsApp por profesional/mes",
             "Recordatorios por email y WhatsApp", "Reportes",
         ],
         "no": ["Marketplace destacado"],
@@ -90,7 +88,6 @@ PLANES = {
             "Desde 5 profesionales (hasta 15)",
             "$25.000 por cada profesional adicional",
             "Todo lo de Starter",
-            "300 mensajes de WhatsApp por profesional/mes",
             "Página sin marca AgenPro (white-label)",
             "Marketplace destacado", "Personalización avanzada",
         ],
