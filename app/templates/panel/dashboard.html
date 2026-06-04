@@ -155,15 +155,14 @@
   </div>
 </div>
 
-<!-- Resumen -->
+<!-- Resumen (sin Plan: ya está en la card de arriba) -->
 <div class="row g-3 mb-4">
   {% set resumen = [
     ('Rubro', negocio.rubro.value.replace('_',' ').title(), '🏷️', None),
-    ('Plan', (negocio.plan.value if negocio.plan else '—').title(), '💎', url_for('panel.plan')),
     ('Estado', negocio.estado_suscripcion.value.title(), '✅', url_for('panel.plan'))
   ] %}
   {% for tit, val, ico, href in resumen %}
-    <div class="col-md-4">
+    <div class="col-6 col-md-6">
       <a class="text-decoration-none text-reset" href="{{ href or '#' }}"
          {{ 'style=pointer-events:none' if not href }}>
         <div class="card hover-lift h-100 animar-{{ loop.index }}">
