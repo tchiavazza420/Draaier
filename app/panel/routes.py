@@ -185,6 +185,25 @@ def pagos():
     return render_template("panel/pagos.html", negocio=negocio, pagos=pagos, r=resumen)
 
 
+@panel_bp.route("/disenar")
+@login_required
+@rol_required("dueno")
+def disenar_pagina():
+    """
+    Atajo a la personalización REAL de la página (el page-builder del
+    profesional). Si hay un solo profesional (plan individual) va directo a
+    editarlo; si hay varios, a la lista para elegir; si no hay, a crearlo.
+    """
+    from app.models.recurso import Recurso
+    recs = (Recurso.query.filter_by(negocio_id=current_user.negocio_id)
+            .order_by(Recurso.id).all())
+    if len(recs) == 1:
+        return redirect(url_for("recursos.recurso_editar", recurso_id=recs[0].id))
+    if not recs:
+        return redirect(url_for("recursos.recurso_nuevo"))
+    return redirect(url_for("recursos.listar"))
+
+
 @panel_bp.route("/plan/cambiar", methods=["POST"])
 @login_required
 @rol_required("dueno")
@@ -199,10 +218,29 @@ def plan_cambiar():
     if elegido not in PLANES:
         flash("Plan inválido.", "danger")
         return redirect(url_for("panel.plan"))
-    negocio.plan = PlanEnum(elegido)
-    db.session.commit()
-    flash(f"¡Listo! Tu plan ahora es {PLANES[elegido]['nombre']}.", "success")
-    return redirect(url_for("panel.plan"))
+
+    if negocio.plan and negocio.plan.value == elegido:
+        flash("Ya tenés ese plan.", "info")
+        return redirect(url_for("panel.plan"))
+
+    # Básico = plan de entrada con 14 días de prueba: se activa directo.
+    if elegido == PlanEnum.BASICO.value:
+        negocio.plan = PlanEnum.BASICO
+        db.session.commit()
+        flash("Tu plan ahora es Básico (incluye 14 días de prueba).", "success")
+        return redirect(url_for("panel.plan"))
+
+    # Planes pagos: se cobran con Mercado Pago (checkout). El plan se activa al
+    # acreditarse el pago (webhook / checkout simulado).
+    from app.pagos.service import iniciar_pago_plan, PagoError
+    from app.planes import precio_desde
+    try:
+        _pago, url = iniciar_pago_plan(negocio, elegido, precio_desde(PLANES[elegido]))
+    except PagoError as exc:
+        flash(str(exc), "danger")
+        return redirect(url_for("panel.plan"))
+    flash("Te llevamos al pago para activar tu plan.", "info")
+    return redirect(url)
 
 
 @panel_bp.route("/galeria", methods=["GET", "POST"])

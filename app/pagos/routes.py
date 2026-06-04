@@ -80,15 +80,23 @@ def simular(pago_id):
         abort(404)
 
     resultado = request.form.get("resultado")
+    es_suscripcion = pago.concepto == "suscripcion"
+
     if resultado == "aprobado":
         service.aprobar_pago(pago, external_id=f"SIM-{pago.id}")
-        from app.notificaciones.service import notificar_reserva_confirmada
-        notificar_reserva_confirmada(pago.reserva)
-        flash("Pago aprobado (simulado). ¡Reserva confirmada!", "success")
+        if es_suscripcion:
+            flash("Pago aprobado (simulado). ¡Plan activado!", "success")
+        else:
+            from app.notificaciones.service import notificar_reserva_confirmada
+            notificar_reserva_confirmada(pago.reserva)
+            flash("Pago aprobado (simulado). ¡Reserva confirmada!", "success")
     else:
         service.rechazar_pago(pago, external_id=f"SIM-{pago.id}")
         flash("Pago rechazado (simulado).", "warning")
 
+    # Redirección según el concepto del pago.
+    if es_suscripcion:
+        return redirect(url_for("panel.plan"))
     negocio = db.session.get(Negocio, pago.reserva.negocio_id)
     return redirect(url_for(
         "publico.reserva_confirmacion", slug=negocio.slug, codigo=pago.reserva.codigo
