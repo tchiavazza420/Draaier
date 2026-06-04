@@ -99,7 +99,13 @@ class BaseConfig:
     WHATSAPP_PHONE_ID = os.environ.get("WHATSAPP_PHONE_ID")
     WHATSAPP_API_VERSION = os.environ.get("WHATSAPP_API_VERSION", "v21.0")
 
-    # --- Uploads (logo / banner) ---
+    # --- Almacenamiento de imágenes ---
+    # Con CLOUDINARY_URL (cloudinary://api_key:api_secret@cloud_name) las
+    # imágenes se suben a Cloudinary (recomendado en producción: el disco de
+    # Render es efímero). Sin esa variable, se guardan en disco local.
+    CLOUDINARY_URL = os.environ.get("CLOUDINARY_URL")
+
+    # --- Uploads locales (fallback dev) ---
     UPLOAD_FOLDER = os.path.join(basedir, "app", "static", "uploads")
     MAX_CONTENT_LENGTH = 4 * 1024 * 1024  # 4 MB máximo por archivo
     IMAGENES_PERMITIDAS = {"png", "jpg", "jpeg", "webp", "gif"}

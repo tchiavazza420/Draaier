@@ -5,9 +5,9 @@
 {% block og_title %}{{ recurso.nombre }}{% if recurso.especialidad %} · {{ recurso.especialidad }}{% endif %}{% endblock %}
 {% block og_description %}{{ (recurso.frase or recurso.descripcion or ('Reservá tu turno con ' ~ recurso.nombre ~ ' en ' ~ negocio.nombre))|truncate(200) }}{% endblock %}
 {% block og_image %}
-  {%- if recurso.foto_filename -%}{{ url_for('static', filename=recurso.foto_filename, _external=True) }}
-  {%- elif recurso.banner_filename -%}{{ url_for('static', filename=recurso.banner_filename, _external=True) }}
-  {%- elif negocio.logo_filename -%}{{ url_for('static', filename=negocio.logo_filename, _external=True) }}
+  {%- if recurso.foto_filename -%}{{ media_url(recurso.foto_filename, external=True) }}
+  {%- elif recurso.banner_filename -%}{{ media_url(recurso.banner_filename, external=True) }}
+  {%- elif negocio.logo_filename -%}{{ media_url(negocio.logo_filename, external=True) }}
   {%- else -%}{{ url_for('static', filename='icons/icon-512.png', _external=True) }}{%- endif -%}
 {% endblock %}
 
@@ -47,7 +47,7 @@
     {# ---- Portada ---- #}
     {% if recurso.portada_visible and recurso.banner_filename %}
       <div class="pb-portada pb-efecto-{{ recurso.estilo('portada_efecto') }} fade-in">
-        <div class="pb-portada-img" style="background-image:url('{{ url_for('static', filename=recurso.banner_filename) }}')"></div>
+        <div class="pb-portada-img" style="background-image:url('{{ media_url(recurso.banner_filename) }}')"></div>
       </div>
       {% set avatar_mt = '-66px' if recurso.avatar_tamano != 'pequeno' else '-50px' %}
     {% else %}
@@ -57,7 +57,7 @@
     {# ---- Avatar ---- #}
     <div class="text-center" style="margin-top:{{ avatar_mt }}">
       {% if recurso.foto_filename %}
-        <img src="{{ url_for('static', filename=recurso.foto_filename) }}" alt="{{ recurso.nombre }}"
+        <img src="{{ media_url(recurso.foto_filename) }}" alt="{{ recurso.nombre }}"
              class="pb-avatar pb-avatar-{{ recurso.avatar_tamano or 'grande' }} pop-in">
       {% else %}
         <div class="pb-avatar pb-avatar-{{ recurso.avatar_tamano or 'grande' }} mx-auto pop-in">{{ recurso.nombre[:1]|upper }}</div>
@@ -136,7 +136,7 @@
       <h2 class="h6 mt-4 mb-2" style="color:var(--titulos)">Galería</h2>
       <div class="pb-galeria">
         {% for foto in galeria %}
-          <img src="{{ url_for('static', filename=foto.filename) }}" alt="" loading="lazy">
+          <img src="{{ media_url(foto.filename) }}" alt="" loading="lazy">
         {% endfor %}
       </div>
     {% endif %}

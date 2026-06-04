@@ -85,6 +85,24 @@ dominio `agenpro.com.ar` en Brevo (te da unos registros DNS: SPF, DKIM y
 DMARC para agregar en tu DNS). Sin esto, Brevo rechaza o los correos caen en
 spam. Es la causa #1 de que "no lleguen los mails".
 
+## 2.c) Imágenes (Cloudinary)
+
+⚠️ **El disco de Render es efímero**: los logos, fotos de profesionales y la
+galería **se pierden en cada deploy** si se guardan en disco. Por eso, en
+producción usá **Cloudinary** (plan gratis alcanza para arrancar).
+
+### Variable
+```
+CLOUDINARY_URL=cloudinary://<api_key>:<api_secret>@<cloud_name>
+```
+La encontrás en el **Dashboard de Cloudinary** (Account Details → API
+Environment variable). Con esa variable, cada imagen subida se comprime a WebP
+y se sube a Cloudinary; se guarda la URL en la base. **Sin** la variable, las
+imágenes se guardan en disco local (solo para desarrollo).
+
+> Ya está integrado: no hay que tocar código, solo cargar `CLOUDINARY_URL` en
+> Render. Las imágenes nuevas van a Cloudinary automáticamente.
+
 ## 3) Recordatorios automáticos
 
 **Estado: listo.** La lógica de recordatorios (reservas del día siguiente) y de

@@ -1,32 +1,34 @@
 """
 app/uploads.py
 --------------
-Helper de subida de imágenes (logo / banner / foto de profesional / galería).
+Subida de imágenes (logo / banner / foto de profesional / galería).
 
-Guarda los archivos en static/uploads/<negocio_id>/ con un nombre único.
-Antes de guardar, **comprime y redimensiona** con Pillow y los convierte a
-WebP (mucho más liviano), respetando la orientación EXIF y la transparencia.
-Devuelve la ruta relativa para guardar en la base. Valida extensión.
+Pipeline:
+  1. Validar extensión y abrir con Pillow (respeta EXIF, tolera truncadas).
+  2. Redimensionar al lado máximo del uso y comprimir a WebP.
+  3. Guardar en el backend:
+       - Cloudinary  (si CLOUDINARY_URL está configurado) → devuelve la URL.
+       - Disco local (fallback dev) → static/uploads/<negocio_id>/...
+         (⚠️ en Render el disco es efímero: usar Cloudinary en producción).
+
+`media_url(valor)` resuelve el valor guardado a una URL usable tanto si es una
+URL absoluta (Cloudinary) como una ruta relativa de /static (local).
 """
 
 import os
 import uuid
+from io import BytesIO
 
-from flask import current_app
+from flask import current_app, url_for
 from PIL import Image, ImageOps, ImageFile
 
-# Tolera imágenes levemente truncadas (subidas interrumpidas / archivos
-# minimalistas) en vez de fallar; igual validamos que sea una imagen.
+# Tolera imágenes levemente truncadas en vez de fallar.
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-# Lado máximo (px) del lado más largo, según el uso. El resto se reescala
-# proporcionalmente. Default si el prefijo no está en el mapa.
+# Lado máximo (px) del lado más largo, según el uso.
 _MAX_LADO = {
-    "logo": 512,
-    "profesional": 800,
-    "portada": 1600,
-    "banner": 1600,
-    "galeria": 1400,
+    "logo": 512, "profesional": 800, "portada": 1600,
+    "banner": 1600, "galeria": 1400,
 }
 _MAX_DEFAULT = 1280
 _CALIDAD_WEBP = 82
@@ -39,39 +41,77 @@ def _extension_ok(filename):
     return ext in current_app.config["IMAGENES_PERMITIDAS"]
 
 
+def _cloudinary_activo():
+    return bool(current_app.config.get("CLOUDINARY_URL"))
+
+
+def _procesar_a_webp(file_storage, prefijo):
+    """Abre, reorienta, redimensiona y comprime la imagen; devuelve bytes WebP."""
+    try:
+        img = Image.open(file_storage.stream)
+        img = ImageOps.exif_transpose(img)
+    except Exception:
+        raise ValueError("No pudimos leer la imagen. Probá con otro archivo.")
+
+    img = img.convert("RGBA") if img.mode in ("RGBA", "LA", "P") else img.convert("RGB")
+    img.thumbnail((_MAX_LADO.get(prefijo, _MAX_DEFAULT),) * 2, Image.LANCZOS)
+
+    buf = BytesIO()
+    img.save(buf, "WEBP", quality=_CALIDAD_WEBP, method=6)
+    buf.seek(0)
+    return buf
+
+
+def _guardar_local(buf, negocio_id, prefijo):
+    nombre = f"{prefijo}-{uuid.uuid4().hex[:8]}.webp"
+    carpeta = os.path.join(current_app.config["UPLOAD_FOLDER"], str(negocio_id))
+    os.makedirs(carpeta, exist_ok=True)
+    with open(os.path.join(carpeta, nombre), "wb") as f:
+        f.write(buf.getbuffer())
+    return f"uploads/{negocio_id}/{nombre}"
+
+
+def _guardar_cloudinary(buf, negocio_id, prefijo):
+    import cloudinary
+    import cloudinary.uploader
+    cloudinary.config(cloudinary_url=current_app.config["CLOUDINARY_URL"])
+    res = cloudinary.uploader.upload(
+        buf,
+        folder=f"agenpro/{negocio_id}",
+        public_id=f"{prefijo}-{uuid.uuid4().hex[:8]}",
+        resource_type="image",
+        format="webp",
+        overwrite=True,
+    )
+    return res["secure_url"]
+
+
 def guardar_imagen(file_storage, negocio_id, prefijo):
     """
-    Procesa y guarda una imagen subida; devuelve su ruta relativa dentro de
-    /static (ej: 'uploads/3/profesional-ab12.webp'), o None si no se subió
-    archivo. Lanza ValueError si el formato es inválido o el archivo no es
-    una imagen legible.
+    Procesa y guarda una imagen subida. Devuelve el valor a persistir (URL de
+    Cloudinary o ruta relativa local), o None si no se subió archivo. Lanza
+    ValueError si el formato es inválido o el archivo no es una imagen.
     """
     if not file_storage or not file_storage.filename:
         return None
     if not _extension_ok(file_storage.filename):
         raise ValueError("Formato de imagen no permitido (usá png, jpg, webp o gif).")
 
-    try:
-        img = Image.open(file_storage.stream)
-        img = ImageOps.exif_transpose(img)  # respeta la orientación de la cámara
-    except Exception:
-        raise ValueError("No pudimos leer la imagen. Probá con otro archivo.")
+    buf = _procesar_a_webp(file_storage, prefijo)
+    if _cloudinary_activo():
+        return _guardar_cloudinary(buf, negocio_id, prefijo)
+    return _guardar_local(buf, negocio_id, prefijo)
 
-    # Transparencia: si la tiene, la conservamos (RGBA); si no, RGB.
-    if img.mode in ("RGBA", "LA", "P"):
-        img = img.convert("RGBA")
-    else:
-        img = img.convert("RGB")
 
-    # Redimensionado proporcional al lado máximo del uso.
-    max_lado = _MAX_LADO.get(prefijo, _MAX_DEFAULT)
-    img.thumbnail((max_lado, max_lado), Image.LANCZOS)
-
-    nombre = f"{prefijo}-{uuid.uuid4().hex[:8]}.webp"
-    carpeta = os.path.join(current_app.config["UPLOAD_FOLDER"], str(negocio_id))
-    os.makedirs(carpeta, exist_ok=True)
-    destino = os.path.join(carpeta, nombre)
-    img.save(destino, "WEBP", quality=_CALIDAD_WEBP, method=6)
-
-    # Ruta relativa a /static para url_for('static', filename=...).
-    return f"uploads/{negocio_id}/{nombre}"
+def media_url(valor, external=False):
+    """
+    URL usable para un valor guardado de imagen:
+      - URL absoluta (Cloudinary) → se usa tal cual.
+      - Ruta relativa (local) → url_for('static', filename=..., _external=external).
+    `external=True` para URLs absolutas (Open Graph, emails).
+    """
+    if not valor:
+        return ""
+    if valor.startswith("http://") or valor.startswith("https://"):
+        return valor
+    return url_for("static", filename=valor, _external=external)

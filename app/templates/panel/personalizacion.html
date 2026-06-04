@@ -34,13 +34,13 @@
           <div class="col-md-6">
             {{ render_field(form.logo) }}
             {% if negocio.logo_filename %}
-              <img src="{{ url_for('static', filename=negocio.logo_filename) }}" style="height:48px;border-radius:8px" class="mb-2">
+              <img src="{{ media_url(negocio.logo_filename) }}" style="height:48px;border-radius:8px" class="mb-2">
             {% endif %}
           </div>
           <div class="col-md-6">
             {{ render_field(form.banner) }}
             {% if negocio.banner_filename %}
-              <img src="{{ url_for('static', filename=negocio.banner_filename) }}" style="height:48px;border-radius:8px" class="mb-2">
+              <img src="{{ media_url(negocio.banner_filename) }}" style="height:48px;border-radius:8px" class="mb-2">
             {% endif %}
           </div>
         </div>

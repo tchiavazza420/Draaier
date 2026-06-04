@@ -11,8 +11,8 @@
 {% block meta_description %}{{ (negocio.descripcion_publica or (negocio.nombre ~ ' — Reservá tu turno online. ' ~ negocio.rubro.value.replace('_',' ').title() ~ (' en ' ~ negocio.ciudad if negocio.ciudad else '')))|truncate(160) }}{% endblock %}
 {% block og_description %}{{ (negocio.descripcion_publica or ('Reservá tu turno online en ' ~ negocio.nombre ~ '.'))|truncate(200) }}{% endblock %}
 {% block og_image %}
-  {%- if negocio.banner_filename -%}{{ url_for('static', filename=negocio.banner_filename, _external=True) }}
-  {%- elif negocio.logo_filename -%}{{ url_for('static', filename=negocio.logo_filename, _external=True) }}
+  {%- if negocio.banner_filename -%}{{ media_url(negocio.banner_filename, external=True) }}
+  {%- elif negocio.logo_filename -%}{{ media_url(negocio.logo_filename, external=True) }}
   {%- else -%}{{ url_for('static', filename='icons/icon-512.png', _external=True) }}{%- endif -%}
 {% endblock %}
 
@@ -41,14 +41,14 @@
 <div class="tema-{{ negocio.template_publico.value }}">
   <div class="d-flex align-items-center gap-3 mb-3">
     {% if negocio.logo_filename %}
-      <img src="{{ url_for('static', filename=negocio.logo_filename) }}"
+      <img src="{{ media_url(negocio.logo_filename) }}"
            alt="{{ negocio.nombre }}" style="height:54px;width:54px;object-fit:cover;border-radius:12px">
     {% endif %}
   </div>
 
   {% if negocio.banner_filename %}
     <div class="rounded mb-4"
-         style="height:180px;background:url('{{ url_for('static', filename=negocio.banner_filename) }}') center/cover;"></div>
+         style="height:180px;background:url('{{ media_url(negocio.banner_filename) }}') center/cover;"></div>
   {% endif %}
 
   {% block publico %}{% endblock %}

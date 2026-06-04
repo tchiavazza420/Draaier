@@ -47,6 +47,10 @@ def create_app(config_class=None):
     # 6) Manejadores de error amigables (402/403/404/500).
     register_error_handlers(app)
 
+    # 6b) Helper de URL de imágenes (Cloudinary o /static) para las plantillas.
+    from app.uploads import media_url
+    app.jinja_env.globals["media_url"] = media_url
+
     # 7) Celery (tareas async/programadas). Importar el módulo de tareas
     #    registra las shared_task con la instancia por defecto.
     #    OJO: usar 'from app import tasks' (NO 'import app.tasks'): esto último

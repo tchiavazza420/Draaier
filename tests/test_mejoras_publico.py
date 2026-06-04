@@ -80,6 +80,17 @@ def test_guardar_imagen_comprime_y_redimensiona(app):
                     pass
 
 
+def test_media_url_resuelve_cloudinary_o_local(app):
+    """media_url usa la URL tal cual si es absoluta (Cloudinary); si no, /static."""
+    with app.test_request_context():
+        from app.uploads import media_url
+        assert media_url("https://res.cloudinary.com/x/y.webp") == "https://res.cloudinary.com/x/y.webp"
+        assert media_url("uploads/1/foto.webp").endswith("/static/uploads/1/foto.webp")
+        assert media_url("") == ""
+        # external=True devuelve absoluta para OG/emails.
+        assert media_url("uploads/1/f.webp", external=True).startswith("http")
+
+
 def test_guardar_imagen_rechaza_no_imagen(app):
     with app.app_context():
         from app.uploads import guardar_imagen
