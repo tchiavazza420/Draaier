@@ -75,6 +75,11 @@ class BaseConfig:
     # URL base pública del sitio (para back_urls y webhooks de Mercado Pago).
     SITE_URL = os.environ.get("SITE_URL", "http://127.0.0.1:5000")
 
+    # Versión de assets para cache-busting del CSS/JS. Bumpear (o setear por
+    # env) en cada cambio visual fuerza a bajar el CSS fresco aunque haya un
+    # service worker viejo cacheando la URL anterior.
+    ASSET_VERSION = os.environ.get("ASSET_VERSION", "7")
+
     # Token secreto para el endpoint de tareas programadas (/tareas/correr).
     # Lo usa un cron externo (cron-job.org / GitHub Actions) para disparar los
     # recordatorios y el vencimiento de suscripciones en plan free (sin worker).
