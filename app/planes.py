@@ -60,6 +60,7 @@ PLANES = {
         "features": [
             "1 profesional (vos)", "Todo lo de Pro",
             "500 mensajes de WhatsApp/mes",
+            "Página sin marca AgenPro (white-label)",
             "Aparición destacada en el Marketplace", "Reseñas y reputación",
             "Soporte prioritario",
         ],
@@ -90,6 +91,7 @@ PLANES = {
             "$25.000 por cada profesional adicional",
             "Todo lo de Starter",
             "300 mensajes de WhatsApp por profesional/mes",
+            "Página sin marca AgenPro (white-label)",
             "Marketplace destacado", "Personalización avanzada",
         ],
         "no": [],

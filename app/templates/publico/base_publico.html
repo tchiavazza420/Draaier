@@ -3,6 +3,9 @@
    definen el bloque `publico` en lugar de `content`. #}
 {% extends "base.html" %}
 
+{# White-label (Premium/Business): página pública sin la barra de AgenPro #}
+{% block navbar %}{% if not negocio.puede_white_label %}{{ super() }}{% endif %}{% endblock %}
+
 {# --- SEO / Open Graph propios del negocio --- #}
 {% block og_title %}{{ negocio.nombre }}{% endblock %}
 {% block meta_description %}{{ (negocio.descripcion_publica or (negocio.nombre ~ ' — Reservá tu turno online. ' ~ negocio.rubro.value.replace('_',' ').title() ~ (' en ' ~ negocio.ciudad if negocio.ciudad else '')))|truncate(160) }}{% endblock %}

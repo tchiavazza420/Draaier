@@ -40,6 +40,7 @@
 </head>
 <body class="bg-light {% if current_user.is_authenticated and not current_user.es_super_admin and current_user.negocio %}con-bottomnav{% endif %}">
 
+  {% block navbar %}
   <nav class="navbar navbar-dark bg-dark sticky-top">
     <div class="container">
       <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{{ url_for('main.index') }}">
@@ -109,6 +110,7 @@
       </div>
     </div>
   </nav>
+  {% endblock %}
 
   <main class="container py-4">
     <!-- Mensajes flash -->

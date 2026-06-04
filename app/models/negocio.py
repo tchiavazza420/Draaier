@@ -195,5 +195,13 @@ class Negocio(TimestampMixin, db.Model):
             return False
         return not self.esta_vencido
 
+    @property
+    def puede_white_label(self):
+        """
+        Páginas públicas sin la marca AgenPro (navbar oculto). Beneficio de los
+        planes tope: Premium (Independiente) y Business (Locales).
+        """
+        return self.plan in (PlanEnum.PREMIUM, PlanEnum.BUSINESS)
+
     def __repr__(self):
         return f"<Negocio {self.id} {self.slug!r}>"
