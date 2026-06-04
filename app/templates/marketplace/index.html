@@ -29,24 +29,41 @@
 </form>
 
 {% if resultados %}
-  <div class="row g-3">
+  <div class="row g-3 stagger">
     {% for item in resultados %}
-      <div class="col-md-4">
-        <a class="text-decoration-none text-reset" href="{{ url_for('publico.perfil_negocio', slug=item.negocio.slug) }}">
-          <div class="card h-100 shadow-sm">
-            <div class="card-body">
-              <div class="d-flex justify-content-between align-items-start">
-                <h2 class="h5 mb-1">{{ item.negocio.nombre }}</h2>
-                {% if item.rating %}
-                  <span class="badge bg-warning text-dark">★ {{ item.rating }}</span>
-                {% endif %}
-              </div>
-              <p class="text-muted mb-0">
-                {{ item.negocio.rubro.value.replace('_',' ').title() }}
-                {% if item.negocio.ciudad %}· {{ item.negocio.ciudad }}{% endif %}
-              </p>
-              {% if item.cantidad %}<small class="text-muted">{{ item.cantidad }} reseña(s)</small>{% endif %}
+      {% set n = item.negocio %}
+      {% set acc = n.color_primario %}
+      <div class="col-12 col-sm-6 col-lg-4">
+        <a class="card h-100 shadow-sm text-decoration-none lift overflow-hidden"
+           href="{{ url_for('publico.perfil_negocio', slug=n.slug) }}">
+          <!-- Cabecera: banner o degradado de marca -->
+          {% if n.banner_filename %}
+            <div style="height:96px;background:url('{{ media_url(n.banner_filename) }}') center/cover"></div>
+          {% else %}
+            <div style="height:96px;background:linear-gradient(135deg, {{ acc }}, {{ acc }}99)"></div>
+          {% endif %}
+          <div class="card-body" style="margin-top:-30px">
+            <div class="d-flex align-items-end justify-content-between mb-2">
+              {% if n.logo_filename %}
+                <img src="{{ media_url(n.logo_filename) }}" alt="{{ n.nombre }}"
+                     style="width:54px;height:54px;border-radius:14px;object-fit:cover;border:3px solid var(--bs-body-bg);box-shadow:0 4px 12px rgba(0,0,0,.15)">
+              {% else %}
+                <div class="d-flex align-items-center justify-content-center fw-bold text-white"
+                     style="width:54px;height:54px;border-radius:14px;background:{{ acc }};border:3px solid var(--bs-body-bg)">
+                  {{ n.nombre[:1]|upper }}
+                </div>
+              {% endif %}
+              {% if item.rating %}
+                <span class="badge text-dark" style="background:#ffe08a">★ {{ item.rating }}
+                  {% if item.cantidad %}<span class="fw-normal">({{ item.cantidad }})</span>{% endif %}
+                </span>
+              {% endif %}
             </div>
+            <h2 class="h5 mb-1 text-body">{{ n.nombre }}</h2>
+            <p class="text-muted small mb-2">
+              {{ n.rubro.value.replace('_',' ').title() }}{% if n.ciudad %} · 📍 {{ n.ciudad }}{% endif %}
+            </p>
+            <span class="btn btn-sm btn-primary w-100">Ver y reservar →</span>
           </div>
         </a>
       </div>

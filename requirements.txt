@@ -29,6 +29,7 @@ python-dotenv==1.0.1         # carga de variables desde .env
 
 # ===== Imágenes (compresión/redimensionado de uploads) =====
 Pillow==12.2.0
+cloudinary==1.44.2            # almacenamiento de imágenes en producción (disco efímero)
 
 # ===== Servidor de producción =====
 gunicorn==23.0.0             # WSGI server (Linux/Docker)

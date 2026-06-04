@@ -8,7 +8,7 @@ por tenant funcionan, mostrando los datos del negocio del usuario logueado.
 Se irá ampliando con reservas, recursos, agenda, etc.
 """
 
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
@@ -51,6 +51,9 @@ def dashboard():
     # --- Onboarding: primeros pasos para dejar el salón listo ---
     onboarding = _estado_onboarding(negocio)
 
+    # --- Métricas del día ---
+    hoy_metricas = _metricas_del_dia(negocio)
+
     return render_template(
         "panel/dashboard.html",
         negocio=negocio,
@@ -58,7 +61,34 @@ def dashboard():
         wa=wa, wa_renueva=wa_renueva,
         plan_vence=negocio.vencimiento,
         onboarding=onboarding,
+        hoy=hoy_metricas,
     )
+
+
+def _metricas_del_dia(negocio):
+    """Turnos de hoy, ingresos del día y próximos turnos del negocio."""
+    from datetime import date, time as _time
+    from app.models.reserva import Reserva, EstadoReservaEnum
+
+    ini = datetime.combine(date.today(), _time.min)
+    fin = ini + timedelta(days=1)
+    ahora = datetime.now()
+
+    del_dia = (
+        Reserva.query.filter_by(negocio_id=negocio.id)
+        .filter(Reserva.inicio >= ini, Reserva.inicio < fin)
+        .filter(Reserva.estado.in_([
+            EstadoReservaEnum.CONFIRMADO, EstadoReservaEnum.FINALIZADO,
+        ]))
+        .order_by(Reserva.inicio).all()
+    )
+    ingresos = sum((r.precio or 0) for r in del_dia)
+    proximos = [r for r in del_dia if r.fin >= ahora][:4]
+    return {
+        "cantidad": len(del_dia),
+        "ingresos": ingresos,
+        "proximos": proximos,
+    }
 
 
 def _estado_onboarding(negocio):

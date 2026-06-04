@@ -33,8 +33,8 @@
   'tiktok': (R.tiktok if R and R.tiktok else ''),
   'pinterest': (R.pinterest if R and R.pinterest else ''),
   'facebook': (R.facebook if R and R.facebook else ''),
-  'fotoPreview': (url_for('static', filename=R.foto_filename) if R and R.foto_filename else ''),
-  'bannerPreview': (url_for('static', filename=R.banner_filename) if R and R.banner_filename else '')
+  'fotoPreview': (media_url(R.foto_filename) if R and R.foto_filename else ''),
+  'bannerPreview': (media_url(R.banner_filename) if R and R.banner_filename else '')
 } %}
 
 {% block content %}
