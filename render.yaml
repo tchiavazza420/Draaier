@@ -65,11 +65,12 @@ services:
     plan: starter
     schedule: "0 11 * * *"
     buildCommand: "echo sin build"
+    # timeout alto: una corrida con muchos envíos (email/WhatsApp) puede tardar.
     startCommand: >-
       python -c "import os,urllib.request as u;
       req=u.Request(os.environ['SITE_URL'].rstrip('/')+'/tareas/correr?dias=1',
       method='POST', headers={'X-Cron-Token':os.environ['CRON_TOKEN']});
-      print(u.urlopen(req, timeout=120).read().decode())"
+      print(u.urlopen(req, timeout=300).read().decode())"
     envVars:
       - key: SITE_URL
         value: https://www.agenpro.com.ar
