@@ -96,7 +96,7 @@ class BaseConfig:
     # Versión de assets para cache-busting del CSS/JS. Bumpear (o setear por
     # env) en cada cambio visual fuerza a bajar el CSS fresco aunque haya un
     # service worker viejo cacheando la URL anterior.
-    ASSET_VERSION = os.environ.get("ASSET_VERSION", "11")
+    ASSET_VERSION = os.environ.get("ASSET_VERSION", "12")
 
     # Token secreto para el endpoint de tareas programadas (/tareas/correr).
     # Lo usa un cron externo (cron-job.org / GitHub Actions) para disparar los
@@ -121,6 +121,11 @@ class BaseConfig:
     WHATSAPP_TOKEN = os.environ.get("WHATSAPP_TOKEN")
     WHATSAPP_PHONE_ID = os.environ.get("WHATSAPP_PHONE_ID")
     WHATSAPP_API_VERSION = os.environ.get("WHATSAPP_API_VERSION", "v21.0")
+    # Plantilla aprobada por Meta para recordatorios proactivos (fuera de la
+    # ventana de 24 h). Si está seteada, los recordatorios se envían como
+    # template (3 variables: nombre, servicio, fecha/hora). Si no, texto plano.
+    WHATSAPP_TEMPLATE_RECORDATORIO = os.environ.get("WHATSAPP_TEMPLATE_RECORDATORIO")
+    WHATSAPP_TEMPLATE_IDIOMA = os.environ.get("WHATSAPP_TEMPLATE_IDIOMA", "es_AR")
 
     # --- Almacenamiento de imágenes ---
     # Con CLOUDINARY_URL (cloudinary://api_key:api_secret@cloud_name) las

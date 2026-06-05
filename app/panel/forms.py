@@ -7,8 +7,10 @@ La personalización visual (logo, colores, etc.) se agrega en el Paso 12.
 
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
-from wtforms import StringField, BooleanField, SelectField, SubmitField, TextAreaField
-from wtforms.validators import DataRequired, Length, Optional, Email, Regexp
+from wtforms import (
+    StringField, BooleanField, SelectField, SubmitField, TextAreaField, IntegerField,
+)
+from wtforms.validators import DataRequired, Length, Optional, Email, Regexp, NumberRange
 
 from app.models.negocio import RUBROS_BELLEZA, TemplatePublicoEnum
 
@@ -28,6 +30,12 @@ class NegocioConfigForm(FlaskForm):
                                       validators=[Optional(), Length(max=120)])
     titular_transferencia = StringField("Titular de la cuenta",
                                         validators=[Optional(), Length(max=120)])
+    cancelacion_horas = IntegerField(
+        "Horas mínimas para cancelar/reprogramar online",
+        validators=[Optional(), NumberRange(min=0, max=720)])
+    reembolso_sena_horas = IntegerField(
+        "Horas mínimas para devolver la seña al cancelar",
+        validators=[Optional(), NumberRange(min=0, max=720)])
     submit = SubmitField("Guardar cambios")
 
     def __init__(self, *args, **kwargs):

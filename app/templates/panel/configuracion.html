@@ -71,6 +71,16 @@
           </small>
         </div>
 
+        <h2 class="h6 text-uppercase text-muted mt-4">🕒 Cancelación y reprogramación</h2>
+        <p class="small text-muted mb-2">
+          Hasta cuántas horas antes del turno el cliente puede cancelar o reprogramar online,
+          y hasta cuántas horas antes le devolvés la seña. Dejá en blanco para no permitir online.
+        </p>
+        <div class="row">
+          <div class="col-md-6">{{ render_field(form.cancelacion_horas, placeholder="Ej: 24") }}</div>
+          <div class="col-md-6">{{ render_field(form.reembolso_sena_horas, placeholder="Ej: 24") }}</div>
+        </div>
+
         {{ form.submit(class="btn btn-primary") }}
       </form>
     </div></div>

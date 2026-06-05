@@ -29,6 +29,12 @@ def notificar_reserva(reserva_id, tipo, url_pago=None):
         service._enviar_recordatorio(reserva)
     elif tipo == "negocio_nueva":
         service._avisar_negocio_nueva(reserva)
+    elif tipo == "reprogramada":
+        service._enviar_reprogramada(reserva)
+    elif tipo == "cancelada":
+        service._enviar_cancelada(reserva, reembolsada=False)
+    elif tipo == "cancelada_reembolso":
+        service._enviar_cancelada(reserva, reembolsada=True)
 
 
 @shared_task(name="tareas.recordatorios")

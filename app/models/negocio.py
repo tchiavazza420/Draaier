@@ -130,6 +130,13 @@ class Negocio(TimestampMixin, db.Model):
     # --- Marketplace ---
     visible_marketplace = db.Column(db.Boolean, nullable=False, default=False)
 
+    # --- Política de cancelación / reprogramación ---
+    # Horas mínimas antes del turno para que el CLIENTE pueda cancelar o
+    # reprogramar online (0 = en cualquier momento; None = no permitido).
+    cancelacion_horas = db.Column(db.Integer, nullable=True, default=24)
+    # Horas mínimas antes del turno para que la seña se devuelva al cancelar.
+    reembolso_sena_horas = db.Column(db.Integer, nullable=True, default=24)
+
     # --- Mensajes automáticos (qué notificaciones se envían y por qué canal) ---
     notif_confirmacion = db.Column(db.Boolean, nullable=False, default=True)
     notif_recordatorio = db.Column(db.Boolean, nullable=False, default=True)

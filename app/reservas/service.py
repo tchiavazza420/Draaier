@@ -179,6 +179,92 @@ def cambiar_estado(reserva, nuevo_estado):
     return reserva
 
 
+# ----------------------------------------------------------------------
+#  Reprogramación
+# ----------------------------------------------------------------------
+def reprogramar_reserva(reserva, nuevo_inicio):
+    """
+    Mueve la reserva a `nuevo_inicio` validando disponibilidad real del recurso
+    (excluyéndose a sí misma). Mantiene el estado. Lanza ReservaError si el
+    nuevo horario no está disponible o el estado no permite reprogramar.
+    """
+    if reserva.estado not in (EstadoReservaEnum.PENDIENTE_PAGO,
+                              EstadoReservaEnum.CONFIRMADO):
+        raise ReservaError("Esta reserva no se puede reprogramar.")
+
+    servicio = reserva.servicio
+    recurso = reserva.recurso
+    fin = nuevo_inicio + timedelta(minutes=servicio.duracion_minutos)
+
+    db.session.execute(
+        text("SELECT pg_advisory_xact_lock(:k)"), {"k": int(recurso.id)}
+    )
+    ocupados = reservas_ocupadas(recurso.id, nuevo_inicio.date(), excluir_id=reserva.id)
+    slots = calcular_slots(
+        recurso, nuevo_inicio.date(), servicio.duracion_minutos, ocupados=ocupados
+    )
+    if nuevo_inicio not in {s[0] for s in slots}:
+        raise ReservaError("Ese horario no está disponible. Probá con otro.")
+
+    reserva.inicio = nuevo_inicio
+    reserva.fin = fin
+    # Al reprogramar, se vuelve a pedir confirmación de asistencia.
+    reserva.asistencia_confirmada = False
+    db.session.commit()
+    return reserva
+
+
+# ----------------------------------------------------------------------
+#  Cancelación (con política de reembolso de seña)
+# ----------------------------------------------------------------------
+def horas_hasta(reserva, ahora=None):
+    """Horas (float) que faltan para el inicio del turno (hora local naive)."""
+    ahora = ahora or datetime.now()
+    return (reserva.inicio - ahora).total_seconds() / 3600.0
+
+
+def dentro_de_plazo(reserva, horas, ahora=None):
+    """
+    True si todavía falta al menos `horas` para el turno (permite la acción).
+    `horas` None => no permitido; 0 => permitido siempre que no haya empezado.
+    """
+    if horas is None:
+        return False
+    return horas_hasta(reserva, ahora) >= horas
+
+
+def cliente_puede_gestionar(reserva, negocio, ahora=None):
+    """¿El cliente puede cancelar/reprogramar online según la política?"""
+    if reserva.estado not in (EstadoReservaEnum.PENDIENTE_PAGO,
+                              EstadoReservaEnum.CONFIRMADO):
+        return False
+    return dentro_de_plazo(reserva, negocio.cancelacion_horas, ahora)
+
+
+def cancelar_reserva(reserva, negocio=None, por_cliente=False, ahora=None):
+    """
+    Cancela la reserva (estado CANCELADO) y, si corresponde por la política de
+    reembolso del negocio, marca la seña pagada como REEMBOLSADA.
+    Devuelve (reserva, reembolsada: bool).
+    """
+    from app.models.pago import Pago, PagoEstadoEnum
+    if reserva.estado in (EstadoReservaEnum.CANCELADO, EstadoReservaEnum.FINALIZADO,
+                          EstadoReservaEnum.AUSENTE, EstadoReservaEnum.REPROGRAMADO):
+        raise ReservaError("Esta reserva no se puede cancelar.")
+
+    reembolsada = False
+    if negocio is not None and dentro_de_plazo(reserva, negocio.reembolso_sena_horas, ahora):
+        senas = [p for p in reserva.pagos
+                 if p.es_sena and p.estado == PagoEstadoEnum.APROBADO]
+        for p in senas:
+            p.estado = PagoEstadoEnum.REEMBOLSADO
+            reembolsada = True
+
+    reserva.estado = EstadoReservaEnum.CANCELADO
+    db.session.commit()
+    return reserva, reembolsada
+
+
 def _generar_codigo():
     """Código corto y único para referencia pública de la reserva."""
     for _ in range(10):

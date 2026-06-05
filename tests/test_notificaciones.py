@@ -93,6 +93,25 @@ def test_push_suscribir_guarda_suscripcion(client, crear_negocio, login, monkeyp
     assert guardada.usuario_id == dueno.id
 
 
+def test_recordatorio_usa_plantilla_wa_si_esta_configurada(
+        app, crear_negocio, crear_recurso, crear_servicio, proximo_lunes):
+    """Con WHATSAPP_TEMPLATE_RECORDATORIO seteado, el recordatorio sale como template."""
+    neg, _ = crear_negocio()
+    rec = crear_recurso(neg)
+    serv = crear_servicio(neg, rec)
+    r = _reserva(neg, rec, serv, proximo_lunes)
+
+    app.config["WHATSAPP_TEMPLATE_RECORDATORIO"] = "recordatorio_turno"
+    try:
+        BANDEJA_WA.clear()
+        _enviar_recordatorio(r)
+    finally:
+        app.config["WHATSAPP_TEMPLATE_RECORDATORIO"] = None
+
+    assert len(BANDEJA_WA) == 1
+    assert "template:recordatorio_turno" in BANDEJA_WA[-1]["body"]
+
+
 def test_sin_telefono_no_manda_whatsapp(crear_negocio, crear_recurso, crear_servicio, proximo_lunes):
     neg, _ = crear_negocio()
     rec = crear_recurso(neg)

@@ -189,6 +189,31 @@ def cobrar_saldo(reserva_id):
     return redirect(url_for("reservas.detalle", reserva_id=reserva.id))
 
 
+@reservas_bp.route("/<int:reserva_id>/reprogramar", methods=["POST"])
+@login_required
+@rol_required(*_ROLES_PANEL)
+@negocio_operativo_required
+def reprogramar(reserva_id):
+    """El profesional mueve el turno a un nuevo horario desde el detalle."""
+    from datetime import datetime as _dt
+    from app.reservas.service import reprogramar_reserva
+    reserva = obtener_tenant_o_404(Reserva, _neg(), reserva_id)
+    try:
+        nuevo = _dt.strptime(request.form.get("inicio", ""), "%Y-%m-%dT%H:%M")
+    except (ValueError, TypeError):
+        flash("Horario inválido.", "danger")
+        return redirect(url_for("reservas.detalle", reserva_id=reserva.id))
+    try:
+        reprogramar_reserva(reserva, nuevo)
+    except ReservaError as exc:
+        flash(str(exc), "warning")
+        return redirect(url_for("reservas.detalle", reserva_id=reserva.id))
+    from app.notificaciones.service import notificar_reserva_reprogramada
+    notificar_reserva_reprogramada(reserva)
+    flash(f"Turno reprogramado para {nuevo.strftime('%d/%m %H:%M')}.", "success")
+    return redirect(url_for("reservas.detalle", reserva_id=reserva.id))
+
+
 @reservas_bp.route("/<int:reserva_id>/estado", methods=["POST"])
 @login_required
 @rol_required(*_ROLES_PANEL)

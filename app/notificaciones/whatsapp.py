@@ -55,3 +55,40 @@ def enviar_whatsapp(telefono, texto):
     resp = requests.post(url, json=body, headers=headers, timeout=TIMEOUT)
     resp.raise_for_status()
     return True
+
+
+def enviar_whatsapp_template(telefono, template_name, parametros, idioma=None):
+    """
+    Envía un mensaje de PLANTILLA aprobada por Meta (para mensajes proactivos
+    fuera de la ventana de 24 h). `parametros` son las variables del cuerpo
+    (en orden). Si no hay credenciales, va a la bandeja de desarrollo.
+    """
+    numero = _normalizar(telefono)
+    if not numero:
+        return False
+    cfg = current_app.config
+    idioma = idioma or cfg.get("WHATSAPP_TEMPLATE_IDIOMA", "es_AR")
+
+    if not esta_configurado():
+        BANDEJA_WA.append({"to": numero, "body": f"[template:{template_name}] {parametros}"})
+        current_app.logger.info("[WHATSAPP-DEV] Template %s para %s", template_name, numero)
+        return True
+
+    url = f"https://graph.facebook.com/{cfg['WHATSAPP_API_VERSION']}/{cfg['WHATSAPP_PHONE_ID']}/messages"
+    headers = {"Authorization": f"Bearer {cfg['WHATSAPP_TOKEN']}", "Content-Type": "application/json"}
+    body = {
+        "messaging_product": "whatsapp",
+        "to": numero,
+        "type": "template",
+        "template": {
+            "name": template_name,
+            "language": {"code": idioma},
+            "components": [{
+                "type": "body",
+                "parameters": [{"type": "text", "text": str(p)} for p in parametros],
+            }],
+        },
+    }
+    resp = requests.post(url, json=body, headers=headers, timeout=TIMEOUT)
+    resp.raise_for_status()
+    return True

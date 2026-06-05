@@ -70,6 +70,24 @@
           </div>
         {% endif %}
 
+        {% if reserva.asistencia_confirmada %}
+          <p class="small text-success mt-3 mb-0">✓ Confirmaste tu asistencia. ¡Te esperamos!</p>
+        {% endif %}
+
+        {% if puede_gestionar %}
+          <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
+            <a class="btn btn-outline-secondary btn-sm"
+               href="{{ url_for('publico.reserva_reprogramar', slug=negocio.slug, codigo=reserva.codigo) }}">
+              📅 Reprogramar
+            </a>
+            <form method="post" action="{{ url_for('publico.reserva_cancelar', slug=negocio.slug, codigo=reserva.codigo) }}"
+                  onsubmit="return confirm('¿Seguro que querés cancelar este turno?')">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-outline-danger btn-sm" type="submit">✖ Cancelar turno</button>
+            </form>
+          </div>
+        {% endif %}
+
         {% if puede_resenar %}
           <a class="btn btn-warning mt-3"
              href="{{ url_for('publico.reserva_resena', slug=negocio.slug, codigo=reserva.codigo) }}">

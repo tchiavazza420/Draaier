@@ -158,13 +158,22 @@
       </div></div>
     {% endif %}
 
-    {# ---- Galería del negocio ---- #}
+    {# ---- Galería del negocio (con lightbox) ---- #}
     {% if galeria %}
       <h2 class="h6 mt-4 mb-2" style="color:var(--titulos)">Galería</h2>
-      <div class="pb-galeria">
+      <div class="pb-galeria" x-data="{ abierta:false, src:'' }">
         {% for foto in galeria %}
-          <img src="{{ media_url(foto.filename) }}" alt="" loading="lazy">
+          <img src="{{ media_url(foto.filename) }}" alt="" loading="lazy"
+               style="cursor:zoom-in"
+               @click="src='{{ media_url(foto.filename) }}'; abierta=true">
         {% endfor %}
+
+        {# Overlay lightbox #}
+        <div x-show="abierta" x-cloak @click="abierta=false" @keydown.escape.window="abierta=false"
+             class="pb-lightbox" x-transition.opacity>
+          <button type="button" class="pb-lightbox-x" @click.stop="abierta=false" aria-label="Cerrar">✕</button>
+          <img :src="src" alt="" @click.stop>
+        </div>
       </div>
     {% endif %}
 

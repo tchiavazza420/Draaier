@@ -1,0 +1,11 @@
+{% extends "emails/_base_email.html" %}
+{% from "emails/_detalle.html" import detalle_reserva %}
+{% block cuerpo %}
+  <h2 style="margin-top:0">Se canceló un turno ❌</h2>
+  <p>{{ reserva.cliente.nombre }} canceló su turno de
+     <strong>{{ reserva.servicio.nombre }}</strong>. El horario quedó libre.</p>
+  {{ detalle_reserva(reserva) }}
+  {% if reembolsada %}
+    <p style="color:#b45309">Corresponde devolver la seña al cliente (estaba dentro del plazo).</p>
+  {% endif %}
+{% endblock %}

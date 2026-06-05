@@ -24,9 +24,11 @@ from app.tenant import cargar_negocio_por_slug
 from app.models.recurso import Recurso
 from app.models.servicio import Servicio
 from app.models.reserva import Reserva, EstadoReservaEnum
-from app.disponibilidad.service import calcular_slots_servicio
+from app.disponibilidad.service import calcular_slots_servicio, calcular_slots
 from app.reservas.service import (
     crear_reserva, obtener_o_crear_cliente, ocupados_por_servicio, ReservaError,
+    reprogramar_reserva, cancelar_reserva, cliente_puede_gestionar,
+    reservas_ocupadas,
 )
 
 publico_bp = Blueprint("publico", __name__)
@@ -267,7 +269,112 @@ def reserva_confirmacion(slug, codigo):
         "publico/reserva_ok.html",
         negocio=negocio, reserva=reserva, puede_resenar=puede_resenar(reserva),
         gcal_url=gcal_url, wa_url=wa_url, transferencia=transferencia,
+        puede_gestionar=cliente_puede_gestionar(reserva, negocio),
     )
+
+
+# ----------------------------------------------------------------------
+#  Gestión del turno por el cliente: reprogramar / cancelar
+# ----------------------------------------------------------------------
+def _reserva_o_404(negocio, codigo):
+    reserva = Reserva.query.filter_by(negocio_id=negocio.id, codigo=codigo).first()
+    if reserva is None:
+        abort(404)
+    return reserva
+
+
+@publico_bp.route("/<slug>/reserva/<codigo>/reprogramar")
+def reserva_reprogramar(slug, codigo):
+    """Página para que el cliente elija un nuevo horario (mismo profesional)."""
+    negocio = cargar_negocio_por_slug(slug)
+    reserva = _reserva_o_404(negocio, codigo)
+    if not cliente_puede_gestionar(reserva, negocio):
+        flash("Este turno ya no se puede reprogramar online. Contactá al negocio.", "warning")
+        return redirect(url_for("publico.reserva_confirmacion", slug=slug, codigo=codigo))
+    return render_template(
+        "publico/reprogramar.html",
+        negocio=negocio, reserva=reserva, hoy=date.today().isoformat(),
+    )
+
+
+@publico_bp.route("/<slug>/reserva/<codigo>/reprogramar/slots")
+def reserva_reprogramar_slots(slug, codigo):
+    """HTMX: horarios disponibles del MISMO recurso para reprogramar."""
+    negocio = cargar_negocio_por_slug(slug)
+    reserva = _reserva_o_404(negocio, codigo)
+    fecha, slots, error = None, [], None
+    try:
+        f = request.args.get("fecha", type=str)
+        fecha = datetime.strptime(f, "%Y-%m-%d").date() if f else None
+    except ValueError:
+        error = "Fecha inválida."
+    if fecha and not error:
+        ahora = datetime.now() if fecha == date.today() else None
+        ocupados = reservas_ocupadas(reserva.recurso_id, fecha, excluir_id=reserva.id)
+        slots = calcular_slots(
+            reserva.recurso, fecha, reserva.servicio.duracion_minutos,
+            ocupados=ocupados, ahora=ahora,
+        )
+    return render_template(
+        "publico/_slots_reprogramar.html",
+        negocio=negocio, reserva=reserva, fecha=fecha, slots=slots, error=error,
+    )
+
+
+@publico_bp.route("/<slug>/reserva/<codigo>/reprogramar", methods=["POST"])
+def reserva_reprogramar_post(slug, codigo):
+    negocio = cargar_negocio_por_slug(slug)
+    reserva = _reserva_o_404(negocio, codigo)
+    if not cliente_puede_gestionar(reserva, negocio):
+        flash("Este turno ya no se puede reprogramar online.", "warning")
+        return redirect(url_for("publico.reserva_confirmacion", slug=slug, codigo=codigo))
+    try:
+        nuevo = datetime.strptime(request.form.get("inicio", ""), "%Y-%m-%dT%H:%M")
+    except (ValueError, TypeError):
+        flash("Horario inválido.", "danger")
+        return redirect(url_for("publico.reserva_reprogramar", slug=slug, codigo=codigo))
+    try:
+        reprogramar_reserva(reserva, nuevo)
+    except ReservaError as exc:
+        flash(str(exc), "warning")
+        return redirect(url_for("publico.reserva_reprogramar", slug=slug, codigo=codigo))
+    from app.notificaciones.service import notificar_reserva_reprogramada
+    notificar_reserva_reprogramada(reserva)
+    flash("¡Listo! Reprogramamos tu turno. 📅", "success")
+    return redirect(url_for("publico.reserva_confirmacion", slug=slug, codigo=codigo))
+
+
+@publico_bp.route("/<slug>/reserva/<codigo>/cancelar", methods=["POST"])
+def reserva_cancelar(slug, codigo):
+    negocio = cargar_negocio_por_slug(slug)
+    reserva = _reserva_o_404(negocio, codigo)
+    if not cliente_puede_gestionar(reserva, negocio):
+        flash("Este turno ya no se puede cancelar online. Contactá al negocio.", "warning")
+        return redirect(url_for("publico.reserva_confirmacion", slug=slug, codigo=codigo))
+    try:
+        _, reembolsada = cancelar_reserva(reserva, negocio, por_cliente=True)
+    except ReservaError as exc:
+        flash(str(exc), "warning")
+        return redirect(url_for("publico.reserva_confirmacion", slug=slug, codigo=codigo))
+    from app.notificaciones.service import notificar_reserva_cancelada
+    notificar_reserva_cancelada(reserva, reembolsada=reembolsada)
+    if reembolsada:
+        flash("Cancelaste tu turno. Te vamos a devolver la seña. 💸", "info")
+    else:
+        flash("Cancelaste tu turno.", "info")
+    return redirect(url_for("publico.reserva_confirmacion", slug=slug, codigo=codigo))
+
+
+@publico_bp.route("/<slug>/reserva/<codigo>/asistir", methods=["GET", "POST"])
+def reserva_confirmar_asistencia(slug, codigo):
+    """El cliente confirma asistencia desde el recordatorio (link directo)."""
+    negocio = cargar_negocio_por_slug(slug)
+    reserva = _reserva_o_404(negocio, codigo)
+    if reserva.estado in (EstadoReservaEnum.CONFIRMADO, EstadoReservaEnum.PENDIENTE_PAGO):
+        reserva.asistencia_confirmada = True
+        db.session.commit()
+        flash("¡Gracias! Confirmaste tu asistencia. ✅", "success")
+    return redirect(url_for("publico.reserva_confirmacion", slug=slug, codigo=codigo))
 
 
 @publico_bp.route("/<slug>/reserva/<codigo>/resena", methods=["GET", "POST"])

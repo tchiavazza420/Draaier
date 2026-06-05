@@ -80,6 +80,9 @@ class Reserva(TenantMixin, TimestampMixin, db.Model):
     # True cuando ya se le pidió la reseña al cliente (evita repetir el envío).
     resena_pedida = db.Column(db.Boolean, nullable=False, default=False)
 
+    # True cuando el cliente confirmó que va a asistir (desde el recordatorio).
+    asistencia_confirmada = db.Column(db.Boolean, nullable=False, default=False)
+
     # --- Relaciones ---
     cliente = db.relationship("Cliente", back_populates="reservas")
     servicio = db.relationship("Servicio")
