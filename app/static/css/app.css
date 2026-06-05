@@ -471,9 +471,11 @@ h1, h2, h3, h4, h5, .fw-bold { letter-spacing: -.02em; }
   width:100%; padding:1rem 1.25rem; margin-bottom:.85rem; font-weight:700;
   text-decoration:none; cursor:pointer; border:2px solid transparent;
   transition: transform .15s ease, box-shadow .15s ease, filter .15s ease; }
+.pb-btn { transition: transform .14s cubic-bezier(.34,1.56,.64,1), box-shadow .15s ease, filter .15s ease; }
 .pb-btn:hover { transform: translateY(-2px); }
-.pb-btn:active { transform: translateY(0); }
-.pb-btn-activo { filter: brightness(.9); box-shadow: inset 0 0 0 2px rgba(0,0,0,.18) !important; }
+.pb-btn:active { transform: scale(.96); }
+.pb-btn-activo { filter: brightness(.92); transform: scale(.98);
+  box-shadow: inset 0 0 0 2px rgba(0,0,0,.18) !important; }
 /* formas */
 .pb-forma-recto   .pb-btn { border-radius: 0; }
 .pb-forma-suave   .pb-btn { border-radius: 14px; }
@@ -495,6 +497,10 @@ h1, h2, h3, h4, h5, .fw-bold { letter-spacing: -.02em; }
 /* Campanita de notificaciones */
 .notif-badge { position:absolute; top:-6px; right:-6px; font-size:.62rem; padding:.15rem .35rem; }
 .notif-pop { width: 320px; max-width: 92vw; max-height: 70vh; overflow-y: auto; }
+/* En celular el dropdown se fija al viewport para que no se corte. */
+@media (max-width: 575.98px) {
+  .notif-pop { position: fixed; left: 8px; right: 8px; top: 58px; width: auto; max-width: none; }
+}
 .notif-item { display:flex; gap:.5rem; align-items:flex-start; width:100%; text-align:left;
   background:none; border:none; padding:.5rem .5rem; border-radius:8px; cursor:pointer; }
 .notif-item:hover { background: color-mix(in srgb, var(--marca, #6d28d9) 8%, transparent); }
@@ -505,16 +511,51 @@ h1, h2, h3, h4, h5, .fw-bold { letter-spacing: -.02em; }
 .notif-msg { font-size:.78rem; color: var(--tinta-suave, #6b7280);
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-/* Eventos del calendario (FullCalendar): hora + servicio + cliente legibles */
-.fc-ag { line-height: 1.18; padding: 1px 3px; overflow: hidden; }
-.fc-ag-time { font-weight: 800; font-size: .72rem; }
-.fc-ag-serv { font-weight: 600; font-size: .74rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.fc-ag-cli  { font-size: .7rem; opacity: .92; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-/* Mes: que el evento pueda mostrar las líneas (no recortarlo a una sola). */
-.fc-daygrid-event { white-space: normal; }
+/* ============== Calendario (FullCalendar) — tema AgenPro ============== */
+.fc {
+  --fc-border-color: color-mix(in srgb, var(--tinta, #111) 10%, transparent);
+  --fc-today-bg-color: color-mix(in srgb, var(--marca, #6d28d9) 8%, transparent);
+  --fc-now-indicator-color: var(--marca, #6d28d9);
+  --fc-page-bg-color: transparent;
+  font-size: .9rem;
+}
+.fc .fc-toolbar-title { font-size: 1.05rem; font-weight: 800; letter-spacing: -.01em; }
+.fc .fc-col-header-cell-cushion { font-weight: 700; text-transform: capitalize; padding: .5rem .25rem; }
+.fc .fc-daygrid-day-number { font-weight: 600; padding: .35rem .45rem; }
+.fc .fc-day-today .fc-daygrid-day-number {
+  background: var(--marca, #6d28d9); color: #fff; border-radius: 999px;
+  width: 1.7rem; height: 1.7rem; display: inline-flex; align-items: center; justify-content: center; }
+/* Botones del header con la marca */
+.fc .fc-button-primary {
+  background: var(--marca, #6d28d9); border-color: var(--marca, #6d28d9);
+  font-weight: 600; text-transform: capitalize; box-shadow: none; }
+.fc .fc-button-primary:hover { filter: brightness(1.07); }
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active { background: var(--marca-2, #4c1d95); border-color: var(--marca-2, #4c1d95); }
+.fc .fc-button:focus { box-shadow: 0 0 0 .2rem rgba(var(--marca-rgb, 109,40,217), .3) !important; }
+
+/* Eventos: redondeados, con sombra y barra de color a la izquierda */
+.fc-event { border: none !important; border-radius: 9px; box-shadow: 0 2px 6px rgba(16,18,34,.14);
+  padding: 0; overflow: hidden; cursor: pointer; }
+.fc-event:hover { filter: brightness(1.04); }
+.fc-timegrid-event { box-shadow: inset 4px 0 0 rgba(0,0,0,.18), 0 2px 6px rgba(16,18,34,.14); }
+.fc-ag { line-height: 1.2; padding: 3px 6px; overflow: hidden; color: #fff; }
+.fc-ag-time { font-weight: 800; font-size: .74rem; opacity: .95; }
+.fc-ag-serv { font-weight: 700; font-size: .8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fc-ag-cli  { font-size: .74rem; opacity: .92; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Mes: bloques de color con texto blanco (consistente con la semana) */
+.fc-daygrid-event { white-space: normal; padding: 0; margin-top: 2px; }
 .fc-daygrid-event .fc-ag-cli { white-space: normal; }
-/* Semana/Día: un poco más de alto por franja para que entre la info. */
-.fc .fc-timegrid-slot { height: 2.3em; }
+.fc-daygrid-event .fc-ag-time { display: inline; margin-right: .25rem; }
+.fc-daygrid-event .fc-ag-serv { display: inline; }
+/* Semana/Día: franjas un poco más altas para que entre la info */
+.fc .fc-timegrid-slot { height: 2.5em; }
+.fc .fc-timegrid-now-indicator-line { border-width: 2px; }
+/* Vista lista (mobile): filas más respirables */
+.fc .fc-list-event:hover td { background: var(--fc-today-bg-color); }
+.fc .fc-list-event-dot { border-width: 6px; }
+.fc .fc-list-day-cushion { background: color-mix(in srgb, var(--marca, #6d28d9) 6%, transparent); }
+html[data-bs-theme="dark"] .fc-daygrid-event .fc-ag { color: #e5e7eb; }
 
 /* Selector de horarios (slots) */
 .slot-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(74px,1fr)); gap:.5rem; }

@@ -3,7 +3,20 @@
 {% block content %}
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
   <h1 class="h3 mb-0">Pagos (señas)</h1>
-  <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('panel.dashboard') }}">← Panel</a>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('panel.dashboard') }}">← Panel</a>
+    <a class="btn btn-primary btn-sm" href="{{ url_for('servicios.senas') }}">⚙️ Configurar señas</a>
+  </div>
+</div>
+
+<div class="alert alert-light border d-flex flex-wrap align-items-center justify-content-between gap-2">
+  <div class="small">
+    <strong>💳 Cómo cobrás las señas:</strong>
+    {% if negocio.mp_conectado %}<span class="text-success">Mercado Pago conectado</span>
+    {% elif negocio.acepta_transferencia %}<span>Transferencia (alias: {{ negocio.alias_transferencia }})</span>
+    {% else %}<span class="text-warning">Sin método configurado (modo prueba)</span>{% endif %}
+  </div>
+  <a class="btn btn-outline-primary btn-sm" href="{{ url_for('servicios.senas') }}">Cambiar / configurar</a>
 </div>
 
 <div class="row g-3 mb-4 stagger">

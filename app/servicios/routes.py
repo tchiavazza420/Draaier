@@ -127,6 +127,20 @@ def senas():
     return render_template("servicios/senas.html", servicios=servicios)
 
 
+@servicios_bp.route("/senas/cobro", methods=["POST"])
+@login_required
+@rol_required(*_ROLES_PANEL)
+@negocio_operativo_required
+def senas_cobro():
+    """Guarda el método de cobro por transferencia (alias/CBU) desde la sección de señas."""
+    neg = current_user.negocio
+    neg.alias_transferencia = (request.form.get("alias_transferencia") or "").strip() or None
+    neg.titular_transferencia = (request.form.get("titular_transferencia") or "").strip() or None
+    db.session.commit()
+    flash("Datos de cobro actualizados.", "success")
+    return redirect(url_for("servicios.senas"))
+
+
 @servicios_bp.route("/sugeridos", methods=["GET", "POST"])
 @login_required
 @rol_required(*_ROLES_PANEL)
