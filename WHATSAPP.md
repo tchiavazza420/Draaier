@@ -177,4 +177,47 @@ Mientras usás el número de prueba alcanza para probar. Para usar **tu número*
 2. Copiar **Phone number ID** y **token** de la pantalla "Configuración de la API".
 3. Cargar `WHATSAPP_TOKEN` y `WHATSAPP_PHONE_ID` en Render.
 4. Para que no venza: generar **token permanente** (usuario del sistema).
-5. Para recordatorios proactivos: crear **plantilla** y avisame para conectarla.
+5. Para recordatorios proactivos: crear **plantilla** (Parte 5, abajo).
+
+---
+
+## Parte 5 — Recordatorios con plantilla aprobada (paso a paso)
+
+Meta solo permite mensajes **proactivos** (recordatorios fuera de la ventana de
+24 h) usando una **plantilla aprobada**. El código ya está listo y espera una
+plantilla con **3 variables en este orden: nombre, servicio, fecha/hora**.
+
+### A) Crear y aprobar la plantilla en Meta
+1. **business.facebook.com** → **WhatsApp Manager** → **Plantillas de mensajes**
+   → **Crear plantilla**.
+2. **Categoría:** **Utilidad** (no Marketing).
+3. **Nombre:** minúsculas con guiones bajos, ej. `recordatorio_turno`
+   (anotalo: va tal cual en Render).
+4. **Idioma:** Español (Argentina). Anotá el código exacto (`es_AR`, a veces `es`).
+5. **Cuerpo:** pegá este texto (3 variables):
+   ```
+   Hola {{1}}, te recordamos tu turno de {{2}} el {{3}}. ¡Te esperamos!
+   ```
+   - `{{1}}` = nombre del cliente
+   - `{{2}}` = servicio
+   - `{{3}}` = fecha y hora (ej: "12/06 a las 15:30")
+6. **Ejemplos:** completá valores de muestra (Sofía / Corte de pelo / 12/06 15:30).
+7. **Enviar** → queda *En revisión*. Aprobación: de minutos a 24 h.
+
+### B) Cargar en Render
+Cuando esté **Aprobada**, en **Render → Environment**:
+```
+WHATSAPP_TEMPLATE_RECORDATORIO=recordatorio_turno
+WHATSAPP_TEMPLATE_IDIOMA=es_AR
+```
+(El nombre y el idioma deben coincidir EXACTO con la plantilla.)
+
+### C) Cómo queda
+- Los recordatorios diarios salen como **plantilla** (sirven aunque el cliente
+  no haya escrito en 24 h). Sin estas variables, se manda texto plano.
+- Probarlo: Render → cron `agenpro-recordatorios` → **Trigger Run** con un turno
+  de mañana cargado.
+
+> ⚠️ Si hacés la plantilla con otra cantidad/orden de variables, no va a
+> coincidir con lo que envía el sistema. Si querés otro texto, avisá y ajusto el
+> código para que matchee.

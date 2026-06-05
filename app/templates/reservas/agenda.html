@@ -52,13 +52,38 @@
       height: 'auto',
       expandRows: true,
       stickyHeaderDates: true,
-      dayMaxEvents: 3,
+      dayMaxEvents: 4,
       allDaySlot: false,
       slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
+      eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
       noEventsText: 'No hay turnos en este período',
       events: '{{ url_for("reservas.agenda_eventos") }}',
       eventClick: (info) => {
         if (info.event.url) { info.jsEvent.preventDefault(); window.location = info.event.url; }
+      },
+      // Render propio: hora + servicio + cliente (más legible en semana/mes).
+      eventContent: (arg) => {
+        if (arg.view.type.startsWith('list')) return;   // lista: render por defecto
+        const p = arg.event.extendedProps;
+        const wrap = document.createElement('div');
+        wrap.className = 'fc-ag';
+        if (arg.timeText) {
+          const t = document.createElement('div');
+          t.className = 'fc-ag-time';
+          t.textContent = arg.timeText;
+          wrap.appendChild(t);
+        }
+        const s = document.createElement('div');
+        s.className = 'fc-ag-serv';
+        s.textContent = p.servicio || arg.event.title;
+        wrap.appendChild(s);
+        if (p.cliente) {
+          const c = document.createElement('div');
+          c.className = 'fc-ag-cli';
+          c.textContent = p.cliente;
+          wrap.appendChild(c);
+        }
+        return { domNodes: [wrap] };
       },
       eventDidMount: (info) => {
         const e = info.event.extendedProps;

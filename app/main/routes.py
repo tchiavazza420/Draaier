@@ -114,16 +114,22 @@ def tareas_cron():
     from app.notificaciones.service import enviar_recordatorios, pedir_resenas
     from app.suscripciones import vencer_suscripciones
 
-    recordatorios_enviados = enviar_recordatorios(dias)
-    suscripciones_vencidas = vencer_suscripciones()
-    resenas_pedidas = pedir_resenas()
-    return jsonify({
-        "ok": True,
-        "recordatorios_enviados": recordatorios_enviados,
-        "suscripciones_vencidas": suscripciones_vencidas,
-        "resenas_pedidas": resenas_pedidas,
-        "dias": dias,
-    })
+    # Cada tarea se aísla: si una falla, las otras igual corren y el cron NO
+    # se marca como fallido (siempre devolvemos 200 con el detalle de errores).
+    resultado = {"ok": True, "dias": dias, "errores": []}
+
+    def _correr(nombre, fn):
+        try:
+            resultado[nombre] = fn()
+        except Exception as exc:  # noqa: BLE001
+            current_app.logger.exception("Tarea cron '%s' falló", nombre)
+            resultado[nombre] = None
+            resultado["errores"].append(f"{nombre}: {exc}")
+
+    _correr("recordatorios_enviados", lambda: enviar_recordatorios(dias))
+    _correr("suscripciones_vencidas", vencer_suscripciones)
+    _correr("resenas_pedidas", pedir_resenas)
+    return jsonify(resultado)
 
 
 @main_bp.route("/health")

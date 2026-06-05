@@ -267,8 +267,11 @@ def enviar_recordatorios(dias=1):
         # Se envía si el cliente tiene al menos un canal de contacto
         # (email o teléfono para WhatsApp); cada canal respeta sus toggles.
         if r.cliente and (r.cliente.email or r.cliente.telefono):
-            _enviar_recordatorio(r)
-            enviados += 1
+            try:
+                _enviar_recordatorio(r)
+                enviados += 1
+            except Exception:
+                current_app.logger.exception("Fallo recordatorio reserva %s", r.codigo)
     return enviados
 
 
@@ -290,8 +293,11 @@ def pedir_resenas():
     enviados = 0
     for r in pendientes:
         if r.cliente and (r.cliente.email or r.cliente.telefono):
-            _enviar_pedido_resena(r)
-            enviados += 1
+            try:
+                _enviar_pedido_resena(r)
+                enviados += 1
+            except Exception:
+                current_app.logger.exception("Fallo pedido de reseña reserva %s", r.codigo)
         r.resena_pedida = True
     db.session.commit()
     return enviados

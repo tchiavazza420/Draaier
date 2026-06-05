@@ -110,7 +110,12 @@ def agenda_eventos():
             "end": r.fin.isoformat(),
             "color": r.servicio.color,
             "url": url_for("reservas.detalle", reserva_id=r.id),
-            "extendedProps": {"recurso": r.recurso.nombre, "estado": r.estado.value},
+            "extendedProps": {
+                "recurso": r.recurso.nombre,
+                "estado": r.estado.value,
+                "servicio": r.servicio.nombre,
+                "cliente": r.cliente.nombre,
+            },
         })
     return jsonify(eventos)
 
