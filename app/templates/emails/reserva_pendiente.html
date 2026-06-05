@@ -8,5 +8,12 @@
     <p style="text-align:center;margin:24px 0">
       <a href="{{ url_pago }}" style="background:#16a34a;color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:bold">Pagar seña</a>
     </p>
+  {% elif negocio and negocio.alias_transferencia %}
+    <p style="margin:18px 0 6px">Transferí la seña a este alias para confirmar tu turno:</p>
+    <p style="font-size:18px;font-weight:bold;margin:0">{{ negocio.alias_transferencia }}</p>
+    {% if negocio.titular_transferencia %}
+      <p style="color:#6b7280;font-size:13px;margin:4px 0 0">Titular: {{ negocio.titular_transferencia }}</p>
+    {% endif %}
+    <p style="color:#6b7280;font-size:13px;margin:8px 0 0">Cuando confirmemos la transferencia, tu reserva queda confirmada.</p>
   {% endif %}
 {% endblock %}

@@ -9,8 +9,48 @@
 
 <div class="row justify-content-center">
   <div class="col-md-8">
+
+    {# --- Cobro de señas (Mercado Pago) — arriba para que se vea primero --- #}
+    <div class="card mb-3 border-info"><div class="card-body p-4">
+      <h2 class="h6 text-uppercase text-muted mb-3">💳 Cobro de señas (Mercado Pago)</h2>
+      {% if negocio.mp_conectado %}
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 border rounded p-3 bg-light">
+          <div>
+            <div class="fw-semibold text-success">✓ Mercado Pago conectado</div>
+            <small class="text-muted">Las señas se cobran directamente a tu cuenta de Mercado Pago.</small>
+          </div>
+          <form method="post" action="{{ url_for('pagos.mp_desconectar') }}"
+                onsubmit="return confirm('¿Desconectar Mercado Pago? Las señas volverán a modo de prueba.')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-outline-danger btn-sm" type="submit">Desconectar</button>
+          </form>
+        </div>
+      {% else %}
+        <p class="small text-muted mb-3">
+          Conectá tu cuenta de Mercado Pago con un clic para cobrar las señas
+          <strong>a tu cuenta</strong>. No tenés que pegar ningún token. Mientras no la conectes,
+          el cobro de seña queda en modo de prueba.
+        </p>
+        <a href="{{ url_for('pagos.mp_conectar') }}" class="btn btn-info text-white w-100 w-md-auto">
+          🔗 Conectar con Mercado Pago
+        </a>
+      {% endif %}
+
+      <hr class="my-3">
+      <h3 class="h6 mb-1">🏦 Transferencia bancaria</h3>
+      <p class="small text-muted mb-2">
+        Cargá tu <strong>alias o CBU</strong> para que los clientes puedan pagar la seña por
+        transferencia. Vos confirmás el pago desde el detalle de la reserva. Funciona en todos los planes.
+      </p>
+      <div class="row">
+        <div class="col-md-7">{{ render_field(form.alias_transferencia, placeholder="Ej: pelu.centro.mp", form="cfg-form") }}</div>
+        <div class="col-md-5">{{ render_field(form.titular_transferencia, placeholder="Nombre del titular", form="cfg-form") }}</div>
+      </div>
+      <small class="text-muted">Estos campos se guardan con el botón “Guardar cambios” de abajo.</small>
+    </div></div>
+
     <div class="card"><div class="card-body p-4">
-      <form method="post" novalidate>
+      <form method="post" novalidate id="cfg-form">
         {{ form.hidden_tag() }}
         {{ render_field(form.nombre) }}
         <div class="row">
@@ -33,32 +73,6 @@
 
         {{ form.submit(class="btn btn-primary") }}
       </form>
-
-      <hr class="my-4">
-
-      <h2 class="h6 text-uppercase text-muted">💳 Cobro de señas (Mercado Pago)</h2>
-      {% if negocio.mp_conectado %}
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 border rounded p-3 bg-light">
-          <div>
-            <div class="fw-semibold text-success">✓ Mercado Pago conectado</div>
-            <small class="text-muted">Las señas se cobran directamente a tu cuenta de Mercado Pago.</small>
-          </div>
-          <form method="post" action="{{ url_for('pagos.mp_desconectar') }}"
-                onsubmit="return confirm('¿Desconectar Mercado Pago? Las señas volverán a modo de prueba.')">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button class="btn btn-outline-danger btn-sm" type="submit">Desconectar</button>
-          </form>
-        </div>
-      {% else %}
-        <p class="small text-muted mb-2">
-          Conectá tu cuenta de Mercado Pago con un clic para cobrar las señas
-          <strong>a tu cuenta</strong>. No tenés que pegar ningún token. Mientras no la conectes,
-          el cobro de seña queda en modo de prueba.
-        </p>
-        <a href="{{ url_for('pagos.mp_conectar') }}" class="btn btn-info text-white">
-          🔗 Conectar con Mercado Pago
-        </a>
-      {% endif %}
     </div></div>
   </div>
 </div>

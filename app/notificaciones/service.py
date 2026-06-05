@@ -84,6 +84,46 @@ def _enviar_pendiente(reserva, url_pago=None):
     _wa(reserva, neg, msg)
 
 
+def _avisar_negocio_nueva(reserva):
+    """
+    Avisa al NEGOCIO/profesional que entró un turno nuevo desde la página
+    pública: email al negocio + WhatsApp (si tiene número y hay saldo) + push.
+    No depende de los toggles de notificación al cliente.
+    """
+    neg = _negocio(reserva)
+    if neg is None:
+        return
+
+    # 1) Email al negocio (siempre que tenga email).
+    try:
+        enviar_email(neg.email,
+                     f"Nuevo turno · {reserva.servicio.nombre} ({reserva.inicio.strftime('%d/%m %H:%M')})",
+                     "negocio_nueva_reserva", reserva=reserva, negocio=neg)
+    except Exception:
+        current_app.logger.exception("Fallo email aviso negocio")
+
+    # 2) WhatsApp al negocio (a SU número), si está configurado y hay saldo.
+    if neg.whatsapp and _wa_configurado():
+        try:
+            from app.whatsapp_creditos import consumir as _consumir_wa
+            if _consumir_wa(neg):
+                enviar_whatsapp(
+                    neg.whatsapp,
+                    f"📅 Nuevo turno: {_detalle(reserva)}. Cliente: {reserva.cliente.nombre}"
+                    + (f" ({reserva.cliente.telefono})" if reserva.cliente.telefono else ""))
+        except Exception:
+            current_app.logger.exception("Fallo WhatsApp aviso negocio")
+
+    # 3) Push al panel (si hay VAPID configurado y suscripciones).
+    try:
+        from app.notificaciones import push
+        push.enviar_a_negocio(
+            neg.id, "Nuevo turno 📅",
+            f"{reserva.cliente.nombre} · {_detalle(reserva)}", url="/panel")
+    except Exception:
+        current_app.logger.exception("Fallo push aviso negocio")
+
+
 def _enviar_pedido_resena(reserva):
     """Pide una reseña al cliente tras un turno finalizado (email + WhatsApp)."""
     from flask import url_for
@@ -124,6 +164,12 @@ def notificar_reserva_pendiente(reserva, url_pago=None):
 def notificar_recordatorio(reserva):
     from app.tasks import notificar_reserva
     notificar_reserva.delay(reserva.id, "recordatorio")
+
+
+def notificar_negocio_nueva_reserva(reserva):
+    """Avisa al negocio que entró un turno nuevo (email + WhatsApp + push)."""
+    from app.tasks import notificar_reserva
+    notificar_reserva.delay(reserva.id, "negocio_nueva")
 
 
 # ----------------------------------------------------------------------

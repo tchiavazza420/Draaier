@@ -40,6 +40,27 @@
           </li>
         </ul>
 
+        {% if transferencia %}
+          <div class="alert alert-info text-start mt-3 mb-0">
+            <div class="fw-semibold mb-2">💸 Pagá la seña por transferencia</div>
+            <p class="small mb-2">Transferí <strong>${{ '%.2f'|format(transferencia.monto) }}</strong> a este alias para confirmar tu turno:</p>
+            <div class="d-flex align-items-center justify-content-between bg-white border rounded px-3 py-2">
+              <code class="fs-6" id="alias-transf">{{ negocio.alias_transferencia }}</code>
+              <button type="button" class="btn btn-sm btn-outline-secondary"
+                      onclick="navigator.clipboard && navigator.clipboard.writeText('{{ negocio.alias_transferencia }}'); this.textContent='✓ Copiado'">
+                Copiar
+              </button>
+            </div>
+            {% if negocio.titular_transferencia %}
+              <p class="small text-muted mt-2 mb-0">Titular: {{ negocio.titular_transferencia }}</p>
+            {% endif %}
+            <p class="small text-muted mt-2 mb-0">
+              Cuando {{ negocio.nombre }} confirme la transferencia, tu reserva queda confirmada.
+              {% if negocio.whatsapp %}Podés enviar el comprobante por WhatsApp.{% endif %}
+            </p>
+          </div>
+        {% endif %}
+
         {% if reserva.estado.value != 'pendiente_pago' %}
           <p class="text-muted small mt-3 mb-2">Te enviamos la confirmación por email y WhatsApp 📩</p>
           <div class="d-grid gap-2" style="max-width:320px;margin:0 auto">

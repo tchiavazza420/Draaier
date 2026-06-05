@@ -1,0 +1,13 @@
+{% extends "emails/_base_email.html" %}
+{% from "emails/_detalle.html" import detalle_reserva %}
+{% block cuerpo %}
+  <h2 style="margin-top:0">Tenés un turno nuevo 📅</h2>
+  <p>{{ reserva.cliente.nombre }} reservó
+     <strong>{{ reserva.servicio.nombre }}</strong>
+     con {{ reserva.recurso.nombre }}.</p>
+  {{ detalle_reserva(reserva) }}
+  {% if reserva.cliente.telefono %}
+    <p style="color:#6b7280;font-size:13px">📞 {{ reserva.cliente.telefono }}</p>
+  {% endif %}
+  <p style="color:#6b7280;font-size:13px">Entrá al panel de AgenPro para ver el detalle.</p>
+{% endblock %}

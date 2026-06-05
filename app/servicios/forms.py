@@ -11,7 +11,7 @@ arbitrarios enviados por el cliente.
 from flask_wtf import FlaskForm
 from wtforms import (
     StringField, TextAreaField, IntegerField, DecimalField,
-    SelectMultipleField, BooleanField, SubmitField,
+    SelectMultipleField, BooleanField, SubmitField, RadioField,
 )
 from wtforms.validators import (
     DataRequired, Length, NumberRange, Optional, Regexp, ValidationError,
@@ -48,10 +48,19 @@ class ServicioForm(FlaskForm):
         validators=[Optional()],
     )
     requiere_sena = BooleanField("Requiere seña para reservar", default=False)
+    sena_tipo = RadioField(
+        "Tipo de seña",
+        choices=[("monto", "Monto fijo ($)"), ("porcentaje", "Porcentaje del precio (%)")],
+        default="monto",
+    )
     sena_monto = DecimalField(
         "Monto de la seña",
         places=2,
         validators=[Optional(), NumberRange(min=0)],
+    )
+    sena_porcentaje = IntegerField(
+        "Porcentaje de la seña",
+        validators=[Optional(), NumberRange(min=1, max=100)],
     )
     descripcion = TextAreaField(
         "Descripción",
@@ -61,8 +70,14 @@ class ServicioForm(FlaskForm):
     submit = SubmitField("Guardar")
 
     def validate_sena_monto(self, field):
-        if self.requiere_sena.data and not field.data:
+        if (self.requiere_sena.data and self.sena_tipo.data == "monto"
+                and not field.data):
             raise ValidationError("Indicá el monto de la seña o desactivá la opción.")
+
+    def validate_sena_porcentaje(self, field):
+        if (self.requiere_sena.data and self.sena_tipo.data == "porcentaje"
+                and not field.data):
+            raise ValidationError("Indicá el porcentaje de la seña o desactivá la opción.")
 
     def __init__(self, recursos_disponibles=None, *args, **kwargs):
         """`recursos_disponibles`: lista de Recurso del negocio (define opciones)."""

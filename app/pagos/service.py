@@ -88,7 +88,7 @@ def iniciar_pago_sena(reserva, servicio):
     Cobra con Mercado Pago (Checkout Pro). Si no hay credenciales configuradas,
     cae a checkout simulado (desarrollo).
     """
-    monto = servicio.sena_monto or Decimal("0")
+    monto = servicio.sena_calculada or Decimal("0")
     if monto <= 0:
         raise PagoError("El servicio no tiene un monto de seña válido.")
 
@@ -124,6 +124,29 @@ def iniciar_pago_sena(reserva, servicio):
 
     db.session.commit()
     return pago, url
+
+
+def iniciar_pago_transferencia(reserva, servicio):
+    """
+    Crea un Pago de seña por TRANSFERENCIA (pendiente). El cliente transfiere
+    al alias del negocio; el negocio confirma el pago a mano desde el panel.
+    Devuelve el pago.
+    """
+    monto = servicio.sena_calculada or Decimal("0")
+    if monto <= 0:
+        raise PagoError("El servicio no tiene un monto de seña válido.")
+
+    pago = Pago(
+        negocio_id=reserva.negocio_id,
+        reserva_id=reserva.id,
+        monto=monto,
+        estado=PagoEstadoEnum.PENDIENTE,
+        proveedor=ProveedorPagoEnum.TRANSFERENCIA,
+        es_sena=True,
+    )
+    db.session.add(pago)
+    db.session.commit()
+    return pago
 
 
 def iniciar_pago_plan(negocio, plan_key, precio):
@@ -222,8 +245,11 @@ def procesar_notificacion_mp(payment_id, token=None):
         ya_confirmada = pago.estado == PagoEstadoEnum.APROBADO
         aprobar_pago(pago, external_id=payment_id)
         if not ya_confirmada and pago.reserva is not None:
-            from app.notificaciones.service import notificar_reserva_confirmada
+            from app.notificaciones.service import (
+                notificar_reserva_confirmada, notificar_negocio_nueva_reserva,
+            )
             notificar_reserva_confirmada(pago.reserva)
+            notificar_negocio_nueva_reserva(pago.reserva)
     elif estado_mp in ("rejected", "cancelled"):
         rechazar_pago(pago, external_id=payment_id)
     return pago

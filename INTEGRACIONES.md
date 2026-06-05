@@ -69,6 +69,19 @@ Cómo dar de alta la app (una sola vez):
 3. Copiá **App ID** → `MP_CLIENT_ID` y **Client Secret** → `MP_CLIENT_SECRET`.
 4. Listo: cada negocio ve el botón “Conectar con Mercado Pago” en Configuración.
 
+### 2.3) Señas por transferencia (alias/CBU) — todos los planes
+Si el negocio **no** usa Mercado Pago, puede cobrar la seña por **transferencia**:
+en *Configuración* carga su **alias o CBU** (y titular). En la reserva pública,
+el cliente ve el alias y transfiere; el negocio **confirma el pago a mano** desde
+el detalle de la reserva (botón "✓ Confirmar seña recibida"). No requiere
+credenciales ni configuración extra. Si el negocio tiene MP conectado, se usa MP;
+si no, y hay alias, se usa transferencia.
+
+### 2.4) Monto o porcentaje de la seña (por servicio)
+La seña se define **en cada servicio** (Servicios → editar): se elige
+**Monto fijo ($)** o **Porcentaje del precio (%)**. El porcentaje se calcula
+sobre el precio del servicio al momento de reservar.
+
 Notas técnicas:
 - Guardamos `access_token`, `refresh_token`, `user_id`, `public_key` y la
   expiración por negocio; el token se **refresca solo** cuando vence.
@@ -77,6 +90,39 @@ Notas técnicas:
 - `auto_return` exige `back_urls` en **https** → ya lo cubre `SITE_URL`. En local
   (http) o si el negocio **no conectó** su cuenta, la seña cae a un **checkout
   simulado** interno (útil para desarrollo / probar sin cobrar).
+
+---
+
+## 2.5) Notificaciones push (PWA) + aviso de turno nuevo al negocio
+
+Cuando un cliente reserva desde la página pública, **al negocio le llega un
+aviso de "turno nuevo"** por:
+- **Email** (a `negocio.email`) — siempre.
+- **WhatsApp** (al número del negocio) — si WhatsApp está configurado y hay saldo.
+- **Push** en el celular/navegador — si el dueño instaló la PWA y aceptó las
+  notificaciones, y hay claves VAPID cargadas.
+
+Para reservas con **seña**, el aviso se manda cuando se **aprueba el pago**.
+
+### Activar el push (Web Push / VAPID)
+Generá **una vez** el par de claves VAPID y cargalas en Render:
+```
+VAPID_PUBLIC_KEY=<clave pública>
+VAPID_PRIVATE_KEY=<clave privada>
+VAPID_CLAIM_EMAIL=mailto:soporte@agenpro.com.ar
+```
+Cómo generarlas (con el venv del proyecto):
+```
+python -c "from py_vapid import Vapid01; v=Vapid01(); v.generate_keys(); import base64; \
+print('PUBLIC =', base64.urlsafe_b64encode(v.public_key.public_bytes(__import__('cryptography').hazmat.primitives.serialization.Encoding.X962, __import__('cryptography').hazmat.primitives.serialization.PublicFormat.UncompressedPoint)).rstrip(b'=').decode()); \
+print('PRIVATE=', base64.urlsafe_b64encode(v.private_key.private_numbers().private_value.to_bytes(32,'big')).rstrip(b'=').decode())"
+```
+> Más simple: `pip install py-vapid` ya trae el comando `vapid --gen` / `vapid --applicationServerKey`. La **public key** es la que el front usa como
+> `applicationServerKey`; ya la inyectamos sola en el panel desde
+> `VAPID_PUBLIC_KEY`.
+
+Sin claves VAPID, el push queda deshabilitado (el email y el WhatsApp al negocio
+siguen funcionando). El push **requiere HTTPS** (en producción ya lo tenés).
 
 ---
 

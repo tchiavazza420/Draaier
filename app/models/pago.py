@@ -32,6 +32,7 @@ class ProveedorPagoEnum(enum.Enum):
     MERCADOPAGO = "mercadopago"
     SIMULADO = "simulado"   # checkout interno de desarrollo (sin credenciales)
     MANUAL = "manual"       # registrado a mano por el negocio (efectivo, etc.)
+    TRANSFERENCIA = "transferencia"  # el cliente transfiere a un alias/CBU
 
 
 class Pago(TenantMixin, TimestampMixin, db.Model):

@@ -10,6 +10,7 @@ from app.notificaciones.email import BANDEJA_DEV
 from app.notificaciones.whatsapp import BANDEJA_WA
 from app.notificaciones.service import (
     notificar_reserva_confirmada, _enviar_recordatorio,
+    _avisar_negocio_nueva,
 )
 
 
@@ -55,6 +56,41 @@ def test_toggles_apagan_envios(crear_negocio, crear_recurso, crear_servicio, pro
     BANDEJA_DEV.clear(); BANDEJA_WA.clear()
     notificar_reserva_confirmada(r)
     assert len(BANDEJA_DEV) == 1 and len(BANDEJA_WA) == 0   # solo email
+
+
+def test_aviso_al_negocio_por_turno_nuevo(crear_negocio, crear_recurso, crear_servicio, proximo_lunes):
+    """Cuando entra un turno, el NEGOCIO recibe un email de aviso (a su email)."""
+    neg, _ = crear_negocio(email="local@test.com")
+    rec = crear_recurso(neg)
+    serv = crear_servicio(neg, rec)
+    r = _reserva(neg, rec, serv, proximo_lunes)
+
+    BANDEJA_DEV.clear()
+    _avisar_negocio_nueva(r)
+
+    assert len(BANDEJA_DEV) == 1
+    aviso = BANDEJA_DEV[-1]
+    assert aviso["to"] == "local@test.com"
+    assert "nuevo turno" in aviso["subject"].lower()
+
+
+def test_push_suscribir_guarda_suscripcion(client, crear_negocio, login, monkeypatch):
+    """El endpoint de suscripción push guarda la suscripción del navegador."""
+    from app.notificaciones import push
+    from app.models.push import PushSubscription
+    neg, dueno = crear_negocio()
+    login(dueno.email)
+    monkeypatch.setattr(push, "esta_configurado", lambda: True)
+
+    sub = {"endpoint": "https://push.example/abc",
+           "keys": {"p256dh": "clave-p", "auth": "clave-a"}}
+    r = client.post("/panel/push/suscribir", json=sub)
+    assert r.status_code == 200 and r.get_json()["ok"] is True
+
+    guardada = PushSubscription.query.filter_by(negocio_id=neg.id).first()
+    assert guardada is not None
+    assert guardada.endpoint == "https://push.example/abc"
+    assert guardada.usuario_id == dueno.id
 
 
 def test_sin_telefono_no_manda_whatsapp(crear_negocio, crear_recurso, crear_servicio, proximo_lunes):

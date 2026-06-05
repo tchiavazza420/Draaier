@@ -119,19 +119,50 @@ def agenda_eventos():
 @login_required
 @rol_required(*_ROLES_PANEL)
 def detalle(reserva_id):
-    from app.models.pago import PagoEstadoEnum
+    from app.models.pago import PagoEstadoEnum, ProveedorPagoEnum
     reserva = obtener_tenant_o_404(Reserva, _neg(), reserva_id)
     aprobados = [p for p in reserva.pagos if p.estado == PagoEstadoEnum.APROBADO]
     pagado = sum((p.monto or 0) for p in aprobados)
+    # Seña por transferencia esperando que el negocio la confirme.
+    transf_pendiente = next(
+        (p for p in reserva.pagos
+         if p.proveedor == ProveedorPagoEnum.TRANSFERENCIA
+         and p.estado == PagoEstadoEnum.PENDIENTE),
+        None,
+    )
     pago = {
         "pagado": pagado,
         "saldo": max((reserva.precio or 0) - pagado, 0),
         "tiene_sena": any(p.es_sena for p in aprobados),
         "aprobados": aprobados,
+        "transferencia_pendiente": transf_pendiente,
     }
     return render_template(
         "reservas/detalle.html", reserva=reserva, estados=EstadoReservaEnum, pago=pago,
     )
+
+
+@reservas_bp.route("/<int:reserva_id>/confirmar-sena", methods=["POST"])
+@login_required
+@rol_required(*_ROLES_PANEL)
+@negocio_operativo_required
+def confirmar_sena(reserva_id):
+    """Confirma la seña recibida por transferencia: aprueba el pago y confirma la reserva."""
+    from app.models.pago import PagoEstadoEnum, ProveedorPagoEnum
+    from app.pagos.service import aprobar_pago
+    reserva = obtener_tenant_o_404(Reserva, _neg(), reserva_id)
+    pago = next(
+        (p for p in reserva.pagos
+         if p.proveedor == ProveedorPagoEnum.TRANSFERENCIA
+         and p.estado == PagoEstadoEnum.PENDIENTE),
+        None,
+    )
+    if pago is None:
+        flash("No hay una seña por transferencia pendiente.", "info")
+        return redirect(url_for("reservas.detalle", reserva_id=reserva.id))
+    aprobar_pago(pago)  # marca aprobado y pasa la reserva PENDIENTE_PAGO -> CONFIRMADO
+    flash("Seña confirmada. La reserva quedó confirmada. ✅", "success")
+    return redirect(url_for("reservas.detalle", reserva_id=reserva.id))
 
 
 @reservas_bp.route("/<int:reserva_id>/cobrar-saldo", methods=["POST"])

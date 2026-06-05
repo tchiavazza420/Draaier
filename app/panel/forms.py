@@ -24,6 +24,10 @@ class NegocioConfigForm(FlaskForm):
     telefono = StringField("Teléfono", validators=[Optional(), Length(max=40)])
     email = StringField("Email de contacto", validators=[DataRequired(), Email(), Length(max=120)])
     visible_marketplace = BooleanField("Aparecer en el Marketplace público")
+    alias_transferencia = StringField("Alias o CBU para transferencias",
+                                      validators=[Optional(), Length(max=120)])
+    titular_transferencia = StringField("Titular de la cuenta",
+                                        validators=[Optional(), Length(max=120)])
     submit = SubmitField("Guardar cambios")
 
     def __init__(self, *args, **kwargs):

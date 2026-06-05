@@ -59,10 +59,13 @@ class Servicio(TenantMixin, TimestampMixin, db.Model):
     color = db.Column(db.String(7), nullable=False, default="#3b82f6")
 
     # --- Seña (pago anticipado para confirmar la reserva) ---
-    # Si requiere_sena es True y sena_monto > 0, la reserva pública nace
+    # Si requiere_sena es True y la seña efectiva > 0, la reserva pública nace
     # PENDIENTE_PAGO y se confirma al acreditarse el pago de la seña.
+    # La seña puede ser un MONTO fijo (sena_monto) o un PORCENTAJE del precio
+    # (sena_porcentaje). Si hay porcentaje, tiene prioridad sobre el monto.
     requiere_sena = db.Column(db.Boolean, nullable=False, default=False)
     sena_monto = db.Column(db.Numeric(10, 2), nullable=True)
+    sena_porcentaje = db.Column(db.Integer, nullable=True)  # 1..100
 
     activo = db.Column(db.Boolean, nullable=False, default=True)
 
@@ -79,6 +82,21 @@ class Servicio(TenantMixin, TimestampMixin, db.Model):
         db.CheckConstraint("duracion_minutos >= 1", name="ck_servicio_duracion_min"),
         db.CheckConstraint("precio >= 0", name="ck_servicio_precio_no_negativo"),
     )
+
+    @property
+    def sena_calculada(self):
+        """
+        Monto efectivo de la seña (Decimal). Si hay porcentaje, lo aplica sobre
+        el precio; si no, usa el monto fijo. Devuelve Decimal('0') si no aplica.
+        """
+        from decimal import Decimal, ROUND_HALF_UP
+        if not self.requiere_sena:
+            return Decimal("0")
+        if self.sena_porcentaje:
+            base = self.precio or Decimal("0")
+            monto = (Decimal(base) * Decimal(self.sena_porcentaje) / Decimal(100))
+            return monto.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        return Decimal(self.sena_monto) if self.sena_monto else Decimal("0")
 
     @property
     def duracion_legible(self):

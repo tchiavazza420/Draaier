@@ -98,6 +98,16 @@
   <div class="col-lg-5">
     <div class="card mb-3"><div class="card-body">
       <h2 class="h6 text-muted mb-2">💰 Cobros</h2>
+      {% if pago.transferencia_pendiente %}
+        <div class="alert alert-warning border-0 py-2 small">
+          ⏳ Seña por <strong>transferencia</strong> pendiente de confirmar
+          (${{ '%g'|format(pago.transferencia_pendiente.monto) }}).
+        </div>
+        <form method="post" action="{{ url_for('reservas.confirmar_sena', reserva_id=reserva.id) }}" class="mb-3">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-success w-100">✓ Confirmar seña recibida</button>
+        </form>
+      {% endif %}
       <ul class="list-unstyled mb-2">
         <li class="d-flex justify-content-between py-1 border-bottom">
           <span class="text-muted">Precio</span><strong>${{ '%g'|format(reserva.precio) }}</strong></li>
