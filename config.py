@@ -86,10 +86,17 @@ class BaseConfig:
     # URL base pública del sitio (para back_urls y webhooks de Mercado Pago).
     SITE_URL = os.environ.get("SITE_URL", "http://127.0.0.1:5000")
 
+    # --- Notificaciones push (Web Push / VAPID) ---
+    # Generá el par de claves una vez (ver INTEGRACIONES.md) y cargalas en
+    # Render. Sin claves, las suscripciones push quedan deshabilitadas.
+    VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY")
+    VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY")
+    VAPID_CLAIM_EMAIL = os.environ.get("VAPID_CLAIM_EMAIL", "mailto:soporte@agenpro.com.ar")
+
     # Versión de assets para cache-busting del CSS/JS. Bumpear (o setear por
     # env) en cada cambio visual fuerza a bajar el CSS fresco aunque haya un
     # service worker viejo cacheando la URL anterior.
-    ASSET_VERSION = os.environ.get("ASSET_VERSION", "10")
+    ASSET_VERSION = os.environ.get("ASSET_VERSION", "11")
 
     # Token secreto para el endpoint de tareas programadas (/tareas/correr).
     # Lo usa un cron externo (cron-job.org / GitHub Actions) para disparar los

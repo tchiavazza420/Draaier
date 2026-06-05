@@ -37,12 +37,32 @@
             </small>
           </div>
 
-          <div class="border rounded p-3 mb-3 bg-light">
-            {{ render_checkbox(form.requiere_sena) }}
-            {{ render_field(form.sena_monto, placeholder="Ej: 2000.00") }}
+          <div class="border rounded p-3 mb-3 bg-light"
+               x-data="{ pide: {{ 'true' if form.requiere_sena.data else 'false' }}, tipo: '{{ form.sena_tipo.data or 'monto' }}' }">
+            <div class="form-check mb-2">
+              {{ form.requiere_sena(class="form-check-input", x_model="pide") }}
+              {{ form.requiere_sena.label(class="form-check-label") }}
+            </div>
+            <div x-show="pide" x-cloak>
+              <label class="form-label small d-block">Tipo de seña</label>
+              <div class="btn-group mb-3" role="group">
+                {% for val, label in form.sena_tipo.choices %}
+                  <input type="radio" class="btn-check" name="sena_tipo" id="st-{{ val }}"
+                         value="{{ val }}" x-model="tipo" autocomplete="off">
+                  <label class="btn btn-outline-primary btn-sm" for="st-{{ val }}">{{ label }}</label>
+                {% endfor %}
+              </div>
+              <div x-show="tipo === 'monto'">
+                {{ render_field(form.sena_monto, placeholder="Ej: 2000.00") }}
+              </div>
+              <div x-show="tipo === 'porcentaje'">
+                {{ render_field(form.sena_porcentaje, placeholder="Ej: 30") }}
+                <small class="text-muted d-block mt-n2 mb-2">Se calcula sobre el precio del servicio.</small>
+              </div>
+            </div>
             <small class="text-muted">
-              Si está activo, la reserva pública pedirá pagar esta seña (Mercado Pago)
-              y se confirma al acreditarse el pago.
+              Si está activo, la reserva pública pedirá pagar esta seña (Mercado Pago
+              o transferencia) y se confirma al acreditarse el pago.
             </small>
           </div>
 

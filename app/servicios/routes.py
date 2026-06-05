@@ -113,6 +113,20 @@ def sugeridos():
     return render_template("servicios/sugeridos.html", sugerencias=sugerencias)
 
 
+def _aplicar_sena(servicio, form):
+    """Guarda la seña según el tipo elegido (monto fijo o porcentaje del precio)."""
+    if not form.requiere_sena.data:
+        servicio.sena_monto = None
+        servicio.sena_porcentaje = None
+        return
+    if form.sena_tipo.data == "porcentaje":
+        servicio.sena_porcentaje = form.sena_porcentaje.data
+        servicio.sena_monto = None
+    else:
+        servicio.sena_monto = form.sena_monto.data
+        servicio.sena_porcentaje = None
+
+
 @servicios_bp.route("/nuevo", methods=["GET", "POST"])
 @login_required
 @rol_required(*_ROLES_PANEL)
@@ -129,9 +143,9 @@ def nuevo():
             precio=form.precio.data,
             color=form.color.data,
             requiere_sena=form.requiere_sena.data,
-            sena_monto=form.sena_monto.data if form.requiere_sena.data else None,
             activo=form.activo.data,
         )
+        _aplicar_sena(servicio, form)
         servicio.recursos = _resolver_recursos(form.recursos.data)
         db.session.add(servicio)
         db.session.commit()
@@ -147,9 +161,10 @@ def nuevo():
 def editar(servicio_id):
     servicio = obtener_tenant_o_404(Servicio, _neg(), servicio_id)
     form = ServicioForm(recursos_disponibles=_recursos_activos(), obj=servicio)
-    # En GET preseleccionamos los recursos ya vinculados.
+    # En GET preseleccionamos los recursos ya vinculados y el tipo de seña.
     if request.method == "GET":
         form.recursos.data = [r.id for r in servicio.recursos]
+        form.sena_tipo.data = "porcentaje" if servicio.sena_porcentaje else "monto"
 
     if form.validate_on_submit():
         if form.nombre.data.strip() != servicio.nombre:
@@ -162,7 +177,7 @@ def editar(servicio_id):
         servicio.precio = form.precio.data
         servicio.color = form.color.data
         servicio.requiere_sena = form.requiere_sena.data
-        servicio.sena_monto = form.sena_monto.data if form.requiere_sena.data else None
+        _aplicar_sena(servicio, form)
         servicio.activo = form.activo.data
         servicio.recursos = _resolver_recursos(form.recursos.data)
         db.session.commit()

@@ -27,6 +27,8 @@ def notificar_reserva(reserva_id, tipo, url_pago=None):
         service._enviar_pendiente(reserva, url_pago)
     elif tipo == "recordatorio":
         service._enviar_recordatorio(reserva)
+    elif tipo == "negocio_nueva":
+        service._avisar_negocio_nueva(reserva)
 
 
 @shared_task(name="tareas.recordatorios")

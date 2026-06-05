@@ -127,7 +127,7 @@
                   <div>
                     <div class="fw-semibold text-body">{{ s.nombre }}</div>
                     <div class="text-muted small">⏱ {{ s.duracion_legible }}
-                      {% if s.requiere_sena and s.sena_monto %}· seña ${{ '%g'|format(s.sena_monto) }}{% endif %}</div>
+                      {% if s.requiere_sena and s.sena_calculada %}· seña ${{ '%g'|format(s.sena_calculada) }}{% endif %}</div>
                   </div>
                   <div class="text-end">
                     {% if s.precio and s.precio > 0 %}<div class="fw-bold" style="color:{{ acc }}">${{ '%g'|format(s.precio) }}</div>{% endif %}

@@ -19,6 +19,7 @@ requests==2.32.3             # cliente HTTP para la API de Mercado Pago
 
 # ===== Notificaciones =====
 Flask-Mail==0.10.0           # envío de emails (confirmaciones, recordatorios)
+pywebpush==2.3.0             # notificaciones push (Web Push / VAPID) al panel
 
 # ===== Tareas asíncronas / programadas =====
 celery==5.4.0                # cola de tareas (emails async, recordatorios)

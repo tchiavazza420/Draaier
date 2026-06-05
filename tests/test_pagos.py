@@ -120,6 +120,47 @@ def test_callback_mp_rechaza_state_invalido(client, crear_negocio, login, monkey
     assert db.session.get(Negocio, neg.id).mp_conectado is False
 
 
+def test_sena_por_porcentaje_calcula_monto(crear_negocio, crear_recurso, crear_servicio, proximo_lunes):
+    """La seña por porcentaje se calcula sobre el precio del servicio."""
+    from app.extensions import db
+    neg, _ = crear_negocio()
+    rec = crear_recurso(neg)
+    serv = crear_servicio(neg, rec, requiere_sena=True, precio=1000)
+    serv.sena_porcentaje = 30
+    serv.sena_monto = None
+    db.session.commit()
+
+    assert serv.sena_calculada == Decimal("300.00")
+
+    reserva = _reserva_con_sena(neg, rec, serv, proximo_lunes)
+    pago, _ = iniciar_pago_sena(reserva, serv)
+    assert pago.monto == Decimal("300.00")
+
+
+def test_sena_por_transferencia(crear_negocio, crear_recurso, crear_servicio, proximo_lunes):
+    """Con alias y sin MP, la reserva pública cobra la seña por transferencia."""
+    from app.extensions import db
+    from app.models.pago import ProveedorPagoEnum, PagoEstadoEnum
+    from app.pagos.service import iniciar_pago_transferencia, aprobar_pago
+
+    neg, _ = crear_negocio()
+    neg.alias_transferencia = "pelu.centro.mp"
+    db.session.commit()
+    rec = crear_recurso(neg)
+    serv = crear_servicio(neg, rec, requiere_sena=True, sena_monto=Decimal("1500"))
+    reserva = _reserva_con_sena(neg, rec, serv, proximo_lunes)
+
+    pago = iniciar_pago_transferencia(reserva, serv)
+    assert pago.proveedor == ProveedorPagoEnum.TRANSFERENCIA
+    assert pago.estado == PagoEstadoEnum.PENDIENTE
+    assert reserva.estado == EstadoReservaEnum.PENDIENTE_PAGO
+
+    # El negocio confirma la transferencia -> reserva confirmada.
+    aprobar_pago(pago)
+    assert pago.estado == PagoEstadoEnum.APROBADO
+    assert reserva.estado == EstadoReservaEnum.CONFIRMADO
+
+
 def test_aprobacion_idempotente(crear_negocio, crear_recurso, crear_servicio, proximo_lunes):
     neg, _ = crear_negocio()
     rec = crear_recurso(neg)

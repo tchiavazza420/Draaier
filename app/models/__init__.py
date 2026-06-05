@@ -26,6 +26,7 @@ from app.models.reserva import Reserva, EstadoReservaEnum, ESTADOS_QUE_OCUPAN
 from app.models.pago import Pago, PagoEstadoEnum, ProveedorPagoEnum
 from app.models.resena import Resena
 from app.models.galeria import GaleriaFoto
+from app.models.push import PushSubscription
 
 __all__ = [
     "Negocio",
@@ -52,4 +53,5 @@ __all__ = [
     "ProveedorPagoEnum",
     "Resena",
     "GaleriaFoto",
+    "PushSubscription",
 ]

@@ -168,7 +168,7 @@ def reservar_crear(slug):
 
     # Si el servicio pide seña, la reserva nace PENDIENTE_PAGO y se confirma
     # al acreditarse el pago. Si no, se confirma directo.
-    requiere_sena = servicio.requiere_sena and servicio.sena_monto and servicio.sena_monto > 0
+    requiere_sena = servicio.requiere_sena and servicio.sena_calculada > 0
     estado_inicial = (
         EstadoReservaEnum.PENDIENTE_PAGO if requiere_sena else EstadoReservaEnum.CONFIRMADO
     )
@@ -185,19 +185,38 @@ def reservar_crear(slug):
 
     from app.notificaciones.service import (
         notificar_reserva_confirmada, notificar_reserva_pendiente,
+        notificar_negocio_nueva_reserva,
     )
 
     if requiere_sena:
-        from app.pagos.service import iniciar_pago_sena, PagoError
+        from app.pagos.service import (
+            iniciar_pago_sena, iniciar_pago_transferencia, PagoError,
+        )
+        # Método de cobro de la seña:
+        #  - Mercado Pago conectado  -> checkout online.
+        #  - Si no, alias cargado    -> transferencia (el negocio confirma a mano).
+        #  - Si no hay ninguno       -> checkout simulado (desarrollo).
+        if not negocio.mp_conectado and negocio.acepta_transferencia:
+            try:
+                iniciar_pago_transferencia(reserva, servicio)
+            except PagoError as exc:
+                flash(str(exc), "warning")
+            notificar_reserva_pendiente(reserva)
+            # Avisamos al negocio: tiene que confirmar la transferencia.
+            notificar_negocio_nueva_reserva(reserva)
+            return redirect(url_for("publico.reserva_confirmacion", slug=slug, codigo=reserva.codigo))
+
         try:
             _, url_checkout = iniciar_pago_sena(reserva, servicio)
         except PagoError as exc:
             flash(str(exc), "warning")
             return redirect(url_for("publico.reserva_confirmacion", slug=slug, codigo=reserva.codigo))
         notificar_reserva_pendiente(reserva, url_pago=url_checkout)
+        # El aviso al negocio para reservas con seña se manda al aprobarse el pago.
         return redirect(url_checkout)
 
     notificar_reserva_confirmada(reserva)
+    notificar_negocio_nueva_reserva(reserva)  # "te entró un turno nuevo"
     return redirect(url_for("publico.reserva_confirmacion", slug=slug, codigo=reserva.codigo))
 
 
@@ -233,10 +252,21 @@ def reserva_confirmacion(slug, codigo):
     else:
         wa_url = f"https://wa.me/?text={msg}"
 
+    # Si la seña es por transferencia y sigue pendiente, mostramos el alias.
+    transferencia = None
+    if reserva.estado == EstadoReservaEnum.PENDIENTE_PAGO and negocio.acepta_transferencia:
+        from app.models.pago import ProveedorPagoEnum, PagoEstadoEnum
+        transferencia = next(
+            (p for p in reserva.pagos
+             if p.proveedor == ProveedorPagoEnum.TRANSFERENCIA
+             and p.estado == PagoEstadoEnum.PENDIENTE),
+            None,
+        )
+
     return render_template(
         "publico/reserva_ok.html",
         negocio=negocio, reserva=reserva, puede_resenar=puede_resenar(reserva),
-        gcal_url=gcal_url, wa_url=wa_url,
+        gcal_url=gcal_url, wa_url=wa_url, transferencia=transferencia,
     )
 
 

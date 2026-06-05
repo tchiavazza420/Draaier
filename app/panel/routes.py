@@ -13,7 +13,7 @@ from datetime import datetime, timezone, timedelta
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 
-from app.extensions import db
+from app.extensions import db, csrf
 from app.auth.decorators import rol_required
 from app.models.negocio import RubroEnum, TemplatePublicoEnum, PlanEnum
 from app.panel.forms import NegocioConfigForm, PersonalizacionForm, MensajesForm
@@ -376,6 +376,8 @@ def configuracion():
         negocio.telefono = (form.telefono.data or "").strip() or None
         negocio.email = form.email.data.strip().lower()
         negocio.visible_marketplace = form.visible_marketplace.data
+        negocio.alias_transferencia = (form.alias_transferencia.data or "").strip() or None
+        negocio.titular_transferencia = (form.titular_transferencia.data or "").strip() or None
         db.session.commit()
         flash("Configuración actualizada.", "success")
         return redirect(url_for("panel.configuracion"))
@@ -420,3 +422,27 @@ def personalizacion():
         form.template_publico.data = negocio.template_publico.value
         form.tipografia.data = negocio.tipografia
     return render_template("panel/personalizacion.html", form=form, negocio=negocio)
+
+
+# ----------------------------------------------------------------------
+#  Notificaciones push (Web Push / PWA)
+# ----------------------------------------------------------------------
+@panel_bp.route("/push/suscribir", methods=["POST"])
+@csrf.exempt
+@login_required
+def push_suscribir():
+    """Guarda la suscripción push del navegador del usuario logueado."""
+    from flask import jsonify
+    from app.notificaciones import push
+    if not push.esta_configurado():
+        return jsonify(ok=False, error="push no configurado"), 503
+    if not current_user.negocio:
+        return jsonify(ok=False), 403
+    try:
+        push.guardar_suscripcion(
+            current_user.negocio_id, current_user.id,
+            request.get_json(silent=True) or {},
+            user_agent=request.headers.get("User-Agent"))
+    except ValueError:
+        return jsonify(ok=False, error="suscripción inválida"), 400
+    return jsonify(ok=True)

@@ -118,6 +118,15 @@ class Negocio(TimestampMixin, db.Model):
         """True si el negocio conectó su cuenta de Mercado Pago."""
         return bool(self.mercadopago_token and self.mp_user_id)
 
+    # --- Cobro de señas por transferencia (alias/CBU) — disponible en todos los planes ---
+    alias_transferencia = db.Column(db.String(120), nullable=True)
+    titular_transferencia = db.Column(db.String(120), nullable=True)
+
+    @property
+    def acepta_transferencia(self):
+        """True si el negocio cargó un alias/CBU para recibir señas por transferencia."""
+        return bool(self.alias_transferencia)
+
     # --- Marketplace ---
     visible_marketplace = db.Column(db.Boolean, nullable=False, default=False)
 

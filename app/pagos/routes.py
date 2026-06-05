@@ -156,8 +156,11 @@ def simular(pago_id):
         if es_suscripcion:
             flash("Pago aprobado (simulado). ¡Plan activado!", "success")
         else:
-            from app.notificaciones.service import notificar_reserva_confirmada
+            from app.notificaciones.service import (
+                notificar_reserva_confirmada, notificar_negocio_nueva_reserva,
+            )
             notificar_reserva_confirmada(pago.reserva)
+            notificar_negocio_nueva_reserva(pago.reserva)
             flash("Pago aprobado (simulado). ¡Reserva confirmada!", "success")
     else:
         service.rechazar_pago(pago, external_id=f"SIM-{pago.id}")
