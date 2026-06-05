@@ -9,7 +9,9 @@ import os
 bind = f"0.0.0.0:{os.environ.get('PORT', '8000')}"
 workers = int(os.environ.get("WEB_CONCURRENCY", "3"))
 worker_class = "sync"
-timeout = 60
+# 120s: la subida/compresión de imágenes (varias fotos a Cloudinary) puede
+# tardar; con 60s el worker se mataba y la subida "se colgaba".
+timeout = 120
 graceful_timeout = 30
 keepalive = 5
 accesslog = "-"   # stdout

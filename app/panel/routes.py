@@ -278,11 +278,15 @@ def galeria():
     negocio = current_user.negocio
 
     if request.method == "POST":
-        archivos = request.files.getlist("fotos")
+        archivos = [f for f in request.files.getlist("fotos") if f and f.filename]
+        # Tope por tanda: subir demasiadas a la vez puede agotar el tiempo del
+        # request. El resto las sube en otra tanda.
+        _MAX_TANDA = 12
+        if len(archivos) > _MAX_TANDA:
+            flash(f"Subí hasta {_MAX_TANDA} fotos por vez. Tomamos las primeras {_MAX_TANDA}.", "warning")
+            archivos = archivos[:_MAX_TANDA]
         subidas = 0
         for f in archivos:
-            if not f or not f.filename:
-                continue
             try:
                 ruta = guardar_imagen(f, negocio.id, "galeria")
             except ValueError as exc:
@@ -292,7 +296,8 @@ def galeria():
                 db.session.add(GaleriaFoto(negocio_id=negocio.id, filename=ruta, orden=0))
                 subidas += 1
         db.session.commit()
-        flash(f"{subidas} foto(s) subida(s).", "success")
+        if subidas:
+            flash(f"{subidas} foto(s) subida(s).", "success")
         return redirect(url_for("panel.galeria"))
 
     fotos = (

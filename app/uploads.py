@@ -25,13 +25,23 @@ from PIL import Image, ImageOps, ImageFile
 # Tolera imágenes levemente truncadas en vez de fallar.
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
+# Soporte para fotos de celular en formato HEIC/HEIF (iPhone y varios Android).
+# Si la librería está instalada, registramos el lector para que Pillow las abra.
+try:
+    import pillow_heif
+    pillow_heif.register_heif_opener()
+except Exception:
+    pass
+
 # Lado máximo (px) del lado más largo, según el uso.
 _MAX_LADO = {
     "logo": 512, "profesional": 800, "portada": 1600,
     "banner": 1600, "galeria": 1400,
 }
 _MAX_DEFAULT = 1280
-_CALIDAD_WEBP = 82
+_CALIDAD_WEBP = 80
+# method 4: buena compresión y MUCHO más rápido que 6 (clave en CPU limitada).
+_WEBP_METHOD = 4
 
 
 def _extension_ok(filename):
@@ -47,17 +57,24 @@ def _cloudinary_activo():
 
 def _procesar_a_webp(file_storage, prefijo):
     """Abre, reorienta, redimensiona y comprime la imagen; devuelve bytes WebP."""
+    max_lado = _MAX_LADO.get(prefijo, _MAX_DEFAULT)
     try:
         img = Image.open(file_storage.stream)
+        # draft(): para JPEG enormes, los decodifica directo a baja resolución
+        # (acelera muchísimo el procesado de fotos de celular grandes).
+        try:
+            img.draft("RGB", (max_lado, max_lado))
+        except Exception:
+            pass
         img = ImageOps.exif_transpose(img)
     except Exception:
-        raise ValueError("No pudimos leer la imagen. Probá con otro archivo.")
+        raise ValueError("No pudimos leer la imagen. Probá con otro archivo (JPG o PNG).")
 
     img = img.convert("RGBA") if img.mode in ("RGBA", "LA", "P") else img.convert("RGB")
-    img.thumbnail((_MAX_LADO.get(prefijo, _MAX_DEFAULT),) * 2, Image.LANCZOS)
+    img.thumbnail((max_lado, max_lado), Image.LANCZOS)
 
     buf = BytesIO()
-    img.save(buf, "WEBP", quality=_CALIDAD_WEBP, method=6)
+    img.save(buf, "WEBP", quality=_CALIDAD_WEBP, method=_WEBP_METHOD)
     buf.seek(0)
     return buf
 
@@ -75,14 +92,19 @@ def _guardar_cloudinary(buf, negocio_id, prefijo):
     import cloudinary
     import cloudinary.uploader
     cloudinary.config(cloudinary_url=current_app.config["CLOUDINARY_URL"])
-    res = cloudinary.uploader.upload(
-        buf,
-        folder=f"agenpro/{negocio_id}",
-        public_id=f"{prefijo}-{uuid.uuid4().hex[:8]}",
-        resource_type="image",
-        format="webp",
-        overwrite=True,
-    )
+    try:
+        res = cloudinary.uploader.upload(
+            buf,
+            folder=f"agenpro/{negocio_id}",
+            public_id=f"{prefijo}-{uuid.uuid4().hex[:8]}",
+            resource_type="image",
+            format="webp",
+            overwrite=True,
+            timeout=60,  # no quedarse colgado si la red falla
+        )
+    except Exception:
+        current_app.logger.exception("Fallo subiendo imagen a Cloudinary")
+        raise ValueError("No pudimos subir la imagen ahora. Probá de nuevo en un momento.")
     return res["secure_url"]
 
 
