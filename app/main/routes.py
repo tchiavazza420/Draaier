@@ -94,15 +94,18 @@ def tareas_cron():
     """
     from flask import request, abort
 
-    token_ok = current_app.config.get("CRON_TOKEN")
+    # .strip() en ambos lados: evita el 403 cuando el valor pegado en Render
+    # quedó con un espacio o salto de línea final (gotcha típico).
+    token_ok = (current_app.config.get("CRON_TOKEN") or "").strip()
     if not token_ok:
         abort(404)  # deshabilitado si no se configuró el secreto
 
     enviado = (
         request.headers.get("X-Cron-Token")
-        or (request.headers.get("Authorization", "").removeprefix("Bearer ").strip())
+        or request.headers.get("Authorization", "").removeprefix("Bearer ")
         or request.args.get("token")
-    )
+        or ""
+    ).strip()
     if enviado != token_ok:
         abort(403)
 
