@@ -65,6 +65,68 @@ def listar():
     return render_template("servicios/listar.html", servicios=servicios)
 
 
+@servicios_bp.route("/senas", methods=["GET", "POST"])
+@login_required
+@rol_required(*_ROLES_PANEL)
+@negocio_operativo_required
+def senas():
+    """
+    Configuración masiva de la seña: elegís monto o porcentaje y tildás a qué
+    servicios aplicarla, todo de una vez (en vez de editar uno por uno).
+    Los servicios tildados quedan con seña; los destildados, sin seña.
+    """
+    from decimal import Decimal
+    servicios = (
+        query_tenant(Servicio, _neg())
+        .order_by(Servicio.activo.desc(), Servicio.nombre.asc())
+        .all()
+    )
+
+    if request.method == "POST":
+        tipo = request.form.get("sena_tipo", "monto")
+        seleccionados = set(request.form.getlist("servicios", type=int))
+
+        # Validar el valor según el tipo.
+        monto = porcentaje = None
+        if tipo == "porcentaje":
+            try:
+                porcentaje = int(request.form.get("sena_porcentaje") or 0)
+            except (TypeError, ValueError):
+                porcentaje = 0
+            if seleccionados and not (1 <= porcentaje <= 100):
+                flash("El porcentaje de la seña debe estar entre 1 y 100.", "danger")
+                return render_template("servicios/senas.html", servicios=servicios)
+        else:
+            try:
+                monto = Decimal(str(request.form.get("sena_monto") or "0"))
+            except Exception:
+                monto = Decimal("0")
+            if seleccionados and monto <= 0:
+                flash("Indicá un monto de seña válido.", "danger")
+                return render_template("servicios/senas.html", servicios=servicios)
+
+        aplicados = 0
+        for s in servicios:
+            if s.id in seleccionados:
+                s.requiere_sena = True
+                if tipo == "porcentaje":
+                    s.sena_porcentaje = porcentaje
+                    s.sena_monto = None
+                else:
+                    s.sena_monto = monto
+                    s.sena_porcentaje = None
+                aplicados += 1
+            else:
+                s.requiere_sena = False
+                s.sena_monto = None
+                s.sena_porcentaje = None
+        db.session.commit()
+        flash(f"Seña aplicada a {aplicados} servicio(s).", "success")
+        return redirect(url_for("servicios.senas"))
+
+    return render_template("servicios/senas.html", servicios=servicios)
+
+
 @servicios_bp.route("/sugeridos", methods=["GET", "POST"])
 @login_required
 @rol_required(*_ROLES_PANEL)
