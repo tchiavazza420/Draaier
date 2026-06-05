@@ -33,6 +33,22 @@ WHATSAPP_API_VERSION=v21.0   (opcional, ya viene por default)
 > Importante: el saldo de WhatsApp del plan se consume **solo** cuando hay
 > credenciales reales. En modo bandeja no se cobra.
 
+### Recordatorios con plantilla aprobada (fuera de la ventana de 24 h)
+Meta solo permite mensajes **proactivos** (recordatorios) mediante una
+**plantilla aprobada**. Creá una plantilla de categoría *Utilidad* con 3
+variables en el cuerpo (nombre, servicio, fecha/hora), por ejemplo:
+
+> Hola {{1}}, te recordamos tu turno de {{2}} el {{3}}. ¡Te esperamos!
+
+Una vez aprobada, seteá en Render:
+```
+WHATSAPP_TEMPLATE_RECORDATORIO=<nombre exacto de la plantilla>
+WHATSAPP_TEMPLATE_IDIOMA=es_AR   (o el código de idioma con que la aprobaste)
+```
+Con esto, los recordatorios salen como plantilla (sirven aunque el cliente no
+haya escrito en las últimas 24 h). Sin esta variable, se manda texto plano
+(solo válido dentro de la ventana de 24 h).
+
 ---
 
 ## 2) Pagos (señas) — Mercado Pago

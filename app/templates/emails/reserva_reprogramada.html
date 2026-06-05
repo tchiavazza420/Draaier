@@ -1,0 +1,8 @@
+{% extends "emails/_base_email.html" %}
+{% from "emails/_detalle.html" import detalle_reserva %}
+{% block cuerpo %}
+  <h2 style="margin-top:0">Tu turno se reprogramó 📅</h2>
+  <p>Hola {{ reserva.cliente.nombre }}, tu turno quedó para el nuevo horario:</p>
+  {{ detalle_reserva(reserva) }}
+  <p style="color:#6b7280;font-size:13px">Si no podés, contactá al negocio para reprogramar de nuevo.</p>
+{% endblock %}

@@ -20,6 +20,9 @@
     <div class="d-flex align-items-center gap-2 flex-wrap">
       <span class="h5 mb-0">{{ reserva.cliente.nombre }}</span>
       {{ badge_estado(reserva.estado) }}
+      {% if reserva.asistencia_confirmada %}
+        <span class="badge bg-success-subtle text-success border border-success-subtle">✓ asistencia confirmada</span>
+      {% endif %}
     </div>
     <a class="small text-decoration-none" href="{{ url_for('clientes.detalle', cliente_id=reserva.cliente.id) }}">Ver ficha del cliente →</a>
   </div>
@@ -70,6 +73,27 @@
             <button class="btn btn-outline-danger w-100">✗ No vino</button>
           </form>
         </div>
+      </div></div>
+    {% endif %}
+
+    <!-- Reprogramar -->
+    {% if reserva.estado.value in ['pendiente_pago','confirmado'] %}
+      <div class="card mb-3"><div class="card-body" x-data="{ open:false }">
+        <div class="d-flex justify-content-between align-items-center">
+          <h2 class="h6 text-muted mb-0">📅 Reprogramar</h2>
+          <button class="btn btn-sm btn-link text-decoration-none" @click="open=!open" x-text="open?'Ocultar':'Cambiar horario'"></button>
+        </div>
+        <form method="post" action="{{ url_for('reservas.reprogramar', reserva_id=reserva.id) }}"
+              class="d-flex flex-wrap gap-2 mt-2 align-items-end" x-show="open" x-cloak>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="flex-grow-1">
+            <label class="form-label small mb-1">Nuevo inicio</label>
+            <input type="datetime-local" name="inicio" class="form-control"
+                   value="{{ reserva.inicio.strftime('%Y-%m-%dT%H:%M') }}" required>
+          </div>
+          <button class="btn btn-primary">Mover turno</button>
+        </form>
+        <p class="text-muted small mt-2 mb-0">Se valida que el profesional esté libre en el nuevo horario.</p>
       </div></div>
     {% endif %}
 

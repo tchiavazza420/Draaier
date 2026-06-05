@@ -1,0 +1,34 @@
+{% extends "publico/base_publico.html" %}
+
+{% block title %}Reprogramar turno · {{ negocio.nombre }}{% endblock %}
+
+{% block publico %}
+<div class="card shadow-sm">
+  <div class="card-body p-4 p-md-5">
+    <h1 class="h4 mb-1">Reprogramar tu turno</h1>
+    <p class="text-muted">
+      {{ reserva.servicio.nombre }} con {{ reserva.recurso.nombre }} ·
+      hoy: {{ reserva.inicio.strftime('%d/%m %H:%M') }}
+    </p>
+    <hr class="my-3">
+    <h2 class="h6 mb-3">Elegí el nuevo horario (mismo profesional)</h2>
+    <div class="mb-3" style="max-width:260px">
+      <label class="form-label">Fecha</label>
+      <input type="date" name="fecha" class="form-control"
+             value="{{ hoy }}" min="{{ hoy }}"
+             hx-get="{{ url_for('publico.reserva_reprogramar_slots', slug=negocio.slug, codigo=reserva.codigo) }}"
+             hx-target="#slots-reprog"
+             hx-trigger="change, load"
+             hx-include="this">
+    </div>
+    <div id="slots-reprog"></div>
+
+    <div class="mt-4">
+      <a class="small text-decoration-none text-muted"
+         href="{{ url_for('publico.reserva_confirmacion', slug=negocio.slug, codigo=reserva.codigo) }}">
+        ← Volver sin cambios
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

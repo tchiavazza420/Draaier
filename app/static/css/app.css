@@ -490,6 +490,21 @@ h1, h2, h3, h4, h5, .fw-bold { letter-spacing: -.02em; }
 /* ---- Galería ---- */
 .pb-galeria { display:grid; grid-template-columns: repeat(3, 1fr); gap:.5rem; }
 .pb-galeria img { width:100%; aspect-ratio:1; object-fit:cover; border-radius:12px; }
+/* Selector de horarios (slots) */
+.slot-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(74px,1fr)); gap:.5rem; }
+.slot-btn { padding:.55rem .25rem; border:1.5px solid var(--bs-success, #16a34a);
+  background:transparent; color:var(--bs-success, #16a34a); border-radius:12px;
+  font-weight:700; cursor:pointer; transition:transform .12s ease, background .12s ease, color .12s ease; }
+.slot-btn:hover { background:var(--bs-success, #16a34a); color:#fff; transform:translateY(-2px); }
+
+/* Lightbox de galería */
+.pb-lightbox { position:fixed; inset:0; z-index:2000; display:flex; align-items:center;
+  justify-content:center; background:rgba(0,0,0,.88); padding:1rem; }
+.pb-lightbox img { max-width:100%; max-height:90vh; border-radius:10px;
+  box-shadow:0 10px 40px rgba(0,0,0,.5); }
+.pb-lightbox-x { position:absolute; top:14px; right:18px; width:42px; height:42px;
+  border:none; border-radius:50%; background:rgba(255,255,255,.15); color:#fff;
+  font-size:1.2rem; cursor:pointer; }
 
 @media (prefers-reduced-motion: reduce) {
   .pb-fondo-animado { animation: none; }

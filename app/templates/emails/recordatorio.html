@@ -4,5 +4,10 @@
   <h2 style="margin-top:0">Recordatorio de tu turno ⏰</h2>
   <p>Hola {{ reserva.cliente.nombre }}, te recordamos tu próximo turno:</p>
   {{ detalle_reserva(reserva) }}
+  {% if url_asistir %}
+    <p style="text-align:center;margin:24px 0">
+      <a href="{{ url_asistir }}" style="background:#16a34a;color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:bold">✓ Confirmar asistencia</a>
+    </p>
+  {% endif %}
   <p style="color:#6b7280;font-size:13px">¡Te esperamos!</p>
 {% endblock %}

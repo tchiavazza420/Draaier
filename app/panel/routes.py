@@ -378,6 +378,8 @@ def configuracion():
         negocio.visible_marketplace = form.visible_marketplace.data
         negocio.alias_transferencia = (form.alias_transferencia.data or "").strip() or None
         negocio.titular_transferencia = (form.titular_transferencia.data or "").strip() or None
+        negocio.cancelacion_horas = form.cancelacion_horas.data
+        negocio.reembolso_sena_horas = form.reembolso_sena_horas.data
         db.session.commit()
         flash("Configuración actualizada.", "success")
         return redirect(url_for("panel.configuracion"))
