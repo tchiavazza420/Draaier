@@ -14,7 +14,7 @@ from flask import (
 )
 from sqlalchemy import text
 
-from app.extensions import db
+from app.extensions import db, csrf
 
 main_bp = Blueprint("main", __name__)
 
@@ -83,6 +83,7 @@ def sitemap():
 
 
 @main_bp.route("/tareas/correr", methods=["GET", "POST"])
+@csrf.exempt
 def tareas_cron():
     """
     Dispara las tareas programadas (recordatorios + vencer suscripciones).
