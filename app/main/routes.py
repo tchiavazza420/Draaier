@@ -112,7 +112,7 @@ def tareas_cron():
         dias = 1
 
     from app.notificaciones.service import enviar_recordatorios, pedir_resenas
-    from app.suscripciones import vencer_suscripciones
+    from app.suscripciones import vencer_suscripciones, avisar_vencimientos_proximos
 
     # Cada tarea se aísla: si una falla, las otras igual corren y el cron NO
     # se marca como fallido (siempre devolvemos 200 con el detalle de errores).
@@ -128,6 +128,7 @@ def tareas_cron():
 
     _correr("recordatorios_enviados", lambda: enviar_recordatorios(dias))
     _correr("suscripciones_vencidas", vencer_suscripciones)
+    _correr("avisos_vencimiento_proximo", lambda: avisar_vencimientos_proximos(3))
     _correr("resenas_pedidas", pedir_resenas)
     return jsonify(resultado)
 

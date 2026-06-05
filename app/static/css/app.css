@@ -492,6 +492,19 @@ h1, h2, h3, h4, h5, .fw-bold { letter-spacing: -.02em; }
 /* ---- Galería ---- */
 .pb-galeria { display:grid; grid-template-columns: repeat(3, 1fr); gap:.5rem; }
 .pb-galeria img { width:100%; aspect-ratio:1; object-fit:cover; border-radius:12px; }
+/* Campanita de notificaciones */
+.notif-badge { position:absolute; top:-6px; right:-6px; font-size:.62rem; padding:.15rem .35rem; }
+.notif-pop { width: 320px; max-width: 92vw; max-height: 70vh; overflow-y: auto; }
+.notif-item { display:flex; gap:.5rem; align-items:flex-start; width:100%; text-align:left;
+  background:none; border:none; padding:.5rem .5rem; border-radius:8px; cursor:pointer; }
+.notif-item:hover { background: color-mix(in srgb, var(--marca, #6d28d9) 8%, transparent); }
+.notif-no-leida { background: color-mix(in srgb, var(--marca, #6d28d9) 6%, transparent); }
+.notif-ico { font-size:1.1rem; line-height:1.2; flex:0 0 auto; }
+.notif-txt { display:flex; flex-direction:column; min-width:0; }
+.notif-tit { font-weight:600; font-size:.85rem; }
+.notif-msg { font-size:.78rem; color: var(--tinta-suave, #6b7280);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
 /* Eventos del calendario (FullCalendar): hora + servicio + cliente legibles */
 .fc-ag { line-height: 1.18; padding: 1px 3px; overflow: hidden; }
 .fc-ag-time { font-weight: 800; font-size: .72rem; }

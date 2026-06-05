@@ -340,6 +340,15 @@ def reserva_reprogramar_post(slug, codigo):
         return redirect(url_for("publico.reserva_reprogramar", slug=slug, codigo=codigo))
     from app.notificaciones.service import notificar_reserva_reprogramada
     notificar_reserva_reprogramada(reserva)
+    # Aviso in-app al negocio: el cliente reprogramó.
+    try:
+        from app.notificaciones import centro
+        centro.crear(
+            negocio.id, "reprogramacion", "Turno reprogramado",
+            f"{reserva.cliente.nombre} movió su turno a {reserva.inicio.strftime('%d/%m %H:%M')}",
+            url=url_for("reservas.detalle", reserva_id=reserva.id))
+    except Exception:
+        pass
     flash("¡Listo! Reprogramamos tu turno. 📅", "success")
     return redirect(url_for("publico.reserva_confirmacion", slug=slug, codigo=codigo))
 

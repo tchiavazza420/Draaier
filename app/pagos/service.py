@@ -212,6 +212,20 @@ def aprobar_pago(pago, external_id=None):
     elif pago.reserva and pago.reserva.estado == EstadoReservaEnum.PENDIENTE_PAGO:
         pago.reserva.estado = EstadoReservaEnum.CONFIRMADO
     db.session.commit()
+
+    # Notificación in-app de pago recibido (señas/pagos de reserva).
+    if pago.concepto != "suscripcion" and pago.es_sena:
+        try:
+            from flask import url_for
+            from app.notificaciones import centro
+            url = (url_for("reservas.detalle", reserva_id=pago.reserva_id)
+                   if pago.reserva_id else None)
+            centro.crear(pago.negocio_id, "pago", "Pago recibido",
+                         f"Seña de ${pago.monto}"
+                         + (f" · {pago.reserva.cliente.nombre}" if pago.reserva else ""),
+                         url=url)
+        except Exception:
+            pass
     return pago
 
 

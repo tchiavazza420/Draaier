@@ -70,6 +70,17 @@ def _detalle(reserva):
             f"({reserva.recurso.nombre})")
 
 
+def _centro(negocio_id, tipo, titulo, mensaje, reserva=None):
+    """Crea una notificación in-app (campanita) de forma tolerante a fallos."""
+    try:
+        from flask import url_for
+        from app.notificaciones import centro
+        url = url_for("reservas.detalle", reserva_id=reserva.id) if reserva else None
+        centro.crear(negocio_id, tipo, titulo, mensaje, url=url)
+    except Exception:
+        current_app.logger.exception("Fallo creando notificación in-app")
+
+
 # ----------------------------------------------------------------------
 #  Senders reales (respetan los toggles de mensajes automáticos del negocio).
 # ----------------------------------------------------------------------
@@ -133,6 +144,10 @@ def _avisar_negocio_nueva(reserva):
     except Exception:
         current_app.logger.exception("Fallo push aviso negocio")
 
+    # 4) Centro de notificaciones in-app (campanita).
+    _centro(neg.id, "reserva", "Nuevo turno",
+            f"{reserva.cliente.nombre} · {_detalle(reserva)}", reserva)
+
 
 def _enviar_reprogramada(reserva):
     """Avisa al cliente que su turno se movió a un nuevo horario."""
@@ -167,6 +182,8 @@ def _enviar_cancelada(reserva, reembolsada=False):
                 f"{reserva.cliente.nombre} · {_detalle(reserva)}", url="/panel")
         except Exception:
             current_app.logger.exception("Fallo push cancelacion al negocio")
+        _centro(neg.id, "cancelacion", "Turno cancelado",
+                f"{reserva.cliente.nombre} · {_detalle(reserva)}", reserva)
 
 
 def _enviar_pedido_resena(reserva):

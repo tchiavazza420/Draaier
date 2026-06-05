@@ -39,14 +39,21 @@ def _inyectar_opciones_profesional():
     y si el negocio actual es de plan individual (una sola agenda)."""
     from app.recursos.opciones import url_todas_las_fuentes
     individual = False
+    notif_no_leidas, notif_recientes = 0, []
     try:
         if current_user.is_authenticated and getattr(current_user, "negocio", None):
             from app.planes import limite_agendas_de
             individual = limite_agendas_de(current_user.negocio.plan) == 1
+            if not current_user.es_super_admin:
+                from app.notificaciones import centro
+                notif_no_leidas = centro.contar_no_leidas(current_user.negocio_id)
+                notif_recientes = centro.listar(current_user.negocio_id, limite=8)
     except Exception:
         individual = False
     return {"fuentes_url_todas": url_todas_las_fuentes(),
-            "es_plan_individual": individual}
+            "es_plan_individual": individual,
+            "notif_no_leidas": notif_no_leidas,
+            "notif_recientes": notif_recientes}
 
 
 def _neg():
