@@ -64,7 +64,12 @@
               <a href="{{ url_for('reservas.agenda') }}"><span class="menu-emoji">🗓️</span> Calendario</a>
               <a href="{{ url_for('reservas.listar') }}"><span class="menu-emoji">📋</span> Actividad</a>
               <div class="menu-sep"></div>
-              <a href="{{ url_for('recursos.listar') }}"><span class="menu-emoji">💇</span> Profesionales</a>
+              {% if es_plan_individual %}
+                <a href="{{ url_for('recursos.listar') }}"><span class="menu-emoji">🎨</span> Editar mi página</a>
+                <a href="{{ url_for('publico.perfil_negocio', slug=current_user.negocio.slug) }}" target="_blank"><span class="menu-emoji">🌐</span> Ver mi página</a>
+              {% else %}
+                <a href="{{ url_for('recursos.listar') }}"><span class="menu-emoji">💇</span> Profesionales</a>
+              {% endif %}
               <a href="{{ url_for('servicios.listar') }}"><span class="menu-emoji">✂️</span> Servicios</a>
               <a href="{{ url_for('disponibilidad.index') }}"><span class="menu-emoji">⏰</span> Disponibilidad</a>
               <div class="menu-sep"></div>
@@ -135,7 +140,7 @@
     <a href="{{ url_for('reservas.listar') }}"><span class="bn-ico">📋</span>Actividad</a>
     <a href="{{ url_for('reservas.nueva') }}" class="bn-fab" aria-label="Nueva reserva">+</a>
     {% if es_plan_individual %}
-      <a href="{{ url_for('recursos.listar') }}"><span class="bn-ico">🎨</span>Mi página</a>
+      <a href="{{ url_for('publico.perfil_negocio', slug=current_user.negocio.slug) }}" target="_blank"><span class="bn-ico">🌐</span>Mi página</a>
     {% else %}
       <a href="{{ url_for('recursos.listar') }}"><span class="bn-ico">💇</span>Profesionales</a>
     {% endif %}

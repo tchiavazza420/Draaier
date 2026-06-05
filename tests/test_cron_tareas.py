@@ -62,6 +62,25 @@ def test_dispara_recordatorios_y_vencimientos(client, app, crear_negocio,
     assert data["suscripciones_vencidas"] >= 1
 
 
+def test_cron_no_falla_si_una_tarea_revienta(client, app, monkeypatch):
+    """Si una tarea lanza excepción, el endpoint igual responde 200 con el error
+    (para que el cron de Render no se marque como fallido)."""
+    app.config["CRON_TOKEN"] = "secreto"
+    import app.notificaciones.service as svc
+
+    def _boom(*a, **k):
+        raise RuntimeError("explotó")
+
+    monkeypatch.setattr(svc, "enviar_recordatorios", _boom)
+
+    r = client.post("/tareas/correr", headers={"X-Cron-Token": "secreto"})
+    assert r.status_code == 200
+    data = r.get_json()
+    assert data["ok"] is True
+    assert data["recordatorios_enviados"] is None
+    assert any("recordatorios_enviados" in e for e in data["errores"])
+
+
 def test_recordatorio_a_cliente_solo_whatsapp(client, app, crear_negocio,
                                               crear_recurso, crear_servicio):
     """Cliente sin email pero con teléfono igual recibe recordatorio."""

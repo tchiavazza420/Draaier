@@ -270,7 +270,7 @@ h1, h2, h3, h4, h5, .fw-bold { letter-spacing: -.02em; }
 
 @media (max-width: 767px) {
   .bottom-nav { display: flex; }
-  body.con-bottomnav main.container { padding-bottom: calc(var(--bottomnav-h) + 24px); }
+  body.con-bottomnav main.container { padding-bottom: calc(var(--bottomnav-h) + env(safe-area-inset-bottom) + 72px); }
 
   /* La barra superior queda mínima: marca + menú de usuario */
   .navbar .container { padding-top: .25rem; padding-bottom: .25rem; }
@@ -444,8 +444,10 @@ h1, h2, h3, h4, h5, .fw-bold { letter-spacing: -.02em; }
 .pb-header-centro    { text-align:center; }
 .pb-header-izquierda { text-align:left; }
 .pb-header-derecha   { text-align:right; }
-.pb-header-izquierda .pb-avatar { margin-left:0; margin-right:auto; }
-.pb-header-derecha   .pb-avatar { margin-left:auto; margin-right:0; }
+/* El avatar es display:flex (bloque): se alinea con margin, no con text-align. */
+.pb-header-centro    .pb-avatar { margin-left:auto;  margin-right:auto; }
+.pb-header-izquierda .pb-avatar { margin-left:0;     margin-right:auto; }
+.pb-header-derecha   .pb-avatar { margin-left:auto;  margin-right:0; }
 .pb-avatar-grande  { width: 132px; height: 132px; font-size: 2.8rem; }
 .pb-avatar-pequeno { width: 92px;  height: 92px;  font-size: 2rem; }
 .pb-foto-circulo  .pb-avatar { border-radius: 50%; }
@@ -490,6 +492,17 @@ h1, h2, h3, h4, h5, .fw-bold { letter-spacing: -.02em; }
 /* ---- Galería ---- */
 .pb-galeria { display:grid; grid-template-columns: repeat(3, 1fr); gap:.5rem; }
 .pb-galeria img { width:100%; aspect-ratio:1; object-fit:cover; border-radius:12px; }
+/* Eventos del calendario (FullCalendar): hora + servicio + cliente legibles */
+.fc-ag { line-height: 1.18; padding: 1px 3px; overflow: hidden; }
+.fc-ag-time { font-weight: 800; font-size: .72rem; }
+.fc-ag-serv { font-weight: 600; font-size: .74rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fc-ag-cli  { font-size: .7rem; opacity: .92; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Mes: que el evento pueda mostrar las líneas (no recortarlo a una sola). */
+.fc-daygrid-event { white-space: normal; }
+.fc-daygrid-event .fc-ag-cli { white-space: normal; }
+/* Semana/Día: un poco más de alto por franja para que entre la info. */
+.fc .fc-timegrid-slot { height: 2.3em; }
+
 /* Selector de horarios (slots) */
 .slot-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(74px,1fr)); gap:.5rem; }
 .slot-btn { padding:.55rem .25rem; border:1.5px solid var(--bs-success, #16a34a);
