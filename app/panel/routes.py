@@ -429,6 +429,36 @@ def personalizacion():
 # ----------------------------------------------------------------------
 #  Notificaciones push (Web Push / PWA)
 # ----------------------------------------------------------------------
+# ----------------------------------------------------------------------
+#  Centro de notificaciones (campanita)
+# ----------------------------------------------------------------------
+@panel_bp.route("/notificaciones")
+@login_required
+def notificaciones():
+    """Historial completo de notificaciones del negocio."""
+    from app.notificaciones import centro
+    items = centro.listar(current_user.negocio_id, limite=100)
+    return render_template("panel/notificaciones.html", items=items)
+
+
+@panel_bp.route("/notificaciones/<int:notif_id>/leer", methods=["POST"])
+@login_required
+def notificacion_leer(notif_id):
+    """Marca una notificación como leída y va a su destino (si tiene)."""
+    from app.notificaciones import centro
+    n = centro.marcar_leida(current_user.negocio_id, notif_id)
+    destino = n.url if (n and n.url) else url_for("panel.notificaciones")
+    return redirect(destino)
+
+
+@panel_bp.route("/notificaciones/leer-todas", methods=["POST"])
+@login_required
+def notificaciones_leer_todas():
+    from app.notificaciones import centro
+    centro.marcar_todas(current_user.negocio_id)
+    return redirect(request.referrer or url_for("panel.notificaciones"))
+
+
 @panel_bp.route("/push/suscribir", methods=["POST"])
 @csrf.exempt
 @login_required
