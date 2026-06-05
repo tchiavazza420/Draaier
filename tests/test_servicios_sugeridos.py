@@ -46,6 +46,22 @@ def test_sena_masiva_aplica_a_seleccionados(client, crear_negocio, crear_recurso
     assert s2.requiere_sena is False and s2.sena_monto is None
 
 
+def test_senas_cobro_guarda_alias(client, crear_negocio):
+    """El cobro por transferencia se guarda desde la sección de Señas."""
+    from app.extensions import db
+    from app.models.negocio import Negocio
+    neg, _ = crear_negocio(email="cobro@test.com")
+    client.post("/auth/login", data={"email": "cobro@test.com", "password": "clave1234"})
+
+    r = client.post("/panel/servicios/senas/cobro", data={
+        "alias_transferencia": "mi.alias.mp", "titular_transferencia": "Rocio",
+    }, follow_redirects=True)
+    assert r.status_code == 200
+    actualizado = db.session.get(Negocio, neg.id)
+    assert actualizado.alias_transferencia == "mi.alias.mp"
+    assert actualizado.titular_transferencia == "Rocio"
+
+
 def test_crear_seleccionados_asigna_profesionales(client, crear_negocio, crear_recurso):
     neg, _ = crear_negocio(email="sug2@test.com", rubro=RubroEnum.MANICURA)
     rec = crear_recurso(neg, nombre="Vale")

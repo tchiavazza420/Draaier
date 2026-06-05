@@ -39,22 +39,21 @@
   <div class="card-body">
     {% if reservas %}
       <input type="text" x-model="q" class="form-control form-control-sm mb-3"
-             placeholder="Filtrar en esta página (código, cliente, servicio…)" style="max-width:340px">
+             placeholder="Filtrar en esta página (cliente, servicio…)" style="max-width:340px">
       <div class="table-responsive">
         <table class="table align-middle mb-0 tabla-mobile">
           <thead>
-            <tr><th>Código</th><th>Fecha/Hora</th><th>Servicio</th><th>Recurso</th>
-                <th>Cliente</th><th>Estado</th><th class="text-end">Precio</th></tr>
+            <tr><th>Cliente</th><th>Fecha/Hora</th><th>Servicio</th><th>Profesional</th>
+                <th>Estado</th><th class="text-end">Precio</th></tr>
           </thead>
           <tbody>
             {% for r in reservas %}
               <tr style="cursor:pointer" onclick="location.href='{{ url_for('reservas.detalle', reserva_id=r.id) }}'"
                   x-show="q === '' || $el.textContent.toLowerCase().includes(q.toLowerCase())">
-                <td class="celda-principal" data-label="Código"><span class="font-monospace">{{ r.codigo }}</span></td>
+                <td class="celda-principal fw-semibold" data-label="Cliente">{{ r.cliente.nombre }}</td>
                 <td data-label="Fecha/Hora">{{ r.inicio.strftime('%d/%m %H:%M') }}</td>
                 <td data-label="Servicio">{{ r.servicio.nombre }}</td>
                 <td data-label="Profesional">{{ r.recurso.nombre }}</td>
-                <td data-label="Cliente">{{ r.cliente.nombre }}</td>
                 <td data-label="Estado">{{ badge_estado(r.estado) }}</td>
                 <td class="text-end" data-label="Precio">${{ '%.2f'|format(r.precio) }}</td>
               </tr>

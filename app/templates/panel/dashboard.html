@@ -218,10 +218,15 @@
 <!-- Accesos rápidos -->
 <h2 class="h6 text-muted mb-3">Accesos rápidos</h2>
 <div class="row g-3">
+  {% if es_plan_individual %}
+    {% set _prof = ('🎨','Mi página','Diseño, servicios y agenda', url_for('recursos.listar')) %}
+  {% else %}
+    {% set _prof = ('💇','Profesionales','Tu equipo y sus agendas', url_for('recursos.listar')) %}
+  {% endif %}
   {% set accesos = [
     ('🗓️','Calendario','Tus turnos del día', url_for('reservas.agenda')),
     ('📋','Actividad','Todas tus reservas', url_for('reservas.listar')),
-    ('💇','Profesionales','Tu equipo y sus agendas', url_for('recursos.listar')),
+    _prof,
     ('✂️','Servicios','Duración y precios', url_for('servicios.listar')),
     ('⏰','Disponibilidad','Horarios y bloqueos', url_for('disponibilidad.index')),
     ('👤','Clientes','Cartera y historial', url_for('clientes.listar')),

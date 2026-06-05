@@ -8,6 +8,43 @@
 
 <div class="row justify-content-center">
   <div class="col-lg-8">
+
+    {# --- Cómo se cobra la seña (Mercado Pago / transferencia) --- #}
+    {% set neg = current_user.negocio %}
+    <div class="card mb-3 border-info"><div class="card-body">
+      <h2 class="h6 text-muted mb-3">💳 Cómo cobrás la seña</h2>
+      {% if neg.mp_conectado %}
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 border rounded p-2 bg-light mb-3">
+          <span class="text-success fw-semibold">✓ Mercado Pago conectado</span>
+          <form method="post" action="{{ url_for('pagos.mp_desconectar') }}" onsubmit="return confirm('¿Desconectar Mercado Pago?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-outline-danger btn-sm">Desconectar</button>
+          </form>
+        </div>
+      {% else %}
+        <a href="{{ url_for('pagos.mp_conectar') }}" class="btn btn-info text-white btn-sm mb-3">🔗 Conectar con Mercado Pago</a>
+      {% endif %}
+
+      <form method="post" action="{{ url_for('servicios.senas_cobro') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label class="form-label small mb-1">O cobrar por transferencia (alias / CBU)</label>
+        <div class="row g-2 align-items-end">
+          <div class="col-sm-6">
+            <input type="text" name="alias_transferencia" class="form-control" placeholder="alias.de.tu.cuenta"
+                   value="{{ neg.alias_transferencia or '' }}">
+          </div>
+          <div class="col-sm-4">
+            <input type="text" name="titular_transferencia" class="form-control" placeholder="Titular"
+                   value="{{ neg.titular_transferencia or '' }}">
+          </div>
+          <div class="col-sm-2 d-grid">
+            <button class="btn btn-outline-primary">Guardar</button>
+          </div>
+        </div>
+        <small class="text-muted">Si no conectás Mercado Pago, el cliente transfiere a este alias y vos confirmás el pago.</small>
+      </form>
+    </div></div>
+
     <form method="post" x-data="{ tipo: 'monto', todos: false,
             marcarTodos(v){ document.querySelectorAll('.chk-serv').forEach(c=>c.checked=v); } }">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
