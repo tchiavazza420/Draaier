@@ -73,3 +73,59 @@ def obtener_pago(payment_id, token=None):
     )
     resp.raise_for_status()
     return resp.json()
+
+
+# ======================================================================
+#  OAuth — Conexión "Connect" de la cuenta del negocio (sin pegar tokens)
+# ======================================================================
+AUTH_BASE = "https://auth.mercadopago.com.ar"
+
+
+def oauth_configurado():
+    """True si la plataforma tiene credenciales de app para el flujo OAuth."""
+    return bool(current_app.config.get("MP_CLIENT_ID")
+                and current_app.config.get("MP_CLIENT_SECRET"))
+
+
+def url_autorizacion(state, redirect_uri):
+    """URL a la que mandamos al negocio para que autorice la conexión."""
+    from urllib.parse import urlencode
+    qs = urlencode({
+        "client_id": current_app.config["MP_CLIENT_ID"],
+        "response_type": "code",
+        "platform_id": "mp",
+        "state": state,
+        "redirect_uri": redirect_uri,
+    })
+    return f"{AUTH_BASE}/authorization?{qs}"
+
+
+def intercambiar_codigo(code, redirect_uri):
+    """
+    Canjea el `code` del callback por los tokens del negocio.
+    Devuelve el dict de Mercado Pago (access_token, refresh_token, user_id,
+    public_key, expires_in, ...).
+    """
+    body = {
+        "grant_type": "authorization_code",
+        "client_id": current_app.config["MP_CLIENT_ID"],
+        "client_secret": current_app.config["MP_CLIENT_SECRET"],
+        "code": code,
+        "redirect_uri": redirect_uri,
+    }
+    resp = requests.post(f"{API_BASE}/oauth/token", json=body, timeout=TIMEOUT)
+    resp.raise_for_status()
+    return resp.json()
+
+
+def refrescar_token(refresh_token):
+    """Renueva el access_token de un negocio usando su refresh_token."""
+    body = {
+        "grant_type": "refresh_token",
+        "client_id": current_app.config["MP_CLIENT_ID"],
+        "client_secret": current_app.config["MP_CLIENT_SECRET"],
+        "refresh_token": refresh_token,
+    }
+    resp = requests.post(f"{API_BASE}/oauth/token", json=body, timeout=TIMEOUT)
+    resp.raise_for_status()
+    return resp.json()

@@ -9,9 +9,13 @@ no un formulario del sitio. Su seguridad se basa en RE-CONSULTAR el pago a la
 API de MP (nunca confiamos en el cuerpo de la notificación).
 """
 
+import secrets
+
 from flask import (
     Blueprint, render_template, redirect, url_for, flash, request, abort,
+    session, current_app,
 )
+from flask_login import login_required, current_user
 
 from app.extensions import db, csrf
 from app.models.pago import Pago, PagoEstadoEnum
@@ -19,6 +23,65 @@ from app.models.negocio import Negocio
 from app.pagos import service, mercadopago
 
 pagos_bp = Blueprint("pagos", __name__)
+
+
+# ======================================================================
+#  CONEXIÓN OAuth con Mercado Pago ("Connect" — un clic, sin pegar token)
+# ======================================================================
+def _redirect_uri():
+    return current_app.config["SITE_URL"] + url_for("pagos.mp_callback")
+
+
+@pagos_bp.route("/mp/conectar")
+@login_required
+def mp_conectar():
+    """Manda al negocio a Mercado Pago para autorizar la conexión de su cuenta."""
+    if not getattr(current_user, "negocio", None):
+        abort(403)
+    if not mercadopago.oauth_configurado():
+        flash("La conexión con Mercado Pago no está disponible todavía.", "warning")
+        return redirect(url_for("panel.configuracion"))
+    state = secrets.token_urlsafe(24)
+    session["mp_oauth_state"] = state
+    return redirect(mercadopago.url_autorizacion(state, _redirect_uri()))
+
+
+@pagos_bp.route("/mp/callback")
+@login_required
+def mp_callback():
+    """Vuelta de Mercado Pago: canjeamos el code por los tokens del negocio."""
+    negocio = getattr(current_user, "negocio", None)
+    if not negocio:
+        abort(403)
+
+    error = request.args.get("error")
+    code = request.args.get("code")
+    state = request.args.get("state")
+    state_ok = state and state == session.pop("mp_oauth_state", None)
+
+    if error or not code or not state_ok:
+        flash("No se pudo conectar Mercado Pago. Probá de nuevo.", "danger")
+        return redirect(url_for("panel.configuracion"))
+
+    try:
+        datos = mercadopago.intercambiar_codigo(code, _redirect_uri())
+        service.conectar_negocio_mp(negocio, datos)
+        flash("¡Mercado Pago conectado! Ya podés cobrar señas a tu cuenta. 💳", "success")
+    except Exception:
+        flash("Mercado Pago rechazó la conexión. Revisá e intentá otra vez.", "danger")
+    return redirect(url_for("panel.configuracion"))
+
+
+@pagos_bp.route("/mp/desconectar", methods=["POST"])
+@login_required
+def mp_desconectar():
+    """Olvida la conexión de Mercado Pago del negocio."""
+    negocio = getattr(current_user, "negocio", None)
+    if not negocio:
+        abort(403)
+    service.desconectar_negocio_mp(negocio)
+    flash("Desconectaste Mercado Pago. Las señas quedan en modo de prueba.", "info")
+    return redirect(url_for("panel.configuracion"))
 
 
 @pagos_bp.route("/retorno")

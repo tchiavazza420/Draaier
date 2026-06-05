@@ -72,6 +72,17 @@ class BaseConfig:
     MERCADOPAGO_ACCESS_TOKEN = os.environ.get("MERCADOPAGO_ACCESS_TOKEN")
     MERCADOPAGO_PUBLIC_KEY = os.environ.get("MERCADOPAGO_PUBLIC_KEY")
 
+    # --- Conexión OAuth (Mercado Pago Connect / Marketplace) ---
+    # El negocio conecta su cuenta con un clic (no pega tokens). Estos son los
+    # datos de NUESTRA aplicación de Mercado Pago (panel de desarrollador):
+    #   MP_CLIENT_ID     = App ID (numérico)
+    #   MP_CLIENT_SECRET = Client Secret de la app
+    # El redirect_uri debe estar registrado en la app y apuntar al callback.
+    MP_CLIENT_ID = os.environ.get("MP_CLIENT_ID")
+    MP_CLIENT_SECRET = os.environ.get("MP_CLIENT_SECRET")
+    # Comisión (%) que retiene la plataforma sobre cada seña (0 = sin comisión).
+    MP_MARKETPLACE_FEE = float(os.environ.get("MP_MARKETPLACE_FEE", "0") or 0)
+
     # URL base pública del sitio (para back_urls y webhooks de Mercado Pago).
     SITE_URL = os.environ.get("SITE_URL", "http://127.0.0.1:5000")
 
