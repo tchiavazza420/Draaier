@@ -30,6 +30,7 @@ python-dotenv==1.0.1         # carga de variables desde .env
 
 # ===== Imágenes (compresión/redimensionado de uploads) =====
 Pillow==12.2.0
+pillow-heif==0.18.0          # leer fotos HEIC/HEIF de celular (iPhone/Android)
 cloudinary==1.44.2            # almacenamiento de imágenes en producción (disco efímero)
 
 # ===== Servidor de producción =====
