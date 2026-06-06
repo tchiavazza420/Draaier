@@ -88,3 +88,34 @@ def test_eliminar_requiere_super_admin(client, crear_negocio, login):
                     data={"confirmar": neg.slug})
     assert r.status_code in (302, 403)
     assert _db.session.get(Negocio, nid) is not None
+
+
+def test_super_admin_otorga_plan_cortesia(client, crear_negocio, login, super_admin):
+    """El super admin puede dar un plan de cortesía (gratis, sin vencimiento)."""
+    from app.models.negocio import EstadoSuscripcionEnum, PlanEnum
+    neg, _ = crear_negocio()
+    nid = neg.id
+    login(super_admin)
+    r = client.post(f"/super-admin/negocios/{nid}/suscripcion", data={
+        "estado": "activa", "plan": "premium", "cortesia": "on", "descuento": "0",
+    }, follow_redirects=True)
+    assert r.status_code == 200
+    n = _db.session.get(Negocio, nid)
+    assert n.cortesia is True
+    assert n.plan == PlanEnum.PREMIUM
+    assert n.estado_suscripcion == EstadoSuscripcionEnum.ACTIVA
+    assert n.suscripcion_fin is None          # sin vencimiento (gratis)
+    assert n.puede_operar is True
+
+
+def test_super_admin_aplica_descuento_plan(client, crear_negocio, login, super_admin):
+    neg, _ = crear_negocio()
+    nid = neg.id
+    login(super_admin)
+    client.post(f"/super-admin/negocios/{nid}/suscripcion", data={
+        "estado": "activa", "plan": "pro", "descuento": "30", "dias": "30",
+    }, follow_redirects=True)
+    n = _db.session.get(Negocio, nid)
+    assert n.descuento_plan == 30
+    assert n.cortesia is False
+    assert n.suscripcion_fin is not None       # con vigencia (30 días)

@@ -7,6 +7,12 @@
   <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('panel.dashboard') }}">← Panel</a>
 </div>
 
+{% if negocio.cortesia %}
+  <div class="alert alert-success border-0 rounded-4">🎁 <strong>Plan de cortesía activo</strong> — tu plan está bonificado por AgenPro, sin costo.</div>
+{% elif negocio.descuento_plan %}
+  <div class="alert alert-success border-0 rounded-4">🏷️ Tenés un <strong>{{ negocio.descuento_plan }}% de descuento</strong> en tu plan, otorgado por AgenPro.</div>
+{% endif %}
+
 {% if plan_actual %}
   <div class="alert alert-info border-0 rounded-4 d-flex flex-wrap justify-content-between align-items-center gap-2">
     <div>

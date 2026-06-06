@@ -95,12 +95,23 @@ def negocio_suscripcion(negocio_id):
         except ValueError:
             pass
 
-    # Si se activa, extender la vigencia 30 días (gesto operativo simple).
+    # Descuento del plan (%) y cortesía (plan gratis).
+    descuento = request.form.get("descuento", type=int)
+    if descuento is not None:
+        n.descuento_plan = max(0, min(descuento, 100)) or None
+    n.cortesia = bool(request.form.get("cortesia"))
+
+    # Vigencia: 'dias' (int). 0 o vacío => sin vencimiento (permanente / cortesía).
     if n.estado_suscripcion == EstadoSuscripcionEnum.ACTIVA:
-        n.suscripcion_fin = datetime.now(timezone.utc) + timedelta(days=30)
+        dias = request.form.get("dias", type=int)
+        if n.cortesia or not dias:
+            n.suscripcion_fin = None          # gratis / sin vencimiento
+        else:
+            n.suscripcion_fin = datetime.now(timezone.utc) + timedelta(days=dias)
 
     db.session.commit()
-    flash(f"Suscripción de '{n.nombre}' actualizada a {n.estado_suscripcion.value}.", "success")
+    detalle = "cortesía (gratis)" if n.cortesia else n.estado_suscripcion.value
+    flash(f"Suscripción de '{n.nombre}' actualizada: {detalle}.", "success")
     return redirect(url_for("super_admin.negocios"))
 
 
