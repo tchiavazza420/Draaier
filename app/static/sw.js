@@ -5,7 +5,7 @@
    - Cache-first para estáticos (rápido).
    No cachea peticiones POST ni rutas de panel/pagos (datos sensibles/dinámicos).
 */
-const CACHE = "agenpro-v15";
+const CACHE = "agenpro-v16";
 const APP_SHELL = [
   "/",
   "/static/css/app.css",
