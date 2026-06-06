@@ -132,6 +132,41 @@ def test_recordatorio_usa_plantilla_wa_si_esta_configurada(
     assert "template:recordatorio_turno" in BANDEJA_WA[-1]["body"]
 
 
+def test_recordatorio_2h_envia_solo_los_proximos(crear_negocio, crear_recurso, crear_servicio):
+    """Recordatorio 'X horas antes': avisa a los que empiezan dentro de la ventana
+    y los marca; no toca los que están más lejos."""
+    from datetime import datetime, timedelta
+    from app.models.reserva import Reserva, EstadoReservaEnum
+    from app.notificaciones.service import enviar_recordatorios_proximas
+
+    neg, _ = crear_negocio()
+    rec = crear_recurso(neg)
+    serv = crear_servicio(neg, rec)
+    cli = obtener_o_crear_cliente(neg.id, "Ana", email="ana@test.com")
+
+    def _reserva(delta_horas, codigo):
+        ini = datetime.now() + timedelta(hours=delta_horas)
+        r = Reserva(negocio_id=neg.id, codigo=codigo, cliente_id=cli.id,
+                    servicio_id=serv.id, recurso_id=rec.id, inicio=ini,
+                    fin=ini + timedelta(minutes=60), estado=EstadoReservaEnum.CONFIRMADO)
+        db.session.add(r); db.session.flush()
+        return r
+
+    cercana = _reserva(1, "PROX0001")      # dentro de 1 h -> entra
+    lejana = _reserva(5, "LEJO0001")       # dentro de 5 h -> no entra
+    db.session.commit()
+
+    BANDEJA_DEV.clear()
+    n = enviar_recordatorios_proximas(horas=2)
+    assert n == 1
+    db.session.refresh(cercana); db.session.refresh(lejana)
+    assert cercana.recordatorio_2h_enviado is True
+    assert lejana.recordatorio_2h_enviado is False
+
+    # Segunda corrida: no reenvía la ya avisada.
+    assert enviar_recordatorios_proximas(horas=2) == 0
+
+
 def test_sin_telefono_no_manda_whatsapp(crear_negocio, crear_recurso, crear_servicio, proximo_lunes):
     neg, _ = crear_negocio()
     rec = crear_recurso(neg)

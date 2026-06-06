@@ -114,6 +114,18 @@
            :class="activo==='mapa' && 'pb-btn-activo'">📍 Ubicación del local</a>
       {% endif %}
 
+      {# ---- CTA: Reservar un turno (directo a agendar) ---- #}
+      {% if servicios %}
+        {% if servicios|length == 1 %}
+          <a class="pb-btn pb-btn-cta" href="{{ url_for('publico.perfil_servicio', slug=negocio.slug, servicio_slug=servicios[0].slug) }}">
+            ✨ Reservar un turno
+          </a>
+        {% else %}
+          <a class="pb-btn pb-btn-cta" href="#" @click.prevent="activo = 'servicios'"
+             :class="activo==='servicios' && 'pb-btn-activo'">✨ Reservar un turno</a>
+        {% endif %}
+      {% endif %}
+
       {# ---- Servicios reservables (se despliega con el botón) ---- #}
       {% if servicios %}
         <div x-show="activo==='servicios'" x-cloak x-transition class="mt-3">
