@@ -34,8 +34,34 @@ def service_worker():
 
 @main_bp.route("/manifest.webmanifest")
 def manifest():
-    """Sirve el manifest desde la raíz."""
-    resp = send_from_directory(current_app.static_folder, "manifest.webmanifest")
+    """
+    Manifest de la PWA generado al vuelo: las URLs de los íconos llevan
+    ?v=ASSET_VERSION para que, al actualizar el logo, el sistema baje los íconos
+    nuevos (si fuera un archivo estático, el SW/instalador servía el viejo).
+    """
+    v = current_app.config.get("ASSET_VERSION", "1")
+
+    def ic(nombre):
+        return url_for("static", filename=f"icons/{nombre}") + f"?v={v}"
+
+    data = {
+        "name": "AgenPro",
+        "short_name": "AgenPro",
+        "description": "Reservá turnos y gestioná tu negocio desde cualquier dispositivo.",
+        "start_url": "/",
+        "scope": "/",
+        "display": "standalone",
+        "orientation": "portrait",
+        "background_color": "#ffffff",
+        "theme_color": "#F26A1F",
+        "lang": "es",
+        "icons": [
+            {"src": ic("icon-192.png"), "sizes": "192x192", "type": "image/png", "purpose": "any"},
+            {"src": ic("icon-512.png"), "sizes": "512x512", "type": "image/png", "purpose": "any"},
+            {"src": ic("icon-maskable-512.png"), "sizes": "512x512", "type": "image/png", "purpose": "maskable"},
+        ],
+    }
+    resp = jsonify(data)
     resp.headers["Content-Type"] = "application/manifest+json"
     return resp
 
