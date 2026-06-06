@@ -766,4 +766,32 @@ html[data-bs-theme="dark"] .fc-min-time { color: #e9eaee; }
 .dot-vivo { width:9px; height:9px; border-radius:50%; background:#22c55e; display:inline-block;
   box-shadow:0 0 0 0 rgba(34,197,94,.5); animation: latido 2s infinite; }
 @keyframes latido { 0%{box-shadow:0 0 0 0 rgba(34,197,94,.5)} 70%{box-shadow:0 0 0 7px rgba(34,197,94,0)} 100%{box-shadow:0 0 0 0 rgba(34,197,94,0)} }
-@media (prefers-reduced-motion: reduce){ .dot-vivo{ animation:none; } }
+
+/* Puntito con luz reutilizable: poné class="con-dot" en cualquier título. */
+.con-dot { display: inline-flex; align-items: center; gap: .5rem; }
+.con-dot::before {
+  content: ""; flex: 0 0 auto; width: 9px; height: 9px; border-radius: 50%;
+  background: var(--marca, #f26a1f);
+  box-shadow: 0 0 0 0 rgba(var(--marca-rgb, 242,106,31), .55), 0 0 7px rgba(var(--marca-rgb,242,106,31), .55);
+  animation: latidoMarca 2.4s infinite;
+}
+@keyframes latidoMarca {
+  0%   { box-shadow: 0 0 0 0 rgba(var(--marca-rgb,242,106,31), .55), 0 0 7px rgba(var(--marca-rgb,242,106,31), .55); }
+  70%  { box-shadow: 0 0 0 7px rgba(var(--marca-rgb,242,106,31), 0),  0 0 9px rgba(var(--marca-rgb,242,106,31), .25); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--marca-rgb,242,106,31), 0),    0 0 7px rgba(var(--marca-rgb,242,106,31), .15); }
+}
+/* Variantes de color del puntito */
+.con-dot.dot-verde::before  { background:#22c55e; box-shadow:0 0 0 0 rgba(34,197,94,.55),0 0 7px rgba(34,197,94,.55); animation:latido 2s infinite; }
+.con-dot.dot-amber::before  { background:#f59e0b; box-shadow:0 0 0 0 rgba(245,158,11,.55),0 0 7px rgba(245,158,11,.55); }
+.con-dot.dot-azul::before   { background:#3b82f6; box-shadow:0 0 0 0 rgba(59,130,246,.55),0 0 7px rgba(59,130,246,.55); }
+
+/* Campana: el badge late suave cuando hay no leídas. */
+.notif-badge { animation: badgePulse 2.2s infinite; }
+@keyframes badgePulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(220,53,69,.6); }
+  60%     { box-shadow: 0 0 0 6px rgba(220,53,69,0); }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .dot-vivo, .con-dot::before, .notif-badge { animation: none; }
+}

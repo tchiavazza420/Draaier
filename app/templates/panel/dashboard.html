@@ -76,7 +76,7 @@
 <div class="card mb-4">
   <div class="card-body">
     <div class="d-flex justify-content-between align-items-center mb-2">
-      <h2 class="h6 text-uppercase text-muted mb-0">Agenda de hoy</h2>
+      <h2 class="h6 text-uppercase text-muted mb-0 con-dot dot-azul">Agenda de hoy</h2>
       <a class="small text-decoration-none" href="{{ url_for('reservas.agenda') }}">Ver calendario →</a>
     </div>
     {% if hoy.agenda %}
@@ -216,7 +216,7 @@
 </div>
 
 <!-- Accesos rápidos -->
-<h2 class="h6 text-muted mb-3">Accesos rápidos</h2>
+<h2 class="h6 text-muted mb-3 con-dot">Accesos rápidos</h2>
 <div class="row g-3">
   {% if es_plan_individual %}
     {% set _prof = ('🌐','Mi página','Mirá cómo te ven tus clientes', url_for('publico.perfil_negocio', slug=current_user.negocio.slug)) %}
