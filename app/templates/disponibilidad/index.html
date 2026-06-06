@@ -3,9 +3,9 @@
 {% block title %}Disponibilidad · Panel{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
   <h1 class="h3 mb-0">Disponibilidad</h1>
-  <div>
+  <div class="d-flex flex-wrap gap-2">
     <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('panel.dashboard') }}">← Panel</a>
     <a class="btn btn-primary btn-sm" href="{{ url_for('disponibilidad.preview') }}">Vista previa de turnos</a>
   </div>

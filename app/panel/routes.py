@@ -362,7 +362,7 @@ def whatsapp_comprar():
         flash("Pack inválido.", "danger")
         return redirect(url_for("panel.mensajes"))
     comprar_pack(current_user.negocio, cantidad)
-    flash(f"¡Listo! Sumaste {cantidad} mensajes de WhatsApp (simulado).", "success")
+    flash(f"¡Listo! Sumaste {cantidad} mensajes de WhatsApp, válidos por 30 días (simulado).", "success")
     return redirect(url_for("panel.mensajes"))
 
 

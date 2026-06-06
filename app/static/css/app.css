@@ -270,7 +270,10 @@ h1, h2, h3, h4, h5, .fw-bold { letter-spacing: -.02em; }
 
 @media (max-width: 767px) {
   .bottom-nav { display: flex; }
-  body.con-bottomnav main.container { padding-bottom: calc(var(--bottomnav-h) + env(safe-area-inset-bottom) + 72px); }
+  /* Espacio para que la barra inferior (y el FAB que sobresale) NUNCA tape el
+     contenido al final de la página. Generoso a propósito. */
+  body.con-bottomnav { padding-bottom: env(safe-area-inset-bottom); }
+  body.con-bottomnav main.container { padding-bottom: calc(var(--bottomnav-h) + env(safe-area-inset-bottom) + 120px) !important; }
 
   /* La barra superior queda mínima: marca + menú de usuario */
   .navbar .container { padding-top: .25rem; padding-bottom: .25rem; }
@@ -495,6 +498,11 @@ h1, h2, h3, h4, h5, .fw-bold { letter-spacing: -.02em; }
 .pb-galeria { display:grid; grid-template-columns: repeat(3, 1fr); gap:.5rem; }
 .pb-galeria img { width:100%; aspect-ratio:1; object-fit:cover; border-radius:12px; }
 /* Campanita de notificaciones */
+.bell-btn { font-size: 1.05rem; line-height: 1; }
+/* Que no quede "marcada" (fondo/sombra) tras tocarla. */
+.bell-btn:focus, .bell-btn:active, .bell-btn:hover {
+  background: transparent !important; color: inherit !important;
+  box-shadow: none !important; border-color: transparent !important; }
 .notif-badge { position:absolute; top:-6px; right:-6px; font-size:.62rem; padding:.15rem .35rem; }
 .notif-pop { width: 320px; max-width: 92vw; max-height: 70vh; overflow-y: auto; }
 /* En celular el dropdown se fija al viewport para que no se corte. */
@@ -517,7 +525,7 @@ h1, h2, h3, h4, h5, .fw-bold { letter-spacing: -.02em; }
   --fc-today-bg-color: color-mix(in srgb, var(--marca, #6d28d9) 8%, transparent);
   --fc-now-indicator-color: var(--marca, #6d28d9);
   --fc-page-bg-color: transparent;
-  font-size: .9rem;
+  font-size: .82rem;
 }
 .fc .fc-toolbar-title { font-size: 1.05rem; font-weight: 800; letter-spacing: -.01em; }
 .fc .fc-col-header-cell-cushion { font-weight: 700; text-transform: capitalize; padding: .5rem .25rem; }
@@ -539,17 +547,17 @@ h1, h2, h3, h4, h5, .fw-bold { letter-spacing: -.02em; }
   padding: 0; overflow: hidden; cursor: pointer; }
 .fc-event:hover { filter: brightness(1.04); }
 .fc-timegrid-event { box-shadow: inset 4px 0 0 rgba(0,0,0,.18), 0 2px 6px rgba(16,18,34,.14); }
-.fc-ag { line-height: 1.2; padding: 3px 6px; overflow: hidden; color: #fff; }
-.fc-ag-time { font-weight: 800; font-size: .74rem; opacity: .95; }
-.fc-ag-serv { font-weight: 700; font-size: .8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.fc-ag-cli  { font-size: .74rem; opacity: .92; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fc-ag { line-height: 1.15; padding: 2px 5px; overflow: hidden; color: #fff; }
+.fc-ag-time { font-weight: 800; font-size: .68rem; opacity: .95; }
+.fc-ag-serv { font-weight: 700; font-size: .72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fc-ag-cli  { font-size: .66rem; opacity: .92; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* Mes: bloques de color con texto blanco (consistente con la semana) */
 .fc-daygrid-event { white-space: normal; padding: 0; margin-top: 2px; }
 .fc-daygrid-event .fc-ag-cli { white-space: normal; }
 .fc-daygrid-event .fc-ag-time { display: inline; margin-right: .25rem; }
 .fc-daygrid-event .fc-ag-serv { display: inline; }
 /* Semana/Día: franjas un poco más altas para que entre la info */
-.fc .fc-timegrid-slot { height: 2.5em; }
+.fc .fc-timegrid-slot { height: 2.1em; }
 .fc .fc-timegrid-now-indicator-line { border-width: 2px; }
 /* Vista lista (mobile): filas más respirables */
 .fc .fc-list-event:hover td { background: var(--fc-today-bg-color); }

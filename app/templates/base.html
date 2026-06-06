@@ -83,7 +83,8 @@
         {% if current_user.is_authenticated and not current_user.es_super_admin and current_user.negocio %}
           <!-- Campanita de notificaciones (Alpine) -->
           <div class="position-relative" x-data="{ open:false }" @click.outside="open=false">
-            <button class="btn btn-sm btn-outline-light position-relative" @click="open=!open" aria-label="Notificaciones">
+            <button class="btn btn-sm btn-outline-light position-relative bell-btn"
+                    @click="open=!open" @mousedown.prevent aria-label="Notificaciones">
               🔔
               {% if notif_no_leidas %}
                 <span class="badge rounded-pill bg-danger notif-badge">{{ notif_no_leidas if notif_no_leidas < 100 else '99+' }}</span>

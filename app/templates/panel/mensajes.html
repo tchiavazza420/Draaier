@@ -57,13 +57,16 @@
           </div></div>
           <div class="col-4"><div class="border rounded-3 p-2">
             <div class="h5 mb-0 stat-num">{{ wa.extra }}</div><small class="text-muted">comprados</small>
+            {% if wa.extra and wa.extra_vence %}
+              <div class="text-muted" style="font-size:.68rem">vencen {{ wa.extra_vence.strftime('%d/%m') }}</div>
+            {% endif %}
           </div></div>
           <div class="col-4"><div class="border rounded-3 p-2">
             <div class="h5 mb-0 stat-num">{{ wa.usados }}</div><small class="text-muted">usados</small>
           </div></div>
         </div>
 
-        <p class="text-muted small mb-2">Comprá un pack extra (se usa este mes):</p>
+        <p class="text-muted small mb-2">Comprá un pack extra (válido por <strong>30 días</strong> desde la compra):</p>
         <div class="d-flex flex-wrap gap-2">
           {% for p in packs %}
             <form method="post" action="{{ url_for('panel.whatsapp_comprar') }}">
@@ -71,13 +74,15 @@
               <input type="hidden" name="cantidad" value="{{ p.cantidad }}">
               <button class="btn btn-outline-primary">
                 +{{ p.cantidad }} msj · ${{ '{:,.0f}'.format(p.precio).replace(',','.') }}
+                <span class="d-block" style="font-size:.7rem;opacity:.8">por 30 días</span>
               </button>
             </form>
           {% endfor %}
         </div>
         <small class="text-muted d-block mt-2">
-          Los mensajes (incluidos y comprados) se renuevan cada mes. El cobro real
-          se integra con tu pasarela de pago; acá se acreditan al instante para probar.
+          Los <strong>incluidos</strong> se renuevan cada mes. Los <strong>comprados</strong>
+          valen 30 días desde la compra. El cobro real se integra con tu pasarela de pago;
+          acá se acreditan al instante para probar.
         </small>
       {% endif %}
     </div></div>
