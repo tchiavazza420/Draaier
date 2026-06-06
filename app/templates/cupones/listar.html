@@ -12,7 +12,7 @@
 
 {# ---- Crear cupón ---- #}
 <div class="card mb-4"><div class="card-body" x-data="{ tipo:'porcentaje' }">
-  <h2 class="h6 text-muted mb-3">Nuevo cupón</h2>
+  <h2 class="h6 text-muted mb-3 con-dot">Nuevo cupón</h2>
   <form method="post" action="{{ url_for('cupones.nuevo') }}" class="row g-2 align-items-end">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="col-6 col-md-3">
