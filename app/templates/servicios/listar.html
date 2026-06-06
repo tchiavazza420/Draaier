@@ -61,6 +61,12 @@
                       {{ 'Desactivar' if s.activo else 'Activar' }}
                     </button>
                   </form>
+                  <form method="post" action="{{ url_for('servicios.eliminar', servicio_id=s.id) }}" class="d-inline"
+                        onclick="event.stopPropagation()"
+                        onsubmit="return confirm('¿Eliminar el servicio «{{ s.nombre }}»? Esta acción no se puede deshacer.')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="btn btn-sm btn-outline-danger">Eliminar</button>
+                  </form>
                 </td>
               </tr>
             {% endfor %}

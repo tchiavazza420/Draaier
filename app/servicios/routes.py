@@ -189,6 +189,19 @@ def sugeridos():
     return render_template("servicios/sugeridos.html", sugerencias=sugerencias)
 
 
+def _es_individual():
+    from app.planes import limite_agendas_de
+    return limite_agendas_de(current_user.negocio.plan) == 1
+
+
+def _recursos_elegidos(form):
+    """Recursos a asignar al servicio. En plan individual (1 profesional) se
+    asigna el único profesional automáticamente (no se pide en el form)."""
+    if _es_individual():
+        return _recursos_activos()
+    return _resolver_recursos(form.recursos.data)
+
+
 def _aplicar_sena(servicio, form):
     """Guarda la seña según el tipo elegido (monto fijo o porcentaje del precio)."""
     if not form.requiere_sena.data:
@@ -222,7 +235,7 @@ def nuevo():
             activo=form.activo.data,
         )
         _aplicar_sena(servicio, form)
-        servicio.recursos = _resolver_recursos(form.recursos.data)
+        servicio.recursos = _recursos_elegidos(form)
         db.session.add(servicio)
         db.session.commit()
         flash(f"Servicio '{servicio.nombre}' creado.", "success")
@@ -255,7 +268,7 @@ def editar(servicio_id):
         servicio.requiere_sena = form.requiere_sena.data
         _aplicar_sena(servicio, form)
         servicio.activo = form.activo.data
-        servicio.recursos = _resolver_recursos(form.recursos.data)
+        servicio.recursos = _recursos_elegidos(form)
         db.session.commit()
         flash("Servicio actualizado.", "success")
         return redirect(url_for("servicios.listar"))
@@ -271,4 +284,32 @@ def toggle(servicio_id):
     servicio.activo = not servicio.activo
     db.session.commit()
     flash(f"Servicio {'activado' if servicio.activo else 'desactivado'}.", "info")
+    return redirect(url_for("servicios.listar"))
+
+
+@servicios_bp.route("/<int:servicio_id>/eliminar", methods=["POST"])
+@login_required
+@rol_required(*_ROLES_PANEL)
+@negocio_operativo_required
+def eliminar(servicio_id):
+    """Elimina un servicio. Si tiene reservas asociadas (FK RESTRICT), avisa y
+    sugiere desactivarlo en vez de borrarlo (para no perder el historial)."""
+    from sqlalchemy.exc import IntegrityError
+    from app.models.reserva import Reserva
+    servicio = obtener_tenant_o_404(Servicio, _neg(), servicio_id)
+
+    tiene_reservas = Reserva.query.filter_by(servicio_id=servicio.id).first() is not None
+    if tiene_reservas:
+        flash("Ese servicio tiene reservas en el historial: no se puede eliminar. "
+              "Desactivalo para que deje de ofrecerse.", "warning")
+        return redirect(url_for("servicios.listar"))
+
+    nombre = servicio.nombre
+    try:
+        db.session.delete(servicio)
+        db.session.commit()
+        flash(f"Servicio '{nombre}' eliminado.", "success")
+    except IntegrityError:
+        db.session.rollback()
+        flash("No se pudo eliminar el servicio (tiene datos asociados). Desactivalo.", "warning")
     return redirect(url_for("servicios.listar"))

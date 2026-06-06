@@ -28,14 +28,19 @@
             </div>
           </div>
 
-          <div class="mb-3">
-            {{ form.recursos.label(class="form-label") }}
-            {{ form.recursos(class="form-select", size=5) }}
-            <small class="text-muted">
-              Mantené Ctrl (Cmd en Mac) para elegir varios. Si no aparece nada,
-              creá primero tus profesionales en la sección Profesionales.
-            </small>
-          </div>
+          {% if es_plan_individual %}
+            {# Plan individual: hay un solo profesional (vos), se asigna solo. #}
+            {{ form.recursos(class="d-none") }}
+          {% else %}
+            <div class="mb-3">
+              {{ form.recursos.label(class="form-label") }}
+              {{ form.recursos(class="form-select", size=5) }}
+              <small class="text-muted">
+                Mantené Ctrl (Cmd en Mac) para elegir varios. Si no aparece nada,
+                creá primero tus profesionales en la sección Profesionales.
+              </small>
+            </div>
+          {% endif %}
 
           <div class="border rounded p-3 mb-3 bg-light"
                x-data="{ pide: {{ 'true' if form.requiere_sena.data else 'false' }}, tipo: '{{ form.sena_tipo.data or 'monto' }}' }">

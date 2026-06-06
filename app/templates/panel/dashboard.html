@@ -219,7 +219,7 @@
 <h2 class="h6 text-muted mb-3">Accesos rápidos</h2>
 <div class="row g-3">
   {% if es_plan_individual %}
-    {% set _prof = ('🎨','Mi página','Diseño, servicios y agenda', url_for('recursos.listar')) %}
+    {% set _prof = ('🌐','Mi página','Mirá cómo te ven tus clientes', url_for('publico.perfil_negocio', slug=current_user.negocio.slug)) %}
   {% else %}
     {% set _prof = ('💇','Profesionales','Tu equipo y sus agendas', url_for('recursos.listar')) %}
   {% endif %}
