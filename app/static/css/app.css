@@ -557,6 +557,11 @@ h1, h2, h3, h4, h5, .fw-bold { letter-spacing: -.02em; }
 .fc .fc-list-day-cushion { background: color-mix(in srgb, var(--marca, #6d28d9) 6%, transparent); }
 html[data-bs-theme="dark"] .fc-daygrid-event .fc-ag { color: #e5e7eb; }
 
+/* Botón de reserva que se "activa" al completar los datos */
+.btn-reservar { transition: all .2s ease; font-weight: 700; }
+.btn-reservar-listo { animation: reservaListo .35s ease; box-shadow: 0 6px 18px rgba(22,163,74,.35); }
+@keyframes reservaListo { 0% { transform: scale(.98); } 60% { transform: scale(1.03); } 100% { transform: scale(1); } }
+
 /* Selector de horarios (slots) */
 .slot-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(74px,1fr)); gap:.5rem; }
 .slot-btn { padding:.55rem .25rem; border:1.5px solid var(--bs-success, #16a34a);

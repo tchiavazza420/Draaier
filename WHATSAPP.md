@@ -221,3 +221,17 @@ WHATSAPP_TEMPLATE_IDIOMA=es_AR
 > ⚠️ Si hacés la plantilla con otra cantidad/orden de variables, no va a
 > coincidir con lo que envía el sistema. Si querés otro texto, avisá y ajusto el
 > código para que matchee.
+
+### Plantilla para la CONFIRMACIÓN de reserva
+Igual que el recordatorio, la **confirmación** que se manda al reservar es un
+mensaje proactivo: a un cliente nuevo (que nunca te escribió) **no le llega sin
+plantilla**. Creá otra plantilla (misma estructura, 3 variables) por ejemplo:
+
+> ¡Hola {{1}}! Confirmamos tu turno de {{2}} el {{3}}. ¡Te esperamos!
+
+Y cargá en Render:
+```
+WHATSAPP_TEMPLATE_CONFIRMACION=<nombre de la plantilla de confirmación>
+```
+Usa el mismo `WHATSAPP_TEMPLATE_IDIOMA`. Sin esta variable, la confirmación sale
+como texto plano (solo llega si el cliente te escribió en las últimas 24 h).

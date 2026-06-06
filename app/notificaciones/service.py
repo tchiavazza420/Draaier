@@ -91,7 +91,16 @@ def _enviar_confirmada(reserva):
     _email(neg, reserva.cliente.email,
            f"Reserva confirmada · {reserva.servicio.nombre}",
            "reserva_confirmada", reserva=reserva, negocio=neg)
-    _wa(reserva, neg, f"✅ ¡Reserva confirmada! {_detalle(reserva)}. Código {reserva.codigo}.")
+    # Para que llegue a un cliente nuevo (fuera de la ventana de 24 h) se usa
+    # una plantilla aprobada si está configurada; si no, texto plano.
+    tpl_name = current_app.config.get("WHATSAPP_TEMPLATE_CONFIRMACION")
+    template = None
+    if tpl_name:
+        template = {"name": tpl_name, "params": [
+            reserva.cliente.nombre, reserva.servicio.nombre,
+            reserva.inicio.strftime("%d/%m a las %H:%M")]}
+    _wa(reserva, neg, f"✅ ¡Reserva confirmada! {_detalle(reserva)}. Código {reserva.codigo}.",
+        template=template)
 
 
 def _enviar_pendiente(reserva, url_pago=None):
