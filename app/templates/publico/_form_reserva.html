@@ -7,7 +7,9 @@
       el <strong>{{ inicio[8:10] }}/{{ inicio[5:7] }} {{ inicio[11:16] }}</strong>
       con {{ recurso.nombre }}
     </h3>
-    <form method="post" action="{{ url_for('publico.reservar_crear', slug=negocio.slug) }}">
+    <form method="post" action="{{ url_for('publico.reservar_crear', slug=negocio.slug) }}"
+          x-data="{ nombre:'', email:'', tel:'',
+                    get listo(){ return this.nombre.trim().length > 1 && (this.email.trim() || this.tel.trim()); } }">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="hidden" name="servicio" value="{{ servicio.slug }}">
       <input type="hidden" name="recurso" value="{{ recurso.id }}">
@@ -16,20 +18,25 @@
       <div class="row g-2">
         <div class="col-md-12">
           <label class="form-label">Nombre y apellido *</label>
-          <input type="text" name="nombre" class="form-control" required maxlength="120">
+          <input type="text" name="nombre" class="form-control" required maxlength="120" x-model="nombre">
         </div>
         <div class="col-md-6">
           <label class="form-label">Email</label>
-          <input type="email" name="email" class="form-control" maxlength="120">
+          <input type="email" name="email" class="form-control" maxlength="120" x-model="email">
         </div>
         <div class="col-md-6">
           <label class="form-label">Teléfono</label>
-          <input type="text" name="telefono" class="form-control" maxlength="40">
+          <input type="text" name="telefono" class="form-control" maxlength="40" x-model="tel">
         </div>
       </div>
       <small class="text-muted d-block my-2">Dejá email o teléfono para confirmarte el turno.</small>
 
-      <button class="btn btn-success">Confirmar reserva · ${{ '%.2f'|format(servicio.precio) }}</button>
+      <button type="submit" class="btn w-100 btn-reservar"
+              :class="listo ? 'btn-success btn-reservar-listo' : 'btn-outline-secondary'"
+              :disabled="!listo">
+        <span x-show="!listo">Completá tus datos para reservar</span>
+        <span x-show="listo" x-cloak>✓ Confirmar reserva · ${{ '%.2f'|format(servicio.precio) }}</span>
+      </button>
     </form>
   </div>
 </div>

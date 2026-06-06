@@ -93,6 +93,26 @@ def test_push_suscribir_guarda_suscripcion(client, crear_negocio, login, monkeyp
     assert guardada.usuario_id == dueno.id
 
 
+def test_confirmacion_usa_plantilla_wa_si_esta_configurada(
+        app, crear_negocio, crear_recurso, crear_servicio, proximo_lunes):
+    """Con WHATSAPP_TEMPLATE_CONFIRMACION seteado, la confirmación sale como template."""
+    from app.notificaciones.service import _enviar_confirmada
+    neg, _ = crear_negocio()
+    rec = crear_recurso(neg)
+    serv = crear_servicio(neg, rec)
+    r = _reserva(neg, rec, serv, proximo_lunes)
+
+    app.config["WHATSAPP_TEMPLATE_CONFIRMACION"] = "reserva_confirmada"
+    try:
+        BANDEJA_WA.clear()
+        _enviar_confirmada(r)
+    finally:
+        app.config["WHATSAPP_TEMPLATE_CONFIRMACION"] = None
+
+    assert len(BANDEJA_WA) == 1
+    assert "template:reserva_confirmada" in BANDEJA_WA[-1]["body"]
+
+
 def test_recordatorio_usa_plantilla_wa_si_esta_configurada(
         app, crear_negocio, crear_recurso, crear_servicio, proximo_lunes):
     """Con WHATSAPP_TEMPLATE_RECORDATORIO seteado, el recordatorio sale como template."""

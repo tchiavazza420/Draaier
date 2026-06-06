@@ -101,9 +101,11 @@
     {% set _dir = negocio.direccion or (negocio.nombre ~ ' ' ~ (negocio.ciudad or '')) %}
     {% set _url_pagina = url_for('publico.perfil_negocio', slug=negocio.slug, _external=True) %}
     <div class="mt-3" x-data="{ activo: '' }">
+      <a class="pb-btn" target="_blank" rel="noopener"
+         href="https://wa.me/?text={{ ('¡Reservá con ' ~ negocio.nombre ~ '! ' ~ _url_pagina)|urlencode }}">
+        💬 Compartir por WhatsApp
+      </a>
       {% if servicios %}
-        <a class="pb-btn" href="#" @click.prevent="activo = (activo==='reservar' ? '' : 'reservar')"
-           :class="activo==='reservar' && 'pb-btn-activo'">✨ Reservar un turno</a>
         <a class="pb-btn" href="#" @click.prevent="activo = (activo==='servicios' ? '' : 'servicios')"
            :class="activo==='servicios' && 'pb-btn-activo'">🏷️ Servicios y precios</a>
       {% endif %}
@@ -111,14 +113,10 @@
         <a class="pb-btn" href="#" @click.prevent="activo = (activo==='mapa' ? '' : 'mapa')"
            :class="activo==='mapa' && 'pb-btn-activo'">📍 Ubicación del local</a>
       {% endif %}
-      <a class="pb-btn" target="_blank" rel="noopener"
-         href="https://wa.me/?text={{ ('¡Reservá con ' ~ negocio.nombre ~ '! ' ~ _url_pagina)|urlencode }}">
-        💬 Compartir por WhatsApp
-      </a>
 
       {# ---- Servicios reservables (se despliega con el botón) ---- #}
       {% if servicios %}
-        <div x-show="activo==='reservar' || activo==='servicios'" x-cloak x-transition class="mt-3">
+        <div x-show="activo==='servicios'" x-cloak x-transition class="mt-3">
           <div class="d-flex flex-column gap-2">
             {% for s in servicios %}
               <a href="{{ url_for('publico.perfil_servicio', slug=negocio.slug, servicio_slug=s.slug) }}"
