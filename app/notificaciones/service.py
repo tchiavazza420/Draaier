@@ -225,9 +225,11 @@ def _enviar_recordatorio(reserva):
     tpl_name = current_app.config.get("WHATSAPP_TEMPLATE_RECORDATORIO")
     template = None
     if tpl_name:
+        # 4 variables: (1) nombre, (2) servicio, (3) profesional, (4) fecha/hora.
         template = {"name": tpl_name, "params": [
             reserva.cliente.nombre,
             reserva.servicio.nombre,
+            reserva.recurso.nombre,
             reserva.inicio.strftime("%d/%m a las %H:%M"),
         ]}
     _wa(reserva, neg,

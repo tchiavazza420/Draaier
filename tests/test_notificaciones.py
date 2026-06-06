@@ -132,6 +132,8 @@ def test_recordatorio_usa_plantilla_wa_si_esta_configurada(
 
     assert len(BANDEJA_WA) == 1
     assert "template:recordatorio_turno" in BANDEJA_WA[-1]["body"]
+    # El recordatorio también incluye el profesional (4ª variable).
+    assert rec.nombre in BANDEJA_WA[-1]["body"]
 
 
 def test_recordatorio_2h_envia_solo_los_proximos(crear_negocio, crear_recurso, crear_servicio):
