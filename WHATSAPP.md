@@ -194,7 +194,8 @@ confirmación y los recordatorios **NO le llegan** salvo que uses una
 | Confirmación al reservar | `WHATSAPP_TEMPLATE_CONFIRMACION` | apenas reserva (o al pagar la seña) |
 | Recordatorio | `WHATSAPP_TEMPLATE_RECORDATORIO` | el día anterior **y 2 h antes** |
 
-> Las dos usan **3 variables, en este orden: (1) nombre, (2) servicio, (3) fecha/hora**.
+> Las dos usan **4 variables, en este orden: (1) nombre, (2) servicio,
+> (3) profesional, (4) fecha/hora**.
 > El recordatorio de "2 h antes" reutiliza la **misma** plantilla de recordatorio.
 
 ---
@@ -205,19 +206,43 @@ confirmación y los recordatorios **NO le llegan** salvo que uses una
 2. **Categoría:** **Utilidad** (NO Marketing).
 3. **Nombre:** minúsculas con guiones bajos, ej. `recordatorio_turno`.
 4. **Idioma:** Español (Argentina). Anotá el código exacto (`es_AR`, a veces `es`).
-5. **Cuerpo** (pegá tal cual, con las 3 variables):
+5. **Cuerpo** (pegá tal cual, con las 4 variables):
    ```
-   Hola {{1}}, te recordamos tu turno de {{2}} el {{3}}. ¡Te esperamos!
+   Hola {{1}}, te recordamos tu turno de {{2}} con {{3}} el {{4}}. ¡Te esperamos!
    ```
-6. **Ejemplos:** Sofía / Corte de pelo / 12/06 a las 15:30.
+   - `{{1}}` = nombre · `{{2}}` = servicio · `{{3}}` = profesional · `{{4}}` = fecha/hora
+6. **Ejemplos:** Sofía / Corte de pelo / Juca Nails / 12/06 a las 15:30.
 7. **Enviar** → queda *En revisión* (aprobación: minutos a 24 h).
 
 ### Paso 2 — Crear la plantilla de CONFIRMACIÓN
 Repetí el Paso 1 con otra plantilla, ej. nombre `confirmacion_turno`, mismo
-idioma, mismas 3 variables, cuerpo por ejemplo:
+idioma. **Tiene 4 variables** (suma el profesional). Cuerpo:
 ```
-¡Hola {{1}}! Confirmamos tu turno de {{2}} el {{3}}. ¡Te esperamos!
+¡Hola {{1}}! Confirmamos tu turno de {{2}} con {{3}} el {{4}}. ¡Te esperamos!
 ```
+- `{{1}}` = nombre del cliente
+- `{{2}}` = servicio
+- `{{3}}` = profesional (con quién)
+- `{{4}}` = fecha y hora
+
+### Ejemplos para las variables (lo que pide Meta al crear)
+Meta te pide un valor de ejemplo por variable. Poné:
+
+**Recordatorio** (`recordatorio_turno`, 4 variables):
+| Variable | Ejemplo |
+|---|---|
+| {{1}} nombre | `Sofía` |
+| {{2}} servicio | `Esmaltado semipermanente` |
+| {{3}} profesional | `Juca Nails` |
+| {{4}} fecha/hora | `12/06 a las 15:30` |
+
+**Confirmación** (`confirmacion_turno`, 4 variables):
+| Variable | Ejemplo |
+|---|---|
+| {{1}} nombre | `Sofía` |
+| {{2}} servicio | `Esmaltado semipermanente` |
+| {{3}} profesional | `Juca Nails` |
+| {{4}} fecha/hora | `12/06 a las 15:30` |
 
 ### Paso 3 — Cargar las variables en Render
 Cuando **ambas estén Aprobadas**, en **Render → servicio web → Environment**:

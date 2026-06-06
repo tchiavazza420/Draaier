@@ -93,11 +93,12 @@ def _enviar_confirmada(reserva):
            "reserva_confirmada", reserva=reserva, negocio=neg)
     # Para que llegue a un cliente nuevo (fuera de la ventana de 24 h) se usa
     # una plantilla aprobada si está configurada; si no, texto plano.
+    # Confirmación: 4 variables -> (1) nombre, (2) servicio, (3) profesional, (4) fecha/hora.
     tpl_name = current_app.config.get("WHATSAPP_TEMPLATE_CONFIRMACION")
     template = None
     if tpl_name:
         template = {"name": tpl_name, "params": [
-            reserva.cliente.nombre, reserva.servicio.nombre,
+            reserva.cliente.nombre, reserva.servicio.nombre, reserva.recurso.nombre,
             reserva.inicio.strftime("%d/%m a las %H:%M")]}
     _wa(reserva, neg, f"✅ ¡Reserva confirmada! {_detalle(reserva)}. Código {reserva.codigo}.",
         template=template)
@@ -224,9 +225,11 @@ def _enviar_recordatorio(reserva):
     tpl_name = current_app.config.get("WHATSAPP_TEMPLATE_RECORDATORIO")
     template = None
     if tpl_name:
+        # 4 variables: (1) nombre, (2) servicio, (3) profesional, (4) fecha/hora.
         template = {"name": tpl_name, "params": [
             reserva.cliente.nombre,
             reserva.servicio.nombre,
+            reserva.recurso.nombre,
             reserva.inicio.strftime("%d/%m a las %H:%M"),
         ]}
     _wa(reserva, neg,
