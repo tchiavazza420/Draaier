@@ -96,7 +96,7 @@ class BaseConfig:
     # Versión de assets para cache-busting del CSS/JS. Bumpear (o setear por
     # env) en cada cambio visual fuerza a bajar el CSS fresco aunque haya un
     # service worker viejo cacheando la URL anterior.
-    ASSET_VERSION = os.environ.get("ASSET_VERSION", "20")
+    ASSET_VERSION = os.environ.get("ASSET_VERSION", "21")
 
     # Token secreto para el endpoint de tareas programadas (/tareas/correr).
     # Lo usa un cron externo (cron-job.org / GitHub Actions) para disparar los

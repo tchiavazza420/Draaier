@@ -111,6 +111,8 @@ def test_confirmacion_usa_plantilla_wa_si_esta_configurada(
 
     assert len(BANDEJA_WA) == 1
     assert "template:reserva_confirmada" in BANDEJA_WA[-1]["body"]
+    # La confirmación incluye el profesional (4ª variable).
+    assert rec.nombre in BANDEJA_WA[-1]["body"]
 
 
 def test_recordatorio_usa_plantilla_wa_si_esta_configurada(
