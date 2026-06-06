@@ -17,13 +17,13 @@
 
 <!-- Switcher de vista propio (solo mobile): siempre visible arriba, no lo tapa la barra inferior -->
 <div class="btn-group w-100 mb-3 d-md-none" role="group" id="vista-switcher">
-  <button type="button" class="btn btn-outline-primary btn-sm active" data-vista="listWeek">Lista</button>
+  <button type="button" class="btn btn-outline-primary btn-sm active" data-vista="dayGridMonth">Mes</button>
+  <button type="button" class="btn btn-outline-primary btn-sm" data-vista="listWeek">Lista</button>
   <button type="button" class="btn btn-outline-primary btn-sm" data-vista="timeGridDay">Día</button>
   <button type="button" class="btn btn-outline-primary btn-sm" data-vista="timeGridWeek">Semana</button>
-  <button type="button" class="btn btn-outline-primary btn-sm" data-vista="dayGridMonth">Mes</button>
 </div>
 
-<div class="card"><div class="card-body">
+<div class="card cal-card"><div class="card-body">
   <div id="calendario"></div>
 </div></div>
 {% endblock %}
@@ -37,12 +37,13 @@
 
     const cal = new FullCalendar.Calendar(el, {
       locale: 'es',
-      // En celular: vista de lista (mucho más legible que la semana apretada).
-      initialView: esMobile ? 'listWeek' : 'timeGridWeek',
+      // Vista por defecto: el mes (más panorámica), en celular y escritorio.
+      initialView: 'dayGridMonth',
       headerToolbar: esMobile
         ? { left: 'prev,next', center: 'title', right: 'today' }
         : { left: 'prev,next today', center: 'title',
             right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek' },
+      fixedWeekCount: false,
       // En mobile el switcher de vistas es nuestro (arriba), no el footer.
       footerToolbar: false,
       buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', day: 'Día', list: 'Lista' },
@@ -52,7 +53,8 @@
       height: 'auto',
       expandRows: true,
       stickyHeaderDates: true,
-      dayMaxEvents: 4,
+      dayMaxEvents: 3,
+      moreLinkText: (n) => `+${n}`,
       eventDisplay: 'block',
       allDaySlot: false,
       slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
@@ -62,28 +64,27 @@
       eventClick: (info) => {
         if (info.event.url) { info.jsEvent.preventDefault(); window.location = info.event.url; }
       },
-      // Render propio: hora + servicio + cliente (más legible en semana/mes).
+      // Render minimalista: punto del color del servicio + hora + servicio.
       eventContent: (arg) => {
         if (arg.view.type.startsWith('list')) return;   // lista: render por defecto
         const p = arg.event.extendedProps;
+        const color = arg.event.backgroundColor || 'var(--marca)';
         const wrap = document.createElement('div');
-        wrap.className = 'fc-ag';
+        wrap.className = 'fc-min';
+        const dot = document.createElement('span');
+        dot.className = 'fc-min-dot';
+        dot.style.background = color;
+        wrap.appendChild(dot);
         if (arg.timeText) {
-          const t = document.createElement('div');
-          t.className = 'fc-ag-time';
+          const t = document.createElement('span');
+          t.className = 'fc-min-time';
           t.textContent = arg.timeText;
           wrap.appendChild(t);
         }
-        const s = document.createElement('div');
-        s.className = 'fc-ag-serv';
+        const s = document.createElement('span');
+        s.className = 'fc-min-serv';
         s.textContent = p.servicio || arg.event.title;
         wrap.appendChild(s);
-        if (p.cliente) {
-          const c = document.createElement('div');
-          c.className = 'fc-ag-cli';
-          c.textContent = p.cliente;
-          wrap.appendChild(c);
-        }
         return { domNodes: [wrap] };
       },
       eventDidMount: (info) => {
@@ -106,14 +107,7 @@
     }
 
     // Si rota el teléfono / cambia el tamaño, ajustamos la vista por defecto.
-    let eraMobile = esMobile;
-    window.addEventListener('resize', () => {
-      const ahoraMobile = window.matchMedia('(max-width: 767px)').matches;
-      if (ahoraMobile !== eraMobile) {
-        eraMobile = ahoraMobile;
-        cal.changeView(ahoraMobile ? 'listWeek' : 'timeGridWeek');
-      }
-    });
+    // (la vista por defecto es el mes; el usuario cambia con el switcher)
   });
 </script>
 {% endblock %}

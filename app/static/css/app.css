@@ -601,28 +601,44 @@ a:focus-visible, .btn:focus-visible, .form-control:focus-visible {
 .fc .fc-button-primary:not(:disabled):active { background: var(--marca-2, #4c1d95); border-color: var(--marca-2, #4c1d95); }
 .fc .fc-button:focus { box-shadow: 0 0 0 .2rem rgba(var(--marca-rgb, 109,40,217), .3) !important; }
 
-/* Eventos: redondeados, con sombra y barra de color a la izquierda */
-.fc-event { border: none !important; border-radius: 9px; box-shadow: 0 2px 6px rgba(16,18,34,.14);
-  padding: 0; overflow: hidden; cursor: pointer; }
-.fc-event:hover { filter: brightness(1.04); }
-.fc-timegrid-event { box-shadow: inset 4px 0 0 rgba(0,0,0,.18), 0 2px 6px rgba(16,18,34,.14); }
-.fc-ag { line-height: 1.15; padding: 2px 5px; overflow: hidden; color: #fff; }
-.fc-ag-time { font-weight: 800; font-size: .68rem; opacity: .95; }
-.fc-ag-serv { font-weight: 700; font-size: .72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.fc-ag-cli  { font-size: .66rem; opacity: .92; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-/* Mes: bloques de color con texto blanco (consistente con la semana) */
-.fc-daygrid-event { white-space: normal; padding: 0; margin-top: 2px; }
-.fc-daygrid-event .fc-ag-cli { white-space: normal; }
-.fc-daygrid-event .fc-ag-time { display: inline; margin-right: .25rem; }
-.fc-daygrid-event .fc-ag-serv { display: inline; }
-/* Semana/Día: franjas un poco más altas para que entre la info */
-.fc .fc-timegrid-slot { height: 2.1em; }
+/* ---- Estilo minimalista elegante ---- */
+.cal-card .card-body { padding: 1rem 1.1rem 1.25rem; }
+.fc .fc-scrollgrid { border-radius: 14px; overflow: hidden; }
+.fc .fc-daygrid-day { transition: background .15s ease; }
+.fc .fc-daygrid-day-frame { min-height: 64px; }
+.fc .fc-daygrid-day:hover { background: color-mix(in srgb, var(--marca) 4%, transparent); }
+.fc .fc-day-other .fc-daygrid-day-number { opacity: .35; }
+
+/* Chip de evento (mes): punto del color del servicio + hora + servicio. */
+.fc-event { border: none !important; cursor: pointer; }
+.fc-daygrid-event { background: transparent !important; box-shadow: none !important; }
+.fc-min { display: flex; align-items: center; gap: .3rem; padding: 1px 3px;
+  border-radius: 7px; overflow: hidden; transition: background .12s ease; }
+.fc-min-dot { width: 7px; height: 7px; border-radius: 50%; flex: 0 0 auto; }
+.fc-min-time { font-weight: 800; font-size: .7rem; color: var(--tinta, #1e2129); }
+.fc-min-serv { font-size: .7rem; color: color-mix(in srgb, var(--tinta,#1e2129) 78%, transparent);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fc-daygrid-event:hover .fc-min { background: color-mix(in srgb, var(--marca) 9%, transparent); }
+
+/* Semana/Día: el bloque mantiene el color del servicio (lo pone FullCalendar). */
+.fc-timegrid-event { border-radius: 8px !important; box-shadow: 0 2px 6px rgba(16,18,34,.12); }
+.fc-timegrid-event .fc-min { padding: 3px 6px; }
+.fc-timegrid-event .fc-min-dot { display: none; }
+.fc-timegrid-event .fc-min-time,
+.fc-timegrid-event .fc-min-serv { color: #fff; }
+.fc-timegrid-event .fc-min-serv { opacity: .95; }
+.fc-timegrid-event .fc-min { flex-direction: column; align-items: flex-start; gap: 0; line-height: 1.2; }
+.fc .fc-timegrid-slot { height: 2.4em; }
 .fc .fc-timegrid-now-indicator-line { border-width: 2px; }
-/* Vista lista (mobile): filas más respirables */
+
+/* "+N más" minimalista */
+.fc .fc-daygrid-more-link { font-weight: 700; color: var(--marca); font-size: .68rem; }
+
+/* Vista lista (mobile): filas respirables */
 .fc .fc-list-event:hover td { background: var(--fc-today-bg-color); }
 .fc .fc-list-event-dot { border-width: 6px; }
-.fc .fc-list-day-cushion { background: color-mix(in srgb, var(--marca, #6d28d9) 6%, transparent); }
-html[data-bs-theme="dark"] .fc-daygrid-event .fc-ag { color: #e5e7eb; }
+.fc .fc-list-day-cushion { background: color-mix(in srgb, var(--marca) 6%, transparent); font-weight: 700; }
+html[data-bs-theme="dark"] .fc-min-time { color: #e9eaee; }
 
 /* Botón de reserva que se "activa" al completar los datos */
 .btn-reservar { transition: all .2s ease; font-weight: 700; }
