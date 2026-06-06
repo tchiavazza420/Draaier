@@ -73,8 +73,10 @@ class Reserva(TenantMixin, TimestampMixin, db.Model):
         nullable=False, default=EstadoReservaEnum.PENDIENTE_PAGO, index=True,
     )
 
-    # Snapshot del precio al momento de reservar.
+    # Snapshot del precio al momento de reservar (ya con descuento si hubo cupón).
     precio = db.Column(db.Numeric(10, 2), nullable=False, default=0)
+    # Código del cupón/gift card aplicado (si hubo), para referencia.
+    cupon_codigo = db.Column(db.String(24), nullable=True)
     notas = db.Column(db.Text, nullable=True)
 
     # True cuando ya se le pidió la reseña al cliente (evita repetir el envío).

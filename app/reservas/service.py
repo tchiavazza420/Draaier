@@ -96,10 +96,14 @@ def ocupados_por_servicio(servicio, fecha):
 #  Creación de reserva
 # ----------------------------------------------------------------------
 def crear_reserva(negocio_id, servicio, recurso, cliente, inicio,
-                  estado=EstadoReservaEnum.PENDIENTE_PAGO, notas=None):
+                  estado=EstadoReservaEnum.PENDIENTE_PAGO, notas=None,
+                  precio=None, cupon_codigo=None):
     """
     Crea una reserva validando que el turno esté realmente disponible.
     Lanza ReservaError si algo no cuadra. Hace commit al final.
+
+    `precio`: si se pasa, congela ese valor (ej. precio con descuento de cupón);
+    si no, usa el precio del servicio. `cupon_codigo`: referencia del cupón usado.
 
     Precondición: servicio, recurso y cliente pertenecen al negocio (lo
     garantizan las rutas con los helpers tenant-aware).
@@ -134,7 +138,8 @@ def crear_reserva(negocio_id, servicio, recurso, cliente, inicio,
         inicio=inicio,
         fin=fin,
         estado=estado,
-        precio=servicio.precio,
+        precio=servicio.precio if precio is None else precio,
+        cupon_codigo=cupon_codigo,
         notas=(notas or "").strip() or None,
     )
     db.session.add(reserva)

@@ -26,9 +26,14 @@
                 <div><small class="text-muted">/{{ n.slug }} · {{ n.email }}</small></div>
               </td>
               <td data-label="Rubro">{{ n.rubro.value.replace('_',' ').title() }}</td>
-              <td data-label="Plan">{{ n.plan.value if n.plan else '—' }}</td>
+              <td data-label="Plan">
+                {{ n.plan.value if n.plan else '—' }}
+                {% if n.cortesia %}<span class="badge bg-info text-dark">cortesía</span>{% endif %}
+                {% if n.descuento_plan %}<span class="badge bg-success">-{{ n.descuento_plan }}%</span>{% endif %}
+              </td>
               <td data-label="Suscripción">
-                <form method="post" action="{{ url_for('super_admin.negocio_suscripcion', negocio_id=n.id) }}" class="d-flex gap-1">
+                <form method="post" action="{{ url_for('super_admin.negocio_suscripcion', negocio_id=n.id) }}"
+                      class="d-flex flex-wrap gap-1 align-items-center">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <select name="estado" class="form-select form-select-sm" style="width:auto">
                     {% for e in estados %}
@@ -41,6 +46,13 @@
                       <option value="{{ p.value }}" {{ 'selected' if n.plan == p }}>{{ p.value }}</option>
                     {% endfor %}
                   </select>
+                  <input type="number" name="dias" class="form-control form-control-sm" style="width:72px"
+                         min="0" placeholder="días" title="Días de vigencia (0/vacío = permanente)">
+                  <input type="number" name="descuento" class="form-control form-control-sm" style="width:78px"
+                         min="0" max="100" value="{{ n.descuento_plan or '' }}" placeholder="% desc" title="Descuento del plan (%)">
+                  <label class="small d-flex align-items-center gap-1" title="Plan gratis">
+                    <input type="checkbox" name="cortesia" {{ 'checked' if n.cortesia }}> gratis
+                  </label>
                   <button class="btn btn-sm btn-outline-primary">✓</button>
                 </form>
               </td>

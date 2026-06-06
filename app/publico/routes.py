@@ -90,10 +90,29 @@ def perfil_servicio(slug, servicio_slug):
     """Página del servicio con el selector de fecha para reservar."""
     negocio = cargar_negocio_por_slug(slug)
     servicio = _servicio_publico(negocio, servicio_slug)
+    from app.cupones import service as cupones
+    cupon = cupones.cupon_vigente_para(negocio.id, servicio)
     return render_template(
         "publico/servicio.html",
         negocio=negocio, servicio=servicio, hoy=date.today().isoformat(),
+        cupon=cupon,
     )
+
+
+@publico_bp.route("/<slug>/promo/<codigo>")
+def aplicar_promo(slug, codigo):
+    """Link de gift card: valida el cupón, lo deja en sesión y manda a reservar."""
+    negocio = cargar_negocio_por_slug(slug)
+    from app.cupones import service as cupones
+    cupon = cupones.buscar(negocio.id, codigo)
+    if cupon is None or not cupon.vigente:
+        flash("Este cupón no es válido o ya venció.", "warning")
+        return redirect(url_for("publico.perfil_negocio", slug=slug))
+    cupones.guardar_en_sesion(negocio.id, cupon.codigo)
+    flash(f"¡Descuento {cupon.etiqueta} aplicado! Elegí tu turno. 🎁", "success")
+    if cupon.servicio and cupon.servicio.activo:
+        return redirect(url_for("publico.perfil_servicio", slug=slug, servicio_slug=cupon.servicio.slug))
+    return redirect(url_for("publico.perfil_negocio", slug=slug))
 
 
 @publico_bp.route("/<slug>/reservar/slots")
@@ -175,11 +194,20 @@ def reservar_crear(slug):
         EstadoReservaEnum.PENDIENTE_PAGO if requiere_sena else EstadoReservaEnum.CONFIRMADO
     )
 
+    # Cupón / gift card de descuento (si hay uno vigente en la sesión).
+    from app.cupones import service as cupones
+    cupon = cupones.cupon_vigente_para(negocio.id, servicio)
+    precio_final = cupon.precio_final(servicio.precio) if cupon else None
+
     try:
         cliente = obtener_o_crear_cliente(negocio.id, nombre, email, telefono)
         reserva = crear_reserva(
             negocio.id, servicio, recurso, cliente, inicio, estado=estado_inicial,
+            precio=precio_final, cupon_codigo=(cupon.codigo if cupon else None),
         )
+        if cupon:
+            cupones.registrar_uso(cupon)
+            cupones.limpiar_sesion()
     except ReservaError as exc:
         db.session.rollback()
         flash(str(exc), "warning")

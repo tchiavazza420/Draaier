@@ -23,8 +23,22 @@
         </h1>
         <p class="text-muted mb-0">Duración: {{ servicio.duracion_legible }}</p>
       </div>
-      <div class="h3 mb-0">${{ '%.2f'|format(servicio.precio) }}</div>
+      <div class="text-end">
+        {% if cupon %}
+          <div class="text-muted text-decoration-line-through" style="font-size:.95rem">${{ '%.2f'|format(servicio.precio) }}</div>
+          <div class="h3 mb-0 text-success">${{ '%.2f'|format(cupon.precio_final(servicio.precio)) }}</div>
+        {% else %}
+          <div class="h3 mb-0">${{ '%.2f'|format(servicio.precio) }}</div>
+        {% endif %}
+      </div>
     </div>
+
+    {% if cupon %}
+      <div class="alert alert-success d-flex align-items-center gap-2 mb-3">
+        🎁 <div><strong>Descuento {{ cupon.etiqueta }} aplicado.</strong>
+        {% if cupon.descripcion %}<span class="d-block small">{{ cupon.descripcion }}</span>{% endif %}</div>
+      </div>
+    {% endif %}
 
     {% if servicio.descripcion %}<p>{{ servicio.descripcion }}</p>{% endif %}
 

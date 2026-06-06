@@ -28,6 +28,7 @@ from app.models.resena import Resena
 from app.models.galeria import GaleriaFoto
 from app.models.push import PushSubscription
 from app.models.notificacion import Notificacion
+from app.models.cupon import Cupon
 
 __all__ = [
     "Negocio",
@@ -56,4 +57,5 @@ __all__ = [
     "GaleriaFoto",
     "PushSubscription",
     "Notificacion",
+    "Cupon",
 ]

@@ -184,6 +184,14 @@ class Negocio(TimestampMixin, db.Model):
     )
     trial_fin = db.Column(db.DateTime(timezone=True), nullable=True)
     suscripcion_fin = db.Column(db.DateTime(timezone=True), nullable=True)
+    # Descuento (%) sobre el precio del plan, otorgado por el super admin (0..100).
+    descuento_plan = db.Column(db.Integer, nullable=True)
+    # True si el super admin le dio el plan de cortesía (gratis).
+    cortesia = db.Column(db.Boolean, nullable=False, default=False)
+
+    @property
+    def es_cortesia(self):
+        return bool(self.cortesia)
 
     # --- Relaciones ---
     usuarios = db.relationship(
