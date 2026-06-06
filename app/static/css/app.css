@@ -8,27 +8,37 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --marca:        #6d28d9;
-  --marca-2:      #8b5cf6;
-  --marca-rgb:    109, 40, 217;
-  --tinta:        #0f1222;
-  --tinta-suave:  #5b6072;
-  --lienzo:       #f6f7fb;
+  /* === Paleta de marca AgenPro (del logo): naranja + dorado + charcoal === */
+  --marca:        #F26A1F;   /* naranja vibrante (primario) */
+  --marca-2:      #FB8C3C;   /* naranja claro (para gradientes/hover) */
+  --marca-3:      #D9531A;   /* naranja profundo (sombras/acentos) */
+  --marca-rgb:    242, 106, 31;
+  --oro:          #C7A06B;   /* dorado/tan (acento) */
+  --oro-rgb:      199, 160, 107;
+  --carbon:       #1E2129;   /* charcoal (navbar / superficies oscuras) */
+  --carbon-rgb:   30, 33, 41;
+
+  --tinta:        #20232B;   /* texto: charcoal cálido */
+  --tinta-suave:  #6b7180;
+  --lienzo:       #FBF8F5;   /* fondo: blanco cálido (off-white) */
   --tarjeta:      #ffffff;
-  --borde:        #eceef4;
+  --borde:        #efe9e2;   /* borde cálido */
   --radio:        16px;
   --radio-sm:     12px;
-  --sombra-sm:    0 1px 2px rgba(16,18,34,.06), 0 1px 3px rgba(16,18,34,.04);
-  --sombra:       0 10px 30px rgba(16,18,34,.08);
-  --sombra-lg:    0 24px 60px rgba(16,18,34,.14);
+  --sombra-sm:    0 1px 2px rgba(31,25,18,.05), 0 1px 3px rgba(31,25,18,.04);
+  --sombra:       0 10px 30px rgba(31,25,18,.08);
+  --sombra-lg:    0 24px 60px rgba(31,25,18,.14);
+  --sombra-marca: 0 10px 28px rgba(var(--marca-rgb), .30);
   --transicion:   .22s cubic-bezier(.4,0,.2,1);
 
   --bs-primary: var(--marca);
   --bs-body-color: var(--tinta);
   --bs-body-bg: var(--lienzo);
   --bs-border-color: var(--borde);
-  --bs-link-color: var(--marca);
-  --bs-link-hover-color: var(--marca-2);
+  --bs-link-color: var(--marca-3);
+  --bs-link-hover-color: var(--marca);
+
+  scroll-behavior: smooth;
 }
 
 * { -webkit-font-smoothing: antialiased; }
@@ -63,7 +73,7 @@ html[data-bs-theme="dark"] {
 html[data-bs-theme="dark"] body {
   background:
     radial-gradient(1200px 600px at 100% -10%, rgba(var(--marca-rgb), .16), transparent 60%),
-    radial-gradient(900px 500px at -10% 10%, rgba(14,165,233,.10), transparent 55%),
+    radial-gradient(900px 500px at -10% 10%, rgba(var(--oro-rgb), .10), transparent 55%),
     var(--lienzo);
 }
 html[data-bs-theme="dark"] .bottom-nav { background: rgba(24,27,37,.92); }
@@ -75,8 +85,8 @@ html[data-bs-theme="dark"] .text-dark { color: var(--tinta) !important; }
 body {
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   background:
-    radial-gradient(1200px 600px at 100% -10%, rgba(var(--marca-rgb), .07), transparent 60%),
-    radial-gradient(900px 500px at -10% 10%, rgba(14,165,233,.06), transparent 55%),
+    radial-gradient(1200px 600px at 100% -10%, rgba(var(--marca-rgb), .08), transparent 60%),
+    radial-gradient(900px 500px at -10% 10%, rgba(var(--oro-rgb), .10), transparent 55%),
     var(--lienzo);
   color: var(--tinta);
   min-height: 100vh;
@@ -86,10 +96,11 @@ h1, h2, h3, h4, h5, .fw-bold { letter-spacing: -.02em; }
 
 /* ---------- Navbar ---------- */
 .navbar.bg-dark {
-  background: rgba(15, 18, 34, .82) !important;
-  backdrop-filter: saturate(180%) blur(12px);
+  background: rgba(var(--carbon-rgb), .88) !important;
+  backdrop-filter: saturate(180%) blur(14px);
   border-bottom: 1px solid rgba(255,255,255,.06);
 }
+.navbar .navbar-brand img { box-shadow: 0 2px 8px rgba(0,0,0,.25); }
 .navbar .navbar-brand { letter-spacing: -.03em; }
 .brand-dot {
   display:inline-block; width:.62rem; height:.62rem; border-radius:50%;
@@ -203,14 +214,14 @@ h1, h2, h3, h4, h5, .fw-bold { letter-spacing: -.02em; }
 /* ---------- Hero del landing ---------- */
 .hero {
   position: relative; overflow: hidden; border-radius: 28px;
-  background: linear-gradient(135deg, #1b1140 0%, #3b1d7a 45%, #6d28d9 100%);
+  background: linear-gradient(135deg, #181a20 0%, #3a2417 42%, var(--marca-3) 80%, var(--marca) 100%);
   color: #fff; padding: clamp(2.5rem, 6vw, 5rem);
 }
 .hero::after {
   content:''; position:absolute; inset:0;
   background:
-    radial-gradient(600px 300px at 90% 10%, rgba(255,255,255,.18), transparent 60%),
-    radial-gradient(500px 300px at 0% 100%, rgba(14,165,233,.25), transparent 60%);
+    radial-gradient(600px 300px at 90% 10%, rgba(255,255,255,.16), transparent 60%),
+    radial-gradient(520px 320px at 0% 100%, rgba(var(--oro-rgb),.32), transparent 60%);
   pointer-events:none;
 }
 .hero h1 { font-weight: 800; line-height: 1.05; }
@@ -222,9 +233,50 @@ h1, h2, h3, h4, h5, .fw-bold { letter-spacing: -.02em; }
 }
 .feature-ico {
   width: 48px; height: 48px; border-radius: 14px; display:grid; place-items:center;
-  font-size: 1.4rem; background: rgba(var(--marca-rgb), .1);
+  font-size: 1.4rem;
+  background: linear-gradient(135deg, rgba(var(--marca-rgb), .15), rgba(var(--oro-rgb), .20));
+  box-shadow: inset 0 0 0 1px rgba(var(--marca-rgb), .12);
+  transition: transform var(--transicion);
 }
+.card.hover-lift:hover .feature-ico { transform: scale(1.08) rotate(-3deg); }
 .stat-num { font-weight: 800; letter-spacing: -.03em; }
+
+/* ===================== Pulido premium / micro-interacciones ===================== */
+/* Entrada suave del contenido en cada carga de página. */
+main.container { animation: subir .42s cubic-bezier(.2,.7,.2,1) both; }
+@media (prefers-reduced-motion: reduce){ main.container { animation: none; } }
+
+/* Cards clickeables con un acento de marca que aparece al pasar el mouse. */
+.card.hover-lift { position: relative; overflow: hidden; }
+.card.hover-lift::before {
+  content:''; position:absolute; left:0; top:0; height:3px; width:100%;
+  background: linear-gradient(90deg, var(--marca), var(--oro));
+  transform: scaleX(0); transform-origin: left; transition: transform .25s ease;
+}
+.card.hover-lift:hover::before { transform: scaleX(1); }
+
+/* Acento dorado para títulos/datos destacados. */
+.text-oro { color: var(--oro) !important; }
+.text-marca { color: var(--marca) !important; }
+
+/* Barras de progreso con la marca. */
+.progress { border-radius: 999px; background: rgba(var(--marca-rgb), .12); }
+.progress-bar { background: linear-gradient(90deg, var(--marca-3), var(--marca-2)); }
+
+/* Foco accesible coherente con la marca. */
+a:focus-visible, .btn:focus-visible, .form-control:focus-visible {
+  outline: 2px solid var(--marca); outline-offset: 2px;
+}
+
+/* Brillo sutil en botones primarios (sweep al pasar el mouse). */
+.btn-primary, .btn-success { position: relative; overflow: hidden; }
+.btn-primary::after, .btn-success::after {
+  content:''; position:absolute; top:0; left:-120%; width:60%; height:100%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,.35), transparent);
+  transform: skewX(-18deg); transition: left .6s ease;
+}
+.btn-primary:hover::after, .btn-success:hover::after { left: 140%; }
+@media (prefers-reduced-motion: reduce){ .btn-primary::after, .btn-success::after { display:none; } }
 
 /* ===========================================================================
    MOBILE-FIRST (la app está pensada para usarse instalada en el celular)
