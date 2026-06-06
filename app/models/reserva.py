@@ -83,6 +83,9 @@ class Reserva(TenantMixin, TimestampMixin, db.Model):
     # True cuando el cliente confirmó que va a asistir (desde el recordatorio).
     asistencia_confirmada = db.Column(db.Boolean, nullable=False, default=False)
 
+    # True cuando ya se envió el recordatorio "2 horas antes" (evita repetirlo).
+    recordatorio_2h_enviado = db.Column(db.Boolean, nullable=False, default=False)
+
     # --- Relaciones ---
     cliente = db.relationship("Cliente", back_populates="reservas")
     servicio = db.relationship("Servicio")

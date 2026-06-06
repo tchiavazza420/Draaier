@@ -96,7 +96,7 @@ class BaseConfig:
     # Versión de assets para cache-busting del CSS/JS. Bumpear (o setear por
     # env) en cada cambio visual fuerza a bajar el CSS fresco aunque haya un
     # service worker viejo cacheando la URL anterior.
-    ASSET_VERSION = os.environ.get("ASSET_VERSION", "18")
+    ASSET_VERSION = os.environ.get("ASSET_VERSION", "20")
 
     # Token secreto para el endpoint de tareas programadas (/tareas/correr).
     # Lo usa un cron externo (cron-job.org / GitHub Actions) para disparar los
@@ -138,7 +138,10 @@ class BaseConfig:
 
     # --- Uploads locales (fallback dev) ---
     UPLOAD_FOLDER = os.path.join(basedir, "app", "static", "uploads")
-    MAX_CONTENT_LENGTH = 4 * 1024 * 1024  # 4 MB máximo por archivo
+    # Tope del request completo. Las fotos de celular (HEIC/JPG de 12MP) pesan
+    # varios MB y el editor puede subir logo + banner + foto juntos, así que el
+    # límite tiene que ser holgado (se comprime server-side a WebP igual).
+    MAX_CONTENT_LENGTH = 32 * 1024 * 1024  # 32 MB por request
     IMAGENES_PERMITIDAS = {"png", "jpg", "jpeg", "webp", "gif"}
 
 

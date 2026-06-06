@@ -85,6 +85,31 @@ services:
           name: reservas-web
           envVarKey: CRON_TOKEN
 
+  # --- Cron Job: recordatorio "2 horas antes" (cada hora) ---
+  # Pega a /tareas/correr?proximas=2 cada hora: avisa a las reservas que
+  # empiezan dentro de las próximas 2 h (una sola vez por reserva).
+  - type: cron
+    name: agenpro-recordatorios-2h
+    runtime: python
+    plan: starter
+    schedule: "0 * * * *"
+    buildCommand: "echo sin build"
+    startCommand: >-
+      python -c "import os,urllib.request as u;
+      req=u.Request(os.environ['SITE_URL'].rstrip('/')+'/tareas/correr?proximas=2',
+      method='POST',
+      headers={'X-Cron-Token':os.environ['CRON_TOKEN'],
+      'User-Agent':'Mozilla/5.0 (AgenPro-Cron)'});
+      print(u.urlopen(req, timeout=300).read().decode())"
+    envVars:
+      - key: SITE_URL
+        value: https://www.agenpro.com.ar
+      - key: CRON_TOKEN
+        fromService:
+          type: web
+          name: reservas-web
+          envVarKey: CRON_TOKEN
+
 # ===========================================================================
 #  ESCALADO A ASYNC (plan pago) — descomentar y poner plan: starter
 # ===========================================================================

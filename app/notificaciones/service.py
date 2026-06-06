@@ -301,6 +301,36 @@ def enviar_recordatorios(dias=1):
     return enviados
 
 
+def enviar_recordatorios_proximas(horas=2):
+    """
+    Recordatorio "X horas antes": envía a las reservas CONFIRMADAS que empiezan
+    dentro de las próximas `horas` y a las que todavía no se les mandó este
+    aviso (recordatorio_2h_enviado). Pensado para correr cada hora.
+    Devuelve la cantidad enviada.
+    """
+    from app.models.reserva import Reserva, EstadoReservaEnum
+    ahora = datetime.now()
+    limite = ahora + timedelta(hours=horas)
+    reservas = (
+        Reserva.query
+        .filter(Reserva.estado == EstadoReservaEnum.CONFIRMADO)
+        .filter(Reserva.recordatorio_2h_enviado.is_(False))
+        .filter(Reserva.inicio > ahora, Reserva.inicio <= limite)
+        .all()
+    )
+    enviados = 0
+    for r in reservas:
+        if r.cliente and (r.cliente.email or r.cliente.telefono):
+            try:
+                _enviar_recordatorio(r)
+                enviados += 1
+            except Exception:
+                current_app.logger.exception("Fallo recordatorio 2h reserva %s", r.codigo)
+        r.recordatorio_2h_enviado = True
+    db.session.commit()
+    return enviados
+
+
 def pedir_resenas():
     """
     Pide reseña a los clientes de turnos FINALIZADOS a los que aún no se les

@@ -181,57 +181,89 @@ Mientras usás el número de prueba alcanza para probar. Para usar **tu número*
 
 ---
 
-## Parte 5 — Recordatorios con plantilla aprobada (paso a paso)
+## Parte 5 — Plantillas de WhatsApp (confirmación al reservar + recordatorio 2 h antes)
 
-Meta solo permite mensajes **proactivos** (recordatorios fuera de la ventana de
-24 h) usando una **plantilla aprobada**. El código ya está listo y espera una
-plantilla con **3 variables en este orden: nombre, servicio, fecha/hora**.
+**Por qué hacen falta plantillas:** WhatsApp (Meta) solo entrega mensajes de
+texto libre **dentro de la ventana de 24 h** que se abre cuando el cliente te
+escribe. Un cliente que reserva por la web **no te escribió**, así que la
+confirmación y los recordatorios **NO le llegan** salvo que uses una
+**plantilla aprobada**. Necesitás **dos plantillas**:
 
-### A) Crear y aprobar la plantilla en Meta
+| Para | Variable en Render | Cuándo se manda |
+|---|---|---|
+| Confirmación al reservar | `WHATSAPP_TEMPLATE_CONFIRMACION` | apenas reserva (o al pagar la seña) |
+| Recordatorio | `WHATSAPP_TEMPLATE_RECORDATORIO` | el día anterior **y 2 h antes** |
+
+> Las dos usan **3 variables, en este orden: (1) nombre, (2) servicio, (3) fecha/hora**.
+> El recordatorio de "2 h antes" reutiliza la **misma** plantilla de recordatorio.
+
+---
+
+### Paso 1 — Crear la plantilla de RECORDATORIO en Meta
 1. **business.facebook.com** → **WhatsApp Manager** → **Plantillas de mensajes**
    → **Crear plantilla**.
-2. **Categoría:** **Utilidad** (no Marketing).
-3. **Nombre:** minúsculas con guiones bajos, ej. `recordatorio_turno`
-   (anotalo: va tal cual en Render).
+2. **Categoría:** **Utilidad** (NO Marketing).
+3. **Nombre:** minúsculas con guiones bajos, ej. `recordatorio_turno`.
 4. **Idioma:** Español (Argentina). Anotá el código exacto (`es_AR`, a veces `es`).
-5. **Cuerpo:** pegá este texto (3 variables):
+5. **Cuerpo** (pegá tal cual, con las 3 variables):
    ```
    Hola {{1}}, te recordamos tu turno de {{2}} el {{3}}. ¡Te esperamos!
    ```
-   - `{{1}}` = nombre del cliente
-   - `{{2}}` = servicio
-   - `{{3}}` = fecha y hora (ej: "12/06 a las 15:30")
-6. **Ejemplos:** completá valores de muestra (Sofía / Corte de pelo / 12/06 15:30).
-7. **Enviar** → queda *En revisión*. Aprobación: de minutos a 24 h.
+6. **Ejemplos:** Sofía / Corte de pelo / 12/06 a las 15:30.
+7. **Enviar** → queda *En revisión* (aprobación: minutos a 24 h).
 
-### B) Cargar en Render
-Cuando esté **Aprobada**, en **Render → Environment**:
+### Paso 2 — Crear la plantilla de CONFIRMACIÓN
+Repetí el Paso 1 con otra plantilla, ej. nombre `confirmacion_turno`, mismo
+idioma, mismas 3 variables, cuerpo por ejemplo:
+```
+¡Hola {{1}}! Confirmamos tu turno de {{2}} el {{3}}. ¡Te esperamos!
+```
+
+### Paso 3 — Cargar las variables en Render
+Cuando **ambas estén Aprobadas**, en **Render → servicio web → Environment**:
 ```
 WHATSAPP_TEMPLATE_RECORDATORIO=recordatorio_turno
+WHATSAPP_TEMPLATE_CONFIRMACION=confirmacion_turno
 WHATSAPP_TEMPLATE_IDIOMA=es_AR
 ```
-(El nombre y el idioma deben coincidir EXACTO con la plantilla.)
+(Los nombres y el idioma deben coincidir **EXACTO** con las plantillas.) Guardá y
+esperá el redeploy.
 
-### C) Cómo queda
-- Los recordatorios diarios salen como **plantilla** (sirven aunque el cliente
-  no haya escrito en 24 h). Sin estas variables, se manda texto plano.
-- Probarlo: Render → cron `agenpro-recordatorios` → **Trigger Run** con un turno
-  de mañana cargado.
+### Paso 4 — Activar el recordatorio "2 horas antes"
+El aviso de 2 h antes lo dispara un **cron que corre cada hora** y le pega a
+`/tareas/correr?proximas=2` (avisa a las reservas que empiezan dentro de las
+próximas 2 h, una sola vez cada una).
 
-> ⚠️ Si hacés la plantilla con otra cantidad/orden de variables, no va a
-> coincidir con lo que envía el sistema. Si querés otro texto, avisá y ajusto el
-> código para que matchee.
+- **Si desplegás con el Blueprint** (`render.yaml`): ya está definido el cron
+  **`agenpro-recordatorios-2h`** (schedule `0 * * * *`). Hacé **Render → Blueprint
+  → Sync** para que se cree.
+- **Si preferís crearlo a mano** en Render → **New → Cron Job**:
+  - **Schedule:** `0 * * * *` (cada hora en punto).
+  - **Command:**
+    ```
+    python -c "import os,urllib.request as u; req=u.Request(os.environ['SITE_URL'].rstrip('/')+'/tareas/correr?proximas=2', method='POST', headers={'X-Cron-Token':os.environ['CRON_TOKEN'],'User-Agent':'Mozilla/5.0 (AgenPro-Cron)'}); print(u.urlopen(req, timeout=300).read().decode())"
+    ```
+  - **Env vars:** `SITE_URL=https://www.agenpro.com.ar` y `CRON_TOKEN=` (el mismo valor que el del servicio web).
+- **Alternativa sin Render:** cron-job.org → POST a
+  `https://www.agenpro.com.ar/tareas/correr?proximas=2`, header `X-Cron-Token: <token>`, cada hora.
 
-### Plantilla para la CONFIRMACIÓN de reserva
-Igual que el recordatorio, la **confirmación** que se manda al reservar es un
-mensaje proactivo: a un cliente nuevo (que nunca te escribió) **no le llega sin
-plantilla**. Creá otra plantilla (misma estructura, 3 variables) por ejemplo:
+> El **recordatorio del día anterior** lo sigue mandando el cron diario
+> `agenpro-recordatorios` (8:00 ARG). El de **2 h antes** es el cron horario nuevo.
 
-> ¡Hola {{1}}! Confirmamos tu turno de {{2}} el {{3}}. ¡Te esperamos!
+### Cómo queda
+- **Al reservar:** llega la confirmación por WhatsApp (plantilla) + email.
+- **2 h antes** y **el día anterior:** llega el recordatorio (plantilla) con el
+  botón de confirmar asistencia.
+- Sin las variables de plantilla, esos mensajes salen como **texto plano** y solo
+  llegan si el cliente te escribió en las últimas 24 h.
 
-Y cargá en Render:
-```
-WHATSAPP_TEMPLATE_CONFIRMACION=<nombre de la plantilla de confirmación>
-```
-Usa el mismo `WHATSAPP_TEMPLATE_IDIOMA`. Sin esta variable, la confirmación sale
-como texto plano (solo llega si el cliente te escribió en las últimas 24 h).
+### Probar
+1. Cargá un turno **dentro de las próximas 2 h** con un cliente que tenga tu
+   número de WhatsApp.
+2. Render → cron `agenpro-recordatorios-2h` → **Trigger Run**.
+3. Te debería llegar el recordatorio. (El JSON de respuesta muestra
+   `recordatorios_proximos`.)
+
+> ⚠️ Si hacés alguna plantilla con otra cantidad/orden de variables, no va a
+> coincidir con lo que envía el sistema. Si querés otro texto/variables, avisá y
+> ajusto el código.

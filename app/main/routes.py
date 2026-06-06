@@ -115,12 +115,14 @@ def tareas_cron():
     except ValueError:
         dias = 1
 
-    from app.notificaciones.service import enviar_recordatorios, pedir_resenas
+    from app.notificaciones.service import (
+        enviar_recordatorios, enviar_recordatorios_proximas, pedir_resenas,
+    )
     from app.suscripciones import vencer_suscripciones, avisar_vencimientos_proximos
 
     # Cada tarea se aísla: si una falla, las otras igual corren y el cron NO
     # se marca como fallido (siempre devolvemos 200 con el detalle de errores).
-    resultado = {"ok": True, "dias": dias, "errores": []}
+    resultado = {"ok": True, "errores": []}
 
     def _correr(nombre, fn):
         try:
@@ -130,6 +132,15 @@ def tareas_cron():
             resultado[nombre] = None
             resultado["errores"].append(f"{nombre}: {exc}")
 
+    # Modo "X horas antes" (cron cada hora): solo el recordatorio próximo.
+    proximas = request.args.get("proximas", type=int)
+    if proximas:
+        resultado["horas"] = proximas
+        _correr("recordatorios_proximos", lambda: enviar_recordatorios_proximas(proximas))
+        return jsonify(resultado)
+
+    # Modo diario (cron 1 vez al día): recordatorios del día siguiente + mantenimiento.
+    resultado["dias"] = dias
     _correr("recordatorios_enviados", lambda: enviar_recordatorios(dias))
     _correr("suscripciones_vencidas", vencer_suscripciones)
     _correr("avisos_vencimiento_proximo", lambda: avisar_vencimientos_proximos(3))
