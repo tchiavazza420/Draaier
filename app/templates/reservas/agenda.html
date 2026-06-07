@@ -64,17 +64,44 @@
       eventClick: (info) => {
         if (info.event.url) { info.jsEvent.preventDefault(); window.location = info.event.url; }
       },
-      // Render minimalista: punto del color del servicio + hora + servicio.
+      // Render minimalista por vista.
       eventContent: (arg) => {
-        if (arg.view.type.startsWith('list')) return;   // lista: render por defecto
         const p = arg.event.extendedProps;
         const color = arg.event.backgroundColor || 'var(--marca)';
+        const view = arg.view.type;
+
+        // LISTA: servicio + cliente (la hora la pone la columna de la lista).
+        if (view.startsWith('list')) {
+          const wrap = document.createElement('div');
+          const s = document.createElement('span');
+          s.style.fontWeight = '700';
+          s.textContent = p.servicio || arg.event.title;
+          wrap.appendChild(s);
+          if (p.cliente) {
+            const c = document.createElement('span');
+            c.style.opacity = '.7';
+            c.textContent = ' · ' + p.cliente;
+            wrap.appendChild(c);
+          }
+          return { domNodes: [wrap] };
+        }
+
         const wrap = document.createElement('div');
         wrap.className = 'fc-min';
-        const dot = document.createElement('span');
-        dot.className = 'fc-min-dot';
-        dot.style.background = color;
-        wrap.appendChild(dot);
+        // MES: punto de color + hora (compacto, sin servicio: el color ya lo dice).
+        if (view === 'dayGridMonth') {
+          const dot = document.createElement('span');
+          dot.className = 'fc-min-dot';
+          dot.style.background = color;
+          wrap.appendChild(dot);
+          const t = document.createElement('span');
+          t.className = 'fc-min-time';
+          t.textContent = arg.timeText || '';
+          wrap.appendChild(t);
+          return { domNodes: [wrap] };
+        }
+
+        // DÍA / SEMANA: hora + servicio (el bloque ya tiene el color).
         if (arg.timeText) {
           const t = document.createElement('span');
           t.className = 'fc-min-time';

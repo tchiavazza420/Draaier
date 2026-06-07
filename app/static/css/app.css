@@ -609,15 +609,19 @@ a:focus-visible, .btn:focus-visible, .form-control:focus-visible {
 .fc .fc-daygrid-day:hover { background: color-mix(in srgb, var(--marca) 4%, transparent); }
 .fc .fc-day-other .fc-daygrid-day-number { opacity: .35; }
 
-/* Chip de evento (mes): punto del color del servicio + hora + servicio. */
+/* Chip de evento (mes): punto del color del servicio + hora (compacto). */
 .fc-event { border: none !important; cursor: pointer; }
-.fc-daygrid-event { background: transparent !important; box-shadow: none !important; }
-.fc-min { display: flex; align-items: center; gap: .3rem; padding: 1px 3px;
-  border-radius: 7px; overflow: hidden; transition: background .12s ease; }
-.fc-min-dot { width: 7px; height: 7px; border-radius: 50%; flex: 0 0 auto; }
-.fc-min-time { font-weight: 800; font-size: .7rem; color: var(--tinta, #1e2129); }
-.fc-min-serv { font-size: .7rem; color: color-mix(in srgb, var(--tinta,#1e2129) 78%, transparent);
+.fc-daygrid-event { background: transparent !important; box-shadow: none !important; margin: 1px 0 !important; }
+.fc-daygrid-event .fc-daygrid-event-harness, .fc-daygrid-event { overflow: visible; }
+.fc-min { display: flex; align-items: center; gap: .25rem; padding: 0 2px;
+  border-radius: 6px; overflow: hidden; transition: background .12s ease; }
+.fc-min-dot { width: 6px; height: 6px; border-radius: 50%; flex: 0 0 auto; }
+.fc-min-time { font-weight: 800; font-size: .64rem; color: var(--tinta, #1e2129); white-space: nowrap; }
+.fc-min-serv { font-size: .64rem; color: color-mix(in srgb, var(--tinta,#1e2129) 78%, transparent);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* En el mes la hora manda: que no se recorte. */
+.fc-daygrid-event .fc-min { padding: 0 1px; }
+.fc-daygrid-event .fc-min-time { font-size: .62rem; }
 .fc-daygrid-event:hover .fc-min { background: color-mix(in srgb, var(--marca) 9%, transparent); }
 
 /* Semana/Día: el bloque mantiene el color del servicio (lo pone FullCalendar). */
