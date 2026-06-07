@@ -90,6 +90,33 @@ def test_pagina_publica_compartir_mapa_y_avatar(client, crear_negocio, crear_rec
 
 
 # ---------- Compresión de imágenes ----------
+def test_guardar_imagen_acepta_heic_de_iphone(app):
+    """Las fotos de iPhone vienen en HEIC: deben aceptarse y convertirse a WebP."""
+    import os
+    import pillow_heif
+    pillow_heif.register_heif_opener()
+    with app.app_context():
+        from app.uploads import guardar_imagen
+        buf = io.BytesIO()
+        heif = pillow_heif.from_pillow(Image.new("RGB", (1200, 1600), (242, 106, 31)))
+        heif.save(buf, format="HEIF")
+        buf.seek(0)
+        fs = FileStorage(stream=buf, filename="logo.heic", content_type="image/heic")
+        ruta = guardar_imagen(fs, 999, "logo")
+        assert ruta.endswith(".webp")
+        full = os.path.join(app.static_folder, ruta.replace("/", os.sep))
+        try:
+            img = Image.open(full)
+            assert img.format == "WEBP" and max(img.size) <= 512
+            img.close()
+        finally:
+            if os.path.exists(full):
+                try:
+                    os.remove(full)
+                except PermissionError:
+                    pass
+
+
 def test_guardar_imagen_comprime_y_redimensiona(app):
     with app.app_context():
         from app.uploads import guardar_imagen

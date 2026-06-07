@@ -142,7 +142,8 @@ class BaseConfig:
     # varios MB y el editor puede subir logo + banner + foto juntos, así que el
     # límite tiene que ser holgado (se comprime server-side a WebP igual).
     MAX_CONTENT_LENGTH = 32 * 1024 * 1024  # 32 MB por request
-    IMAGENES_PERMITIDAS = {"png", "jpg", "jpeg", "webp", "gif"}
+    # heic/heif: formato por defecto de las fotos de iPhone (se convierten a WebP).
+    IMAGENES_PERMITIDAS = {"png", "jpg", "jpeg", "webp", "gif", "heic", "heif"}
 
 
 class DevelopmentConfig(BaseConfig):

@@ -54,9 +54,9 @@ class MensajesForm(FlaskForm):
 
 class PersonalizacionForm(FlaskForm):
     logo = FileField("Logo", validators=[
-        Optional(), FileAllowed(["png", "jpg", "jpeg", "webp", "gif"], "Solo imágenes.")])
+        Optional(), FileAllowed(["png", "jpg", "jpeg", "webp", "gif", "heic", "heif"], "Solo imágenes.")])
     banner = FileField("Banner", validators=[
-        Optional(), FileAllowed(["png", "jpg", "jpeg", "webp", "gif"], "Solo imágenes.")])
+        Optional(), FileAllowed(["png", "jpg", "jpeg", "webp", "gif", "heic", "heif"], "Solo imágenes.")])
     color_primario = StringField("Color primario", validators=[DataRequired(), _HEX], default="#0d6efd")
     color_secundario = StringField("Color secundario", validators=[DataRequired(), _HEX], default="#111827")
     tipografia = SelectField("Tipografía", choices=[(f, f) for f in _FUENTES])
