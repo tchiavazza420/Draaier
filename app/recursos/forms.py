@@ -38,9 +38,9 @@ class RecursoForm(FlaskForm):
         validators=[Optional(), Length(max=160)],
     )
     foto = FileField("Foto de perfil", validators=[
-        Optional(), FileAllowed(["png", "jpg", "jpeg", "webp", "gif"], "Solo imágenes.")])
+        Optional(), FileAllowed(["png", "jpg", "jpeg", "webp", "gif", "heic", "heif"], "Solo imágenes.")])
     banner = FileField("Portada", validators=[
-        Optional(), FileAllowed(["png", "jpg", "jpeg", "webp", "gif"], "Solo imágenes.")])
+        Optional(), FileAllowed(["png", "jpg", "jpeg", "webp", "gif", "heic", "heif"], "Solo imágenes.")])
     descripcion = TextAreaField(
         "Bio / descripción",
         validators=[Optional(), Length(max=2000)],
@@ -103,7 +103,7 @@ class RecursoForm(FlaskForm):
 
     # --- Marca del negocio (para el marketplace) — unificado acá ---
     neg_logo = FileField("Logo del negocio", validators=[
-        Optional(), FileAllowed(["png", "jpg", "jpeg", "webp", "gif"], "Solo imágenes.")])
+        Optional(), FileAllowed(["png", "jpg", "jpeg", "webp", "gif", "heic", "heif"], "Solo imágenes.")])
     neg_descripcion = TextAreaField("Descripción del negocio",
                                     validators=[Optional(), Length(max=2000)])
     neg_visible = BooleanField("Aparecer en el Marketplace")
