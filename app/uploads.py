@@ -45,8 +45,10 @@ _WEBP_METHOD = 4
 
 
 def _extension_ok(filename):
+    # Sin extensión (algunas apps de iOS comparten así): lo decide Pillow al
+    # abrirla — siempre re-encodeamos a WebP, nunca servimos el original.
     if "." not in filename:
-        return False
+        return True
     ext = filename.rsplit(".", 1)[1].lower()
     return ext in current_app.config["IMAGENES_PERMITIDAS"]
 

@@ -80,6 +80,7 @@ def register_error_handlers(app):
         402: ("Suscripción vencida", "La suscripción del negocio venció. Solo lectura hasta regularizar el pago."),
         403: ("Acceso denegado", "No tenés permisos para ver esta página."),
         404: ("No encontrado", "La página que buscás no existe o fue movida."),
+        413: ("Archivo muy pesado", "La imagen supera el tamaño máximo (32 MB). Probá con una foto más liviana."),
         500: ("Error del servidor", "Algo salió mal. Estamos trabajando en ello."),
     }
 
@@ -91,7 +92,7 @@ def register_error_handlers(app):
 
     # 402 se registra por su clase (Werkzeug no reconoce el entero 402).
     app.register_error_handler(PagoRequerido, _make(402))
-    for code in (403, 404, 500):
+    for code in (403, 404, 413, 500):
         app.register_error_handler(code, _make(code))
 
 
