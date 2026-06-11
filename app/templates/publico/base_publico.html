@@ -60,9 +60,9 @@
 
   {% if negocio.instagram or negocio.facebook or negocio.whatsapp %}
     <div class="d-flex justify-content-center gap-3 mt-4 text-muted">
-      {% if negocio.instagram %}<a class="text-reset" title="Instagram" target="_blank" href="https://instagram.com/{{ negocio.instagram|replace('@','') }}">{{ icono_red('instagram', 22) }}</a>{% endif %}
-      {% if negocio.facebook %}<a class="text-reset" title="Facebook" target="_blank" href="{{ negocio.facebook }}">{{ icono_red('facebook', 22) }}</a>{% endif %}
-      {% if negocio.whatsapp %}<a class="text-reset" title="WhatsApp" target="_blank" href="https://wa.me/{{ negocio.whatsapp|replace('+','')|replace(' ','') }}">{{ icono_red('whatsapp', 22) }}</a>{% endif %}
+      {% if negocio.instagram %}<a class="red-instagram" title="Instagram" target="_blank" href="https://instagram.com/{{ negocio.instagram|replace('@','') }}">{{ icono_red('instagram', 22) }}</a>{% endif %}
+      {% if negocio.facebook %}<a class="red-facebook" title="Facebook" target="_blank" href="{{ negocio.facebook }}">{{ icono_red('facebook', 22) }}</a>{% endif %}
+      {% if negocio.whatsapp %}<a class="red-whatsapp" title="WhatsApp" target="_blank" href="https://wa.me/{{ negocio.whatsapp|replace('+','')|replace(' ','') }}">{{ icono_red('whatsapp', 22) }}</a>{% endif %}
     </div>
   {% endif %}
 </div>

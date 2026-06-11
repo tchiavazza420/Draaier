@@ -77,11 +77,11 @@
       {# ---- Redes ---- #}
       {% if recurso.instagram or recurso.tiktok or recurso.pinterest or recurso.facebook or recurso.whatsapp %}
         <div class="pb-social my-2">
-          {% if recurso.instagram %}<a title="Instagram" target="_blank" href="https://instagram.com/{{ recurso.instagram|replace('@','') }}">{{ icono_red('instagram') }}</a>{% endif %}
-          {% if recurso.tiktok %}<a title="TikTok" target="_blank" href="https://tiktok.com/@{{ recurso.tiktok|replace('@','') }}">{{ icono_red('tiktok') }}</a>{% endif %}
-          {% if recurso.pinterest %}<a title="Pinterest" target="_blank" href="https://pinterest.com/{{ recurso.pinterest|replace('@','') }}">{{ icono_red('pinterest') }}</a>{% endif %}
-          {% if recurso.facebook %}<a title="Facebook" target="_blank" href="{{ recurso.facebook }}">{{ icono_red('facebook') }}</a>{% endif %}
-          {% if recurso.whatsapp %}<a title="WhatsApp" target="_blank" href="https://wa.me/{{ recurso.whatsapp|replace('+','')|replace(' ','') }}">{{ icono_red('whatsapp') }}</a>{% endif %}
+          {% if recurso.instagram %}<a class="red-instagram" title="Instagram" target="_blank" href="https://instagram.com/{{ recurso.instagram|replace('@','') }}">{{ icono_red('instagram') }}</a>{% endif %}
+          {% if recurso.tiktok %}<a class="red-tiktok" title="TikTok" target="_blank" href="https://tiktok.com/@{{ recurso.tiktok|replace('@','') }}">{{ icono_red('tiktok') }}</a>{% endif %}
+          {% if recurso.pinterest %}<a class="red-pinterest" title="Pinterest" target="_blank" href="https://pinterest.com/{{ recurso.pinterest|replace('@','') }}">{{ icono_red('pinterest') }}</a>{% endif %}
+          {% if recurso.facebook %}<a class="red-facebook" title="Facebook" target="_blank" href="{{ recurso.facebook }}">{{ icono_red('facebook') }}</a>{% endif %}
+          {% if recurso.whatsapp %}<a class="red-whatsapp" title="WhatsApp" target="_blank" href="https://wa.me/{{ recurso.whatsapp|replace('+','')|replace(' ','') }}">{{ icono_red('whatsapp') }}</a>{% endif %}
         </div>
       {% endif %}
 
@@ -114,15 +114,16 @@
            :class="activo==='mapa' && 'pb-btn-activo'">📍 Ubicación del local</a>
       {% endif %}
 
-      {# ---- CTA: Reservar un turno (directo a agendar) ---- #}
+      {# ---- CTA: Reservar un turno (va DIRECTO a la página de reserva) ---- #}
       {% if servicios %}
         {% if servicios|length == 1 %}
           <a class="pb-btn pb-btn-cta" href="{{ url_for('publico.perfil_servicio', slug=negocio.slug, servicio_slug=servicios[0].slug) }}">
             ✨ Reservar un turno
           </a>
         {% else %}
-          <a class="pb-btn pb-btn-cta" href="#" @click.prevent="activo = 'servicios'"
-             :class="activo==='servicios' && 'pb-btn-activo'">✨ Reservar un turno</a>
+          <a class="pb-btn pb-btn-cta" href="{{ url_for('publico.reservar_negocio', slug=negocio.slug, de=recurso.slug) }}">
+            ✨ Reservar un turno
+          </a>
         {% endif %}
       {% endif %}
 

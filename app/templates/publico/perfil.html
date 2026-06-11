@@ -35,8 +35,10 @@
     {% if negocio.descripcion_publica %}
       <p class="text-muted mb-3 mx-auto" style="max-width:620px">{{ negocio.descripcion_publica }}</p>
     {% endif %}
-    {% if servicios or recursos %}
-      <a class="btn btn-primary btn-lg px-5" href="{{ '#servicios' if servicios else '#equipo' }}">Reservar turno</a>
+    {% if servicios %}
+      <a class="btn btn-primary btn-lg px-5" href="{{ url_for('publico.reservar_negocio', slug=negocio.slug) }}">Reservar turno</a>
+    {% elif recursos %}
+      <a class="btn btn-primary btn-lg px-5" href="#equipo">Reservar turno</a>
     {% endif %}
   </div>
 </div>

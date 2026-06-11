@@ -5,9 +5,10 @@ CRM básico: listado de clientes del negocio y ficha con su historial de
 reservas. Todo aislado por negocio.
 """
 
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 
+from app.extensions import db
 from app.tenant import query_tenant, obtener_tenant_o_404
 from app.auth.decorators import rol_required
 from app.models.cliente import Cliente
@@ -35,6 +36,63 @@ def listar():
         )
     clientes = q.order_by(Cliente.nombre).limit(300).all()
     return render_template("clientes/listar.html", clientes=clientes, buscar=buscar)
+
+
+@clientes_bp.route("/unificar", methods=["POST"])
+@login_required
+@rol_required(*_ROLES_PANEL)
+def unificar():
+    """
+    Fusiona clientes duplicados: si dos fichas comparten teléfono (normalizado)
+    o email, las reservas y reseñas se mueven a la más antigua y la repetida se
+    borra. Así el historial queda completo en UNA sola ficha.
+    """
+    from app.models.resena import Resena
+    from app.reservas.service import _telefono_normalizado
+
+    clientes = query_tenant(Cliente, _neg()).order_by(Cliente.id).all()
+    por_clave, fusionados = {}, 0
+    for c in clientes:
+        claves = []
+        tel = _telefono_normalizado(c.telefono)
+        if tel:
+            claves.append(("tel", tel))
+        if c.email:
+            claves.append(("email", c.email.lower()))
+        principal = next((por_clave[k] for k in claves if k in por_clave), None)
+        # Mismo teléfono pero emails DISTINTOS => probablemente personas que
+        # comparten número (familia): no se fusionan.
+        if principal is not None and c.email and principal.email \
+                and c.email.lower() != principal.email.lower():
+            principal = None
+        if principal is None:
+            for k in claves:
+                por_clave.setdefault(k, c)
+            continue
+        # Mover el historial vía ORM (la relación tiene delete-orphan: si
+        # borráramos sin mover primero, se llevaría las reservas puestas).
+        for r in list(c.reservas):
+            r.cliente = principal
+        for rs in Resena.query.filter_by(cliente_id=c.id).all():
+            rs.cliente_id = principal.id
+        faltan_email = c.email if not principal.email else None
+        faltan_tel = c.telefono if not principal.telefono else None
+        db.session.delete(c)
+        db.session.flush()  # libera el unique de email antes de copiarlo
+        if faltan_email:
+            principal.email = faltan_email
+        if faltan_tel:
+            principal.telefono = faltan_tel
+        fusionados += 1
+        for k in claves:
+            por_clave.setdefault(k, principal)
+
+    db.session.commit()
+    if fusionados:
+        flash(f"Unifiqué {fusionados} ficha(s) duplicada(s): el historial quedó completo.", "success")
+    else:
+        flash("No encontré duplicados (mismo teléfono o email).", "info")
+    return redirect(url_for("clientes.listar"))
 
 
 @clientes_bp.route("/<int:cliente_id>")

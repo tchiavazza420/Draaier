@@ -85,6 +85,36 @@ def perfil_negocio(slug):
     )
 
 
+@publico_bp.route("/<slug>/reservar")
+def reservar_negocio(slug):
+    """
+    Entrada directa a la reserva (CTA "Reservar turno"):
+      - un solo servicio activo → directo al selector de horarios,
+      - varios → paso 1: elegir el servicio.
+    `?de=<recurso_slug>` filtra a los servicios de ese profesional.
+    """
+    negocio = cargar_negocio_por_slug(slug)
+    servicios = (
+        Servicio.query.filter_by(negocio_id=negocio.id, activo=True)
+        .order_by(Servicio.nombre).all()
+    )
+    recurso = None
+    rslug = request.args.get("de")
+    if rslug:
+        recurso = Recurso.query.filter_by(
+            negocio_id=negocio.id, slug=rslug, activo=True
+        ).first()
+        if recurso:
+            servicios = [s for s in servicios if recurso in s.recursos]
+    if len(servicios) == 1:
+        return redirect(url_for(
+            "publico.perfil_servicio", slug=negocio.slug, servicio_slug=servicios[0].slug
+        ))
+    return render_template(
+        "publico/reservar.html", negocio=negocio, servicios=servicios, recurso=recurso
+    )
+
+
 @publico_bp.route("/<slug>/servicio/<servicio_slug>")
 def perfil_servicio(slug, servicio_slug):
     """Página del servicio con el selector de fecha para reservar."""

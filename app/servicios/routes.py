@@ -83,6 +83,16 @@ def senas():
     )
 
     if request.method == "POST":
+        # Quitar todas las señas de una (botón explícito, sin tocar tildes).
+        if request.form.get("quitar_todas"):
+            for s in servicios:
+                s.requiere_sena = False
+                s.sena_monto = None
+                s.sena_porcentaje = None
+            db.session.commit()
+            flash("Listo: ningún servicio pide seña ahora.", "success")
+            return redirect(url_for("servicios.senas"))
+
         tipo = request.form.get("sena_tipo", "monto")
         seleccionados = set(request.form.getlist("servicios", type=int))
 
@@ -121,7 +131,10 @@ def senas():
                 s.sena_monto = None
                 s.sena_porcentaje = None
         db.session.commit()
-        flash(f"Seña aplicada a {aplicados} servicio(s).", "success")
+        if aplicados:
+            flash(f"Seña aplicada a {aplicados} servicio(s). Los destildados quedaron sin seña.", "success")
+        else:
+            flash("Quitaste la seña de todos los servicios.", "success")
         return redirect(url_for("servicios.senas"))
 
     return render_template("servicios/senas.html", servicios=servicios)

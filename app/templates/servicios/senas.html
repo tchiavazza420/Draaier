@@ -101,7 +101,7 @@
                 {% if s.requiere_sena %}
                   <small class="text-success">
                     seña actual:
-                    {% if s.sena_porcentaje %}{{ s.sena_porcentaje }}%{% else %}{{ s.sena_monto or 0|plata }}{% endif %}
+                    {% if s.sena_porcentaje %}{{ s.sena_porcentaje }}%{% else %}{{ (s.sena_monto or 0)|plata }}{% endif %}
                   </small>
                 {% endif %}
               </label>
@@ -117,7 +117,13 @@
       </div></div>
 
       {% if servicios %}
-        <div class="d-flex justify-content-end">
+        <div class="d-flex justify-content-between gap-2 flex-wrap">
+          {% if servicios|selectattr('requiere_sena')|list %}
+            <button class="btn btn-outline-danger" type="submit" name="quitar_todas" value="1"
+                    onclick="return confirm('¿Quitar la seña de TODOS los servicios? Las reservas nuevas no van a pedir seña.')">
+              🗑 Quitar todas las señas
+            </button>
+          {% else %}<span></span>{% endif %}
           <button class="btn btn-primary" type="submit">Aplicar seña</button>
         </div>
       {% endif %}
