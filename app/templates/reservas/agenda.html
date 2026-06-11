@@ -20,7 +20,8 @@
   <button type="button" class="btn btn-outline-primary btn-sm active" data-vista="dayGridMonth">Mes</button>
   <button type="button" class="btn btn-outline-primary btn-sm" data-vista="listWeek">Lista</button>
   <button type="button" class="btn btn-outline-primary btn-sm" data-vista="timeGridDay">Día</button>
-  <button type="button" class="btn btn-outline-primary btn-sm" data-vista="timeGridWeek">Semana</button>
+  {# En el celu la semana entera no entra: 3 días por pantalla se lee bien. #}
+  <button type="button" class="btn btn-outline-primary btn-sm" data-vista="timeGridTresDias">3 días</button>
 </div>
 
 <div class="card cal-card"><div class="card-body">
@@ -60,6 +61,10 @@
       // En mobile el switcher de vistas es nuestro (arriba), no el footer.
       footerToolbar: false,
       buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', day: 'Día', list: 'Lista' },
+      views: {
+        // Vista mobile: 3 días por pantalla (la semana entera no se lee en 375px).
+        timeGridTresDias: { type: 'timeGrid', duration: { days: 3 }, buttonText: '3 días' },
+      },
       slotMinTime: '07:00:00',
       slotMaxTime: '23:00:00',
       nowIndicator: true,
@@ -122,7 +127,7 @@
           return { domNodes: [wrap] };
         }
 
-        // DÍA / SEMANA: hora + servicio (el bloque ya tiene el color).
+        // DÍA / SEMANA: hora + servicio + cliente (el bloque ya tiene el color).
         if (arg.timeText) {
           const t = document.createElement('span');
           t.className = 'fc-min-time';
@@ -133,6 +138,12 @@
         s.className = 'fc-min-serv';
         s.textContent = p.servicio || arg.event.title;
         wrap.appendChild(s);
+        if (p.cliente) {
+          const c = document.createElement('span');
+          c.className = 'fc-min-cli';
+          c.textContent = p.cliente;
+          wrap.appendChild(c);
+        }
         return { domNodes: [wrap] };
       },
       eventDidMount: (info) => {

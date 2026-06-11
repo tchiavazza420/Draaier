@@ -6,12 +6,19 @@
   <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('panel.dashboard') }}">← Panel</a>
 </div>
 
-<form class="mb-3" method="get">
-  <div class="input-group" style="max-width:380px">
-    <input type="text" name="q" value="{{ buscar }}" class="form-control" placeholder="Buscar por nombre, email o teléfono">
-    <button class="btn btn-outline-primary">Buscar</button>
-  </div>
-</form>
+<div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+  <form method="get" class="flex-grow-1" style="max-width:380px">
+    <div class="input-group">
+      <input type="text" name="q" value="{{ buscar }}" class="form-control" placeholder="Buscar por nombre, email o teléfono">
+      <button class="btn btn-outline-primary">Buscar</button>
+    </div>
+  </form>
+  <form method="post" action="{{ url_for('clientes.unificar') }}"
+        onsubmit="return confirm('Se fusionan las fichas que comparten teléfono o email: las reservas pasan a una sola ficha y las repetidas se borran. ¿Continuar?')">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn btn-outline-secondary">🧹 Unificar duplicados</button>
+  </form>
+</div>
 
 <div class="card"><div class="card-body">
   {% if clientes %}
@@ -21,7 +28,10 @@
         <tbody>
           {% for cl in clientes %}
             <tr style="cursor:pointer" onclick="location.href='{{ url_for('clientes.detalle', cliente_id=cl.id) }}'">
-              <td class="fw-semibold celda-principal" data-label="Nombre">{{ cl.nombre }}</td>
+              <td class="fw-semibold celda-principal" data-label="Nombre">
+                {{ cl.nombre }}
+                {% if cl.es_nuevo %}<span class="badge-nuevo ms-1">✨ Nuevo</span>{% endif %}
+              </td>
               <td data-label="Email">{{ cl.email or '—' }}</td>
               <td data-label="Teléfono">{{ cl.telefono or '—' }}</td>
               <td data-label="Reservas"><span class="badge bg-light text-dark">{{ cl.reservas|length }}</span></td>

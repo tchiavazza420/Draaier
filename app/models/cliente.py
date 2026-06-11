@@ -37,5 +37,16 @@ class Cliente(TenantMixin, TimestampMixin, db.Model):
         db.UniqueConstraint("negocio_id", "email", name="uq_cliente_negocio_email"),
     )
 
+    @property
+    def es_nuevo(self):
+        """True si el cliente tiene menos de 30 días en la cartera."""
+        from datetime import datetime, timedelta, timezone
+        if not self.created_at:
+            return False
+        creado = self.created_at
+        if creado.tzinfo is None:
+            creado = creado.replace(tzinfo=timezone.utc)
+        return datetime.now(timezone.utc) - creado < timedelta(days=30)
+
     def __repr__(self):
         return f"<Cliente {self.id} {self.nombre!r} neg={self.negocio_id}>"

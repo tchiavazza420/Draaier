@@ -35,10 +35,19 @@ class ReservaError(Exception):
 # ----------------------------------------------------------------------
 #  Clientes (find-or-create dentro del negocio)
 # ----------------------------------------------------------------------
+def _telefono_normalizado(telefono):
+    """Solo dígitos, últimos 10 (área + número en AR): así '+54 9 351 555-0000',
+    '0351 15-555-0000' y '3515550000' cuentan como el mismo número."""
+    digitos = "".join(c for c in (telefono or "") if c.isdigit())
+    return digitos[-10:] if len(digitos) >= 10 else digitos
+
+
 def obtener_o_crear_cliente(negocio_id, nombre, email=None, telefono=None):
     """
-    Busca un cliente por email dentro del negocio; si no existe (o no hay
-    email) lo crea. Deja el objeto en la sesión y hace flush para tener id.
+    Busca un cliente dentro del negocio por email y, si no hay match, por
+    teléfono normalizado (el mismo número escrito distinto cuenta igual).
+    Si no existe lo crea. Así las reservas se suman SIEMPRE a la misma ficha
+    en vez de duplicar clientes. Deja el objeto en sesión y hace flush.
     """
     email = (email or "").strip().lower() or None
     telefono = (telefono or "").strip() or None
@@ -48,6 +57,22 @@ def obtener_o_crear_cliente(negocio_id, nombre, email=None, telefono=None):
     if email:
         cliente = Cliente.query.filter_by(negocio_id=negocio_id, email=email).first()
 
+    if cliente is None and telefono:
+        tel_norm = _telefono_normalizado(telefono)
+        if tel_norm:
+            candidatos = (
+                Cliente.query.filter_by(negocio_id=negocio_id)
+                .filter(Cliente.telefono.isnot(None)).all()
+            )
+            # Mismo teléfono pero con OTRO email => puede ser un familiar que
+            # comparte número: no lo tratamos como la misma persona.
+            cliente = next(
+                (c for c in candidatos
+                 if _telefono_normalizado(c.telefono) == tel_norm
+                 and (not email or not c.email or c.email == email)),
+                None,
+            )
+
     if cliente is None:
         cliente = Cliente(negocio_id=negocio_id, nombre=nombre, email=email, telefono=telefono)
         db.session.add(cliente)
@@ -55,6 +80,8 @@ def obtener_o_crear_cliente(negocio_id, nombre, email=None, telefono=None):
         # Completar datos faltantes sin pisar los existentes.
         if not cliente.telefono and telefono:
             cliente.telefono = telefono
+        if not cliente.email and email:
+            cliente.email = email
         if nombre:
             cliente.nombre = nombre
 

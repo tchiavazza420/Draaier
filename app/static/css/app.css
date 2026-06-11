@@ -362,6 +362,20 @@ a:focus-visible, .btn:focus-visible, .form-control:focus-visible {
 /* Accesos rápidos compactos (dashboard) */
 .acceso-ico { font-size: 1.5rem; line-height: 1; }
 .acceso-card .card-body { overflow: hidden; }
+/* El nombre envuelve en vez de cortarse ("Disponibilidad" entera). */
+.acceso-nombre { font-size: .76rem; line-height: 1.15; overflow-wrap: anywhere; }
+@media (min-width: 768px){ .acceso-nombre { font-size: .875rem; } }
+
+/* Badge "Nuevo" (cliente con menos de 1 mes): verde con brillo pulsante */
+.badge-nuevo { display:inline-block; font-size:.6rem; font-weight:800; letter-spacing:.02em;
+  padding:.18rem .5rem; border-radius:999px; color:#fff; vertical-align:middle;
+  background: linear-gradient(135deg,#22c55e,#16a34a);
+  animation: nuevoBrillo 1.8s ease-in-out infinite; }
+@keyframes nuevoBrillo {
+  0%, 100% { box-shadow: 0 0 4px rgba(34,197,94,.45); transform: scale(1); }
+  50%      { box-shadow: 0 0 14px rgba(34,197,94,.95); transform: scale(1.06); }
+}
+@media (prefers-reduced-motion: reduce){ .badge-nuevo { animation: none; } }
 
 /* Hero de la página pública del negocio: cover + avatar superpuesto */
 .perfil-cover { height: 120px; }
@@ -546,6 +560,20 @@ a:focus-visible, .btn:focus-visible, .form-control:focus-visible {
   transition: transform .15s ease, background .15s ease; }
 .pb-social a:hover { transform: translateY(-2px); background: color-mix(in srgb, var(--boton) 20%, transparent); }
 
+/* ---- Colores reales de cada red social ---- */
+.red-instagram { color:#E4405F; }
+.red-facebook  { color:#1877F2; }
+.red-whatsapp  { color:#25D366; }
+.red-pinterest { color:#E60023; }
+.red-tiktok    { color:#010101; }
+[data-bs-theme="dark"] .red-tiktok { color:#fff; }
+.pb-social a.red-instagram { color:#E4405F; background: color-mix(in srgb, #E4405F 14%, transparent); }
+.pb-social a.red-facebook  { color:#1877F2; background: color-mix(in srgb, #1877F2 14%, transparent); }
+.pb-social a.red-whatsapp  { color:#25D366; background: color-mix(in srgb, #25D366 14%, transparent); }
+.pb-social a.red-pinterest { color:#E60023; background: color-mix(in srgb, #E60023 14%, transparent); }
+.pb-social a.red-tiktok    { color:#010101; background: rgba(0,0,0,.08); }
+[data-bs-theme="dark"] .pb-social a.red-tiktok { color:#fff; background: rgba(255,255,255,.14); }
+
 /* ---- Botones grandes (links) ---- */
 .pb-btn { display:flex; align-items:center; justify-content:center; gap:.5rem;
   width:100%; padding:1rem 1.25rem; margin-bottom:.85rem; font-weight:700;
@@ -650,13 +678,27 @@ a:focus-visible, .btn:focus-visible, .form-control:focus-visible {
 .fc-daygrid-event:hover .fc-min { background: color-mix(in srgb, var(--marca) 9%, transparent); }
 
 /* Semana/Día: el bloque mantiene el color del servicio (lo pone FullCalendar). */
-.fc-timegrid-event { border-radius: 8px !important; box-shadow: 0 2px 6px rgba(16,18,34,.12); }
+.fc-timegrid-event { border-radius: 8px !important; box-shadow: 0 2px 6px rgba(16,18,34,.12); overflow: hidden; }
 .fc-timegrid-event .fc-min { padding: 3px 6px; }
 .fc-timegrid-event .fc-min-dot { display: none; }
 .fc-timegrid-event .fc-min-time,
-.fc-timegrid-event .fc-min-serv { color: #fff; }
-.fc-timegrid-event .fc-min-serv { opacity: .95; }
-.fc-timegrid-event .fc-min { flex-direction: column; align-items: flex-start; gap: 0; line-height: 1.2; }
+.fc-timegrid-event .fc-min-serv,
+.fc-timegrid-event .fc-min-cli { color: #fff; max-width: 100%; }
+.fc-timegrid-event .fc-min-serv { opacity: .96; font-weight: 700; }
+.fc-timegrid-event .fc-min-cli { opacity: .85; font-size: .66rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fc-timegrid-event .fc-min { flex-direction: column; align-items: flex-start; gap: 0; line-height: 1.25; }
+/* Semana: legible aunque la columna sea angosta. */
+.fc-timegrid-event .fc-min-time { font-size: .7rem; }
+.fc-timegrid-event .fc-min-serv { font-size: .7rem; }
+/* Día: hay ancho de sobra — letra más grande. */
+.fc-timeGridDay-view .fc-timegrid-event .fc-min { padding: 4px 8px; }
+.fc-timeGridDay-view .fc-timegrid-event .fc-min-time { font-size: .82rem; }
+.fc-timeGridDay-view .fc-timegrid-event .fc-min-serv { font-size: .82rem; }
+.fc-timeGridDay-view .fc-timegrid-event .fc-min-cli { font-size: .76rem; }
+/* Turnos cortos (bloque bajito): una sola línea hora + servicio. */
+.fc-timegrid-event.fc-event-short .fc-min { flex-direction: row; gap: .35rem; align-items: center; }
+.fc-timegrid-event.fc-event-short .fc-min-cli { display: none; }
 .fc .fc-timegrid-slot { height: 2.4em; }
 .fc .fc-timegrid-now-indicator-line { border-width: 2px; }
 
