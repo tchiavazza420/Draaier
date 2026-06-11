@@ -49,6 +49,32 @@ def register_commands(app):
         objetivo = date.today() + timedelta(days=dias)
         click.echo(f"Recordatorios enviados: {enviados} (para {objetivo.isoformat()}).")
 
+    @app.cli.command("diag-cloudinary")
+    def diag_cloudinary():
+        """Prueba la conexión con Cloudinary (sube y borra un pixel de test)."""
+        url = app.config.get("CLOUDINARY_URL")
+        if not url:
+            click.echo("CLOUDINARY_URL no está configurada: las imágenes van a disco local.")
+            return
+        from io import BytesIO
+        from PIL import Image
+        import cloudinary
+        import cloudinary.uploader
+        cloudinary.config(cloudinary_url=url)
+        buf = BytesIO()
+        Image.new("RGB", (1, 1), (255, 0, 0)).save(buf, "PNG")
+        buf.seek(0)
+        try:
+            res = cloudinary.uploader.upload(
+                buf, folder="agenpro/_diag", public_id="ping", overwrite=True, timeout=30,
+            )
+            click.echo(f"OK: subida de prueba exitosa -> {res['secure_url']}")
+            cloudinary.uploader.destroy("agenpro/_diag/ping")
+            click.echo("OK: borrado de prueba exitoso. Cloudinary funciona.")
+        except Exception as exc:
+            click.echo(f"ERROR (http_code={getattr(exc, 'http_code', '?')}): {exc}")
+            click.echo("Causas típicas: CLOUDINARY_URL inválida (401) o cuota agotada (420).")
+
     @app.cli.command("crear-super-admin")
     @click.argument("email")
     @click.argument("password")

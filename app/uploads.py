@@ -94,20 +94,43 @@ def _guardar_cloudinary(buf, negocio_id, prefijo):
     import cloudinary
     import cloudinary.uploader
     cloudinary.config(cloudinary_url=current_app.config["CLOUDINARY_URL"])
-    try:
-        res = cloudinary.uploader.upload(
-            buf,
-            folder=f"agenpro/{negocio_id}",
-            public_id=f"{prefijo}-{uuid.uuid4().hex[:8]}",
-            resource_type="image",
-            format="webp",
-            overwrite=True,
-            timeout=60,  # no quedarse colgado si la red falla
+
+    ultimo = None
+    for intento in (1, 2):  # 1 reintento: las fallas de red suelen ser transitorias
+        try:
+            buf.seek(0)
+            res = cloudinary.uploader.upload(
+                buf,
+                folder=f"agenpro/{negocio_id}",
+                public_id=f"{prefijo}-{uuid.uuid4().hex[:8]}",
+                resource_type="image",
+                format="webp",
+                overwrite=True,
+                timeout=60,  # no quedarse colgado si la red falla
+            )
+            return res["secure_url"]
+        except Exception as exc:
+            ultimo = exc
+            current_app.logger.exception(
+                "Fallo subiendo imagen a Cloudinary (intento %s, http_code=%s)",
+                intento, getattr(exc, "http_code", "?"),
+            )
+
+    # Mensaje específico según la causa (el código HTTP viene en la excepción
+    # del SDK): credenciales mal o cuota agotada NO se arreglan reintentando.
+    code = getattr(ultimo, "http_code", None)
+    texto = str(ultimo).lower()
+    if code == 401 or "api_key" in texto or "unauthorized" in texto or "invalid" in texto:
+        raise ValueError(
+            "No pudimos guardar la imagen: el almacenamiento (Cloudinary) rechazó "
+            "las credenciales. Revisá CLOUDINARY_URL en el servidor."
         )
-    except Exception:
-        current_app.logger.exception("Fallo subiendo imagen a Cloudinary")
-        raise ValueError("No pudimos subir la imagen ahora. Probá de nuevo en un momento.")
-    return res["secure_url"]
+    if code == 420 or "rate" in texto or "quota" in texto or "limit" in texto:
+        raise ValueError(
+            "No pudimos guardar la imagen: se alcanzó el límite del plan de "
+            "Cloudinary. Revisá el uso en su dashboard."
+        )
+    raise ValueError("No pudimos subir la imagen ahora. Probá de nuevo en un momento.")
 
 
 def guardar_imagen(file_storage, negocio_id, prefijo):
