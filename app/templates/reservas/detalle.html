@@ -83,8 +83,9 @@
           <h2 class="h6 text-muted mb-0">📅 Reprogramar</h2>
           <button class="btn btn-sm btn-link text-decoration-none" @click="open=!open" x-text="open?'Ocultar':'Cambiar horario'"></button>
         </div>
+        {# OJO: sin d-flex acá — su !important le gana al x-show de Alpine #}
         <form method="post" action="{{ url_for('reservas.reprogramar', reserva_id=reserva.id) }}"
-              class="d-flex flex-wrap gap-2 mt-2 align-items-end" x-show="open" x-cloak>
+              class="flex-suave flex-wrap gap-2 mt-2 align-items-end" x-show="open" x-cloak>
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <div class="flex-grow-1">
             <label class="form-label small mb-1">Nuevo inicio</label>
@@ -121,7 +122,7 @@
       {% if pago.transferencia_pendiente %}
         <div class="alert alert-warning border-0 py-2 small">
           ⏳ Seña por <strong>transferencia</strong> pendiente de confirmar
-          (${{ '%g'|format(pago.transferencia_pendiente.monto) }}).
+          ({{ pago.transferencia_pendiente.monto|plata }}).
         </div>
         <form method="post" action="{{ url_for('reservas.confirmar_sena', reserva_id=reserva.id) }}" class="mb-3">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -130,12 +131,12 @@
       {% endif %}
       <ul class="list-unstyled mb-2">
         <li class="d-flex justify-content-between py-1 border-bottom">
-          <span class="text-muted">Precio</span><strong>${{ '%g'|format(reserva.precio) }}</strong></li>
+          <span class="text-muted">Precio</span><strong>{{ reserva.precio|plata }}</strong></li>
         <li class="d-flex justify-content-between py-1 border-bottom">
-          <span class="text-muted">Cobrado</span><span class="text-success">${{ '%g'|format(pago.pagado) }}</span></li>
+          <span class="text-muted">Cobrado</span><span class="text-success">{{ pago.pagado|plata }}</span></li>
         <li class="d-flex justify-content-between py-1">
           <span class="text-muted">Saldo</span>
-          <strong class="{{ 'text-warning' if pago.saldo > 0 else 'text-success' }}">${{ '%g'|format(pago.saldo) }}</strong></li>
+          <strong class="{{ 'text-warning' if pago.saldo > 0 else 'text-success' }}">{{ pago.saldo|plata }}</strong></li>
       </ul>
       {% if pago.saldo > 0 %}
         <form method="post" action="{{ url_for('reservas.cobrar_saldo', reserva_id=reserva.id) }}">

@@ -25,10 +25,10 @@
       </div>
       <div class="text-end">
         {% if cupon %}
-          <div class="text-muted text-decoration-line-through" style="font-size:.95rem">${{ '%.2f'|format(servicio.precio) }}</div>
-          <div class="h3 mb-0 text-success">${{ '%.2f'|format(cupon.precio_final(servicio.precio)) }}</div>
+          <div class="text-muted text-decoration-line-through" style="font-size:.95rem">{{ servicio.precio|plata }}</div>
+          <div class="h3 mb-0 text-success">{{ cupon.precio_final(servicio.precio)|plata }}</div>
         {% else %}
-          <div class="h3 mb-0">${{ '%.2f'|format(servicio.precio) }}</div>
+          <div class="h3 mb-0">{{ servicio.precio|plata }}</div>
         {% endif %}
       </div>
     </div>

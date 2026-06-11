@@ -2,31 +2,48 @@
 
 {% block title %}{{ negocio.nombre }}{% if negocio.ciudad %} · {{ negocio.ciudad }}{% endif %}{% endblock %}
 
+{# El hero integra logo + cover: anulamos la cabecera suelta del base. #}
+{% block cabecera_publica %}{% endblock %}
+
 {% block publico %}
-<!-- ===== Encabezado del local ===== -->
-<div class="card shadow-sm mb-4 fade-in">
-  <div class="card-body text-center p-4">
-    <h1 class="h2 mb-1 marca-titulo">{{ negocio.nombre }}</h1>
+<!-- ===== Encabezado del local: cover + logo + rating + CTA ===== -->
+<div class="card shadow-sm mb-4 fade-in overflow-hidden">
+  {% if negocio.banner_filename %}
+    <div class="perfil-cover" style="background:url('{{ media_url(negocio.banner_filename) }}') center/cover"></div>
+  {% else %}
+    <div class="perfil-cover" style="background:linear-gradient(135deg, {{ negocio.color_primario }}, {{ negocio.color_secundario or negocio.color_primario }}aa)"></div>
+  {% endif %}
+  <div class="card-body text-center px-4 pb-4 pt-0">
+    {% if negocio.logo_filename %}
+      <img src="{{ media_url(negocio.logo_filename) }}" alt="{{ negocio.nombre }}"
+           class="perfil-avatar" onerror="this.outerHTML='<div class=&quot;perfil-avatar perfil-avatar-letra&quot;>{{ negocio.nombre[:1]|upper }}</div>'">
+    {% else %}
+      <div class="perfil-avatar perfil-avatar-letra" style="background:{{ negocio.color_primario }}">{{ negocio.nombre[:1]|upper }}</div>
+    {% endif %}
+    <h1 class="h2 mb-1 mt-2 marca-titulo">{{ negocio.nombre }}</h1>
     <p class="text-muted mb-2">
       {{ negocio.rubro.value.replace('_',' ').title() }}
-      {% if negocio.ciudad %}· {{ negocio.ciudad }}{% endif %}
+      {% if negocio.ciudad %}· 📍 {{ negocio.ciudad }}{% endif %}
     </p>
     {% if rating_cantidad %}
       <div class="mb-2">
-        <span class="text-warning">★</span>
+        <span class="text-warning">{{ '★' * (rating_promedio|round|int) }}{{ '☆' * (5 - rating_promedio|round|int) }}</span>
         <strong>{{ rating_promedio }}</strong>
         <small class="text-muted">({{ rating_cantidad }} reseña{{ 's' if rating_cantidad != 1 }})</small>
       </div>
     {% endif %}
     {% if negocio.descripcion_publica %}
-      <p class="text-muted mb-0 mx-auto" style="max-width:620px">{{ negocio.descripcion_publica }}</p>
+      <p class="text-muted mb-3 mx-auto" style="max-width:620px">{{ negocio.descripcion_publica }}</p>
+    {% endif %}
+    {% if servicios or recursos %}
+      <a class="btn btn-primary btn-lg px-5" href="{{ '#servicios' if servicios else '#equipo' }}">Reservar turno</a>
     {% endif %}
   </div>
 </div>
 
 <!-- ===== Profesionales ===== -->
 {% if recursos %}
-  <h2 class="h5 mb-3">Nuestro equipo</h2>
+  <h2 class="h5 mb-3" id="equipo">Nuestro equipo</h2>
   <div class="row g-3 mb-4 stagger">
     {% for r in recursos %}
       {% set acc = r.color_acento or negocio.color_primario %}
@@ -58,7 +75,7 @@
 
 <!-- ===== Servicios ===== -->
 {% if servicios %}
-  <h2 class="h5 mb-3">Servicios</h2>
+  <h2 class="h5 mb-3" id="servicios">Servicios</h2>
   <div class="row g-3 mb-4">
     {% for s in servicios %}
       <div class="col-12 col-md-6">
@@ -71,7 +88,7 @@
               <small class="text-muted">⏱ {{ s.duracion_legible }}</small>
             </div>
             <div class="text-end">
-              {% if s.precio and s.precio > 0 %}<div class="fw-bold marca-titulo">${{ '%g'|format(s.precio) }}</div>{% endif %}
+              {% if s.precio and s.precio > 0 %}<div class="fw-bold marca-titulo">{{ s.precio|plata }}</div>{% endif %}
               <span class="btn btn-sm btn-primary mt-1">Reservar →</span>
             </div>
           </div>

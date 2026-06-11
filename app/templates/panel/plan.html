@@ -54,13 +54,13 @@
 
             <div class="my-2">
               {% if por_puesto[key] %}<span class="text-muted small">Desde </span>{% endif %}
-              <span class="h4 stat-num" x-show="!anual">${{ '{:,.0f}'.format(precios_mes[key]).replace(',','.') }}</span>
+              <span class="h4 stat-num" x-show="!anual">{{ precios_mes[key]|plata }}</span>
               <span class="text-muted small" x-show="!anual">/mes</span>
-              <span class="h4 stat-num" x-show="anual" x-cloak>${{ '{:,.0f}'.format(precios_anuales[key]).replace(',','.') }}</span>
+              <span class="h4 stat-num" x-show="anual" x-cloak>{{ precios_anuales[key]|plata }}</span>
               <span class="text-muted small" x-show="anual" x-cloak>/año</span>
               {% if por_puesto[key] %}
                 <div class="text-muted small" x-show="!anual">
-                  por {{ p.prof_base }} prof · +${{ '{:,.0f}'.format(p.precio_adicional).replace(',','.') }} c/u (hasta {{ p.max_prof }})
+                  por {{ p.prof_base }} prof · +{{ p.precio_adicional|plata }} c/u (hasta {{ p.max_prof }})
                 </div>
               {% endif %}
             </div>

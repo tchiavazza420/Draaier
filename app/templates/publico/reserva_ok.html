@@ -36,14 +36,14 @@
             <span class="text-muted">Cliente</span><span>{{ reserva.cliente.nombre }}</span>
           </li>
           <li class="d-flex justify-content-between py-1 border-top mt-2 pt-2">
-            <span class="text-muted">Precio</span><strong>${{ '%.2f'|format(reserva.precio) }}</strong>
+            <span class="text-muted">Precio</span><strong>{{ reserva.precio|plata }}</strong>
           </li>
         </ul>
 
         {% if transferencia %}
           <div class="alert alert-info text-start mt-3 mb-0">
             <div class="fw-semibold mb-2">💸 Pagá la seña por transferencia</div>
-            <p class="small mb-2">Transferí <strong>${{ '%.2f'|format(transferencia.monto) }}</strong> a este alias para confirmar tu turno:</p>
+            <p class="small mb-2">Transferí <strong>{{ transferencia.monto|plata }}</strong> a este alias para confirmar tu turno:</p>
             <div class="d-flex align-items-center justify-content-between bg-white border rounded px-3 py-2">
               <code class="fs-6" id="alias-transf">{{ negocio.alias_transferencia }}</code>
               <button type="button" class="btn btn-sm btn-outline-secondary"

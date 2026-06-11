@@ -3,14 +3,14 @@
 {% block title %}Servicios · Panel{% endblock %}
 
 {% block content %}
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+<div class="d-flex justify-content-between align-items-center mb-2">
   <h1 class="h3 mb-0">Servicios</h1>
-  <div class="d-flex flex-wrap gap-2">
-    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('panel.dashboard') }}">← Panel</a>
-    <a class="btn btn-outline-primary btn-sm" href="{{ url_for('servicios.senas') }}">💰 Señas</a>
-    <a class="btn btn-outline-primary btn-sm" href="{{ url_for('servicios.sugeridos') }}">✨ Sugeridos</a>
-    <a class="btn btn-primary btn-sm" href="{{ url_for('servicios.nuevo') }}">+ Servicio</a>
-  </div>
+  <a class="btn btn-primary btn-sm" href="{{ url_for('servicios.nuevo') }}">+ Servicio</a>
+</div>
+<div class="d-flex flex-wrap gap-2 mb-4">
+  <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('panel.dashboard') }}">← Panel</a>
+  <a class="btn btn-outline-primary btn-sm" href="{{ url_for('servicios.senas') }}">💰 Señas</a>
+  <a class="btn btn-outline-primary btn-sm" href="{{ url_for('servicios.sugeridos') }}">✨ Sugeridos</a>
 </div>
 
 <div class="card">
@@ -36,7 +36,7 @@
                   {{ s.nombre }}
                 </td>
                 <td data-label="Duración">{{ s.duracion_legible }}</td>
-                <td data-label="Precio">${{ '%.2f'|format(s.precio) }}</td>
+                <td data-label="Precio">{{ s.precio|plata }}</td>
                 <td data-label="Lo realizan">
                   {% if s.recursos %}
                     <span class="badge bg-light text-dark">{{ s.recursos|length }}</span>
@@ -53,8 +53,8 @@
                   {% endif %}
                 </td>
                 <td class="text-end celda-acciones">
-                  <a class="btn btn-sm btn-outline-secondary"
-                     href="{{ url_for('servicios.editar', servicio_id=s.id) }}">Editar</a>
+                  <a class="btn btn-sm btn-outline-primary"
+                     href="{{ url_for('servicios.editar', servicio_id=s.id) }}">✏️ Editar</a>
                   <form method="post" action="{{ url_for('servicios.toggle', servicio_id=s.id) }}" class="d-inline">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button class="btn btn-sm btn-outline-{{ 'warning' if s.activo else 'success' }}">

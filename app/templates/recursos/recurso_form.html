@@ -359,7 +359,7 @@
                 <a href="#" @click.prevent x-show="facebook" style="width:34px;height:34px;font-size:.9rem">👍</a>
                 <a href="#" @click.prevent x-show="whatsapp" style="width:34px;height:34px;font-size:.9rem">💬</a>
               </div>
-              <div class="d-flex flex-wrap justify-content-center gap-1 mb-1" x-show="habilidadesLista.length">
+              <div class="flex-suave flex-wrap justify-content-center gap-1 mb-1" x-show="habilidadesLista.length">
                 <template x-for="h in habilidadesLista" :key="h">
                   <span class="badge rounded-pill" :style="`background:color-mix(in srgb,var(--acc) 14%,transparent);color:var(--acc);font-size:.6rem`" x-text="h"></span>
                 </template>

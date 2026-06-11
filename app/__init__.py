@@ -51,6 +51,14 @@ def create_app(config_class=None):
     from app.uploads import media_url
     app.jinja_env.globals["media_url"] = media_url
 
+    # 6c) Filtro de moneda: {{ 12000|plata }} -> "$12.000" (formato argentino,
+    #     sin decimales; redondea). Para usar en TODOS los precios de la UI.
+    def plata(valor):
+        if valor is None:
+            return "$0"
+        return "$" + f"{round(float(valor)):,}".replace(",", ".")
+    app.jinja_env.filters["plata"] = plata
+
     # 7) Celery (tareas async/programadas). Importar el módulo de tareas
     #    registra las shared_task con la instancia por defecto.
     #    OJO: usar 'from app import tasks' (NO 'import app.tasks'): esto último

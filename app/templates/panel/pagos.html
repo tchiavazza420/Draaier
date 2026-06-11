@@ -21,11 +21,11 @@
 
 <div class="row g-3 mb-4 stagger">
   <div class="col-6 col-md-3"><div class="card text-center h-100"><div class="card-body">
-    <div class="h3 mb-0 stat-num text-success">${{ '{:,.0f}'.format(r.cobrado).replace(',','.') }}</div>
+    <div class="h3 mb-0 stat-num text-success">{{ r.cobrado|plata }}</div>
     <small class="text-muted">Cobrado</small>
   </div></div></div>
   <div class="col-6 col-md-3"><div class="card text-center h-100"><div class="card-body">
-    <div class="h3 mb-0 stat-num text-warning">${{ '{:,.0f}'.format(r.pendiente).replace(',','.') }}</div>
+    <div class="h3 mb-0 stat-num text-warning">{{ r.pendiente|plata }}</div>
     <small class="text-muted">Pendiente</small>
   </div></div></div>
   <div class="col-6 col-md-3"><div class="card text-center h-100"><div class="card-body">
@@ -46,7 +46,7 @@
             <tr {% if p.reserva %}style="cursor:pointer" onclick="location.href='{{ url_for('reservas.detalle', reserva_id=p.reserva_id) }}'"{% endif %}>
               <td class="celda-principal" data-label="Fecha">{{ p.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
               <td data-label="Reserva"><span class="font-monospace">{{ p.reserva.codigo if p.reserva else '—' }}</span></td>
-              <td data-label="Monto">${{ '%g'|format(p.monto) }}{% if p.es_sena %} <small class="text-muted">seña</small>{% endif %}</td>
+              <td data-label="Monto">{{ p.monto|plata }}{% if p.es_sena %} <small class="text-muted">seña</small>{% endif %}</td>
               <td data-label="Medio">{{ p.proveedor.value.title() }}</td>
               <td data-label="Estado">
                 {% set cls = {'aprobado':'success','pendiente':'warning','rechazado':'danger','reembolsado':'secondary'} %}

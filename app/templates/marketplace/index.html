@@ -4,14 +4,14 @@
 <h1 class="h3 mb-3">Encontrá y reservá</h1>
 
 <form class="row g-2 mb-4" method="get">
-  <div class="col-md-4">
-    <input type="text" name="q" value="{{ f_q }}" class="form-control" placeholder="Negocio o servicio…">
+  <div class="col-12 col-md-4">
+    <input type="text" name="q" value="{{ f_q }}" class="form-control" placeholder="🔍 Negocio o servicio…">
   </div>
-  <div class="col-md-3">
+  <div class="col-6 col-md-2">
     <input type="text" name="ciudad" value="{{ f_ciudad }}" class="form-control" placeholder="Ciudad" list="ciudades">
     <datalist id="ciudades">{% for c in ciudades %}<option value="{{ c }}">{% endfor %}</datalist>
   </div>
-  <div class="col-md-3">
+  <div class="col-6 col-md-2">
     <select name="rubro" class="form-select">
       <option value="">Todos los rubros</option>
       {% for r in rubros %}
@@ -19,13 +19,13 @@
       {% endfor %}
     </select>
   </div>
-  <div class="col-md-2">
+  <div class="col-7 col-md-2">
     <select name="orden" class="form-select" onchange="this.form.submit()">
       <option value="rating" {{ 'selected' if f_orden == 'rating' }}>Mejor puntuados</option>
       <option value="nombre" {{ 'selected' if f_orden == 'nombre' }}>Nombre</option>
     </select>
   </div>
-  <div class="col-12"><button class="btn btn-primary">Buscar</button></div>
+  <div class="col-5 col-md-2"><button class="btn btn-primary w-100">Buscar</button></div>
 </form>
 
 {% if resultados %}

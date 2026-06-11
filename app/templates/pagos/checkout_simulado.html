@@ -15,7 +15,7 @@
           <h1 class="h4 mb-1">Pago de seña</h1>
           <p class="text-muted">Reserva {{ pago.reserva.codigo }}</p>
         {% endif %}
-        <div class="display-6 my-3">${{ '%.2f'|format(pago.monto) }}</div>
+        <div class="display-6 my-3">{{ pago.monto|plata }}</div>
 
         <p class="text-muted small">
           En producción acá iría el checkout real de Mercado Pago.
