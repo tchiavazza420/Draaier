@@ -73,7 +73,7 @@
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <input type="hidden" name="cantidad" value="{{ p.cantidad }}">
               <button class="btn btn-outline-primary">
-                +{{ p.cantidad }} msj · ${{ '{:,.0f}'.format(p.precio).replace(',','.') }}
+                +{{ p.cantidad }} msj · {{ p.precio|plata }}
                 <span class="d-block" style="font-size:.7rem;opacity:.8">por 30 días</span>
               </button>
             </form>

@@ -35,23 +35,30 @@
         <button class="btn btn-sm btn-link text-decoration-none p-0" @click="open=!open" x-text="open ? 'Ocultar' : 'Ver'"></button>
       </div>
       <p class="small text-muted mb-2">Ya pasó su horario. Marcalos como atendido o ausente.</p>
-      <div x-show="open" x-cloak class="d-flex flex-column gap-2">
+      <div x-show="open" x-cloak class="flex-suave flex-column gap-2">
         {% for r in por_cerrar %}
-          <div class="d-flex align-items-center gap-2 border rounded p-2">
-            <a class="flex-grow-1 text-decoration-none text-body" href="{{ url_for('reservas.detalle', reserva_id=r.id) }}">
-              <span class="fw-semibold">{{ r.inicio.strftime('%d/%m %H:%M') }}</span>
-              · {{ r.cliente.nombre }} <span class="text-muted small">· {{ r.servicio.nombre }}</span>
+          <div class="border rounded-3 p-2 cerrar-item">
+            <a class="d-flex align-items-center gap-2 text-decoration-none text-body mb-2"
+               href="{{ url_for('reservas.detalle', reserva_id=r.id) }}">
+              <span class="fw-bold">{{ r.inicio.strftime('%H:%M') }}</span>
+              <span class="text-muted small">{{ r.inicio.strftime('%d/%m') }}</span>
+              <span class="flex-grow-1 text-truncate">
+                <span class="fw-semibold">{{ r.cliente.nombre }}</span>
+                <span class="text-muted small">· {{ r.servicio.nombre }}</span>
+              </span>
             </a>
-            <form method="post" action="{{ url_for('reservas.estado', reserva_id=r.id) }}">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <input type="hidden" name="estado" value="finalizado">
-              <button class="btn btn-success btn-sm">✓ Atendido</button>
-            </form>
-            <form method="post" action="{{ url_for('reservas.estado', reserva_id=r.id) }}">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <input type="hidden" name="estado" value="ausente">
-              <button class="btn btn-outline-danger btn-sm">✗</button>
-            </form>
+            <div class="d-flex gap-2">
+              <form method="post" action="{{ url_for('reservas.estado', reserva_id=r.id) }}" class="flex-grow-1">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="estado" value="finalizado">
+                <button class="btn btn-success btn-sm w-100">✓ Atendido</button>
+              </form>
+              <form method="post" action="{{ url_for('reservas.estado', reserva_id=r.id) }}" class="flex-grow-1">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="estado" value="ausente">
+                <button class="btn btn-outline-danger btn-sm w-100">✗ No vino</button>
+              </form>
+            </div>
           </div>
         {% endfor %}
       </div>
@@ -71,18 +78,18 @@
     <div class="card h-100"><div class="card-body">
       <div class="d-flex justify-content-between align-items-baseline">
         <small class="text-muted text-uppercase">💰 Cobros</small>
-        <small class="text-muted">meta ${{ '{:,.0f}'.format(hoy.meta).replace(',','.') }}</small>
+        <small class="text-muted">meta {{ hoy.meta|plata }}</small>
       </div>
       <div class="d-flex align-items-baseline gap-2">
-        <span class="h3 mb-0 stat-num text-success">${{ '{:,.0f}'.format(hoy.cobrado).replace(',','.') }}</span>
+        <span class="h3 mb-0 stat-num text-success">{{ hoy.cobrado|plata }}</span>
         <span class="badge bg-success-subtle text-success-emphasis">{{ hoy.pct_cobrado }}%</span>
       </div>
       <div class="progress mt-2" style="height:8px" role="progressbar" aria-valuenow="{{ hoy.pct_cobrado }}">
         <div class="progress-bar bg-success" style="width:{{ hoy.pct_cobrado }}%"></div>
       </div>
       <div class="d-flex justify-content-between mt-2 small">
-        <span><span class="text-warning">●</span> Pendiente <strong>${{ '{:,.0f}'.format(hoy.pendiente).replace(',','.') }}</strong></span>
-        <span><span class="text-success">●</span> Cobrado <strong>${{ '{:,.0f}'.format(hoy.cobrado).replace(',','.') }}</strong></span>
+        <span><span class="text-warning">●</span> Pendiente <strong>{{ hoy.pendiente|plata }}</strong></span>
+        <span><span class="text-success">●</span> Cobrado <strong>{{ hoy.cobrado|plata }}</strong></span>
       </div>
     </div></div>
   </div>
@@ -157,23 +164,25 @@
       <div class="progress-bar" style="width:{{ onboarding.porcentaje }}%;transition:width .6s ease"></div>
     </div>
 
-    <div class="row g-3 mt-1 stagger" x-show="abierto" x-transition>
-      {% for p in onboarding.pasos %}
+    <div class="row g-2 mt-1 stagger" x-show="abierto" x-transition>
+      {# Pendientes primero, con card completa; los listos colapsan a una línea. #}
+      {% for p in onboarding.pasos if not p.ok %}
         <div class="col-12 col-md-6">
-          <div class="d-flex align-items-center gap-3 p-3 rounded-3 h-100
-                      {{ 'bg-success-subtle' if p.ok else 'border' }}">
-            <div class="feature-ico flex-shrink-0">
-              {% if p.ok %}✅{% else %}{{ p.icono }}{% endif %}
-            </div>
+          <div class="d-flex align-items-center gap-3 p-3 rounded-3 h-100 border">
+            <div class="feature-ico flex-shrink-0">{{ p.icono }}</div>
             <div class="flex-grow-1">
-              <div class="fw-semibold {{ 'text-success-emphasis text-decoration-line-through' if p.ok }}">
-                {{ p.titulo }}
-              </div>
+              <div class="fw-semibold">{{ p.titulo }}</div>
               <small class="text-muted">{{ p.texto }}</small>
             </div>
-            {% if not p.ok %}
-              <a href="{{ p.url }}" class="btn btn-sm btn-primary flex-shrink-0">{{ p.cta }}</a>
-            {% endif %}
+            <a href="{{ p.url }}" class="btn btn-sm btn-primary flex-shrink-0">{{ p.cta }}</a>
+          </div>
+        </div>
+      {% endfor %}
+      {% for p in onboarding.pasos if p.ok %}
+        <div class="col-12 col-md-6">
+          <div class="d-flex align-items-center gap-2 px-3 py-2 rounded-3 bg-success-subtle">
+            <span>✅</span>
+            <small class="text-success-emphasis fw-semibold">{{ p.titulo }}</small>
           </div>
         </div>
       {% endfor %}
@@ -270,13 +279,13 @@
     ('🎨','Diseñá tu página','Fondo, botones, colores, logo y todo', url_for('panel.disenar_pagina'))
   ] %}
   {% for ico, tit, desc, href in accesos %}
-    <div class="col-6 col-md-4">
+    <div class="col-4 col-md-3 col-lg-2">
       <a class="text-decoration-none text-reset" href="{{ href }}">
-        <div class="card hover-lift h-100">
-          <div class="card-body">
-            <div class="feature-ico mb-2">{{ ico }}</div>
-            <div class="fw-semibold">{{ tit }}</div>
-            <small class="text-muted">{{ desc }}</small>
+        <div class="card hover-lift h-100 acceso-card">
+          <div class="card-body text-center p-2 p-md-3">
+            <div class="acceso-ico mb-1">{{ ico }}</div>
+            <div class="fw-semibold small text-truncate">{{ tit }}</div>
+            <small class="text-muted d-none d-md-block">{{ desc }}</small>
           </div>
         </div>
       </a>

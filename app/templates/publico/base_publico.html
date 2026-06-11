@@ -40,18 +40,21 @@
 {% from "_redes.html" import icono_red %}
 {% block content %}
 <div class="tema-{{ negocio.template_publico.value }}">
-  {% if negocio.logo_filename %}
-    <div class="d-flex align-items-center gap-3 mb-3">
-      <img src="{{ media_url(negocio.logo_filename) }}" alt="{{ negocio.nombre }}"
-           onerror="this.style.display='none'"
-           style="height:54px;width:54px;object-fit:cover;border-radius:12px">
-    </div>
-  {% endif %}
+  {# El perfil del negocio arma su propio hero (logo+banner integrados): puede vaciar este bloque. #}
+  {% block cabecera_publica %}
+    {% if negocio.logo_filename %}
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <img src="{{ media_url(negocio.logo_filename) }}" alt="{{ negocio.nombre }}"
+             onerror="this.style.display='none'"
+             style="height:54px;width:54px;object-fit:cover;border-radius:12px">
+      </div>
+    {% endif %}
 
-  {% if negocio.banner_filename %}
-    <div class="rounded mb-4"
-         style="height:180px;background:url('{{ media_url(negocio.banner_filename) }}') center/cover;"></div>
-  {% endif %}
+    {% if negocio.banner_filename %}
+      <div class="rounded mb-4"
+           style="height:180px;background:url('{{ media_url(negocio.banner_filename) }}') center/cover;"></div>
+    {% endif %}
+  {% endblock %}
 
   {% block publico %}{% endblock %}
 

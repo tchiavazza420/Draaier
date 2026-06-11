@@ -137,10 +137,10 @@
                   <div>
                     <div class="fw-semibold text-body">{{ s.nombre }}</div>
                     <div class="text-muted small">⏱ {{ s.duracion_legible }}
-                      {% if s.requiere_sena and s.sena_calculada %}· seña ${{ '%g'|format(s.sena_calculada) }}{% endif %}</div>
+                      {% if s.requiere_sena and s.sena_calculada %}· seña {{ s.sena_calculada|plata }}{% endif %}</div>
                   </div>
                   <div class="text-end">
-                    {% if s.precio and s.precio > 0 %}<div class="fw-bold" style="color:{{ acc }}">${{ '%g'|format(s.precio) }}</div>{% endif %}
+                    {% if s.precio and s.precio > 0 %}<div class="fw-bold" style="color:{{ acc }}">{{ s.precio|plata }}</div>{% endif %}
                     <span class="badge" style="background:{{ boton }};color:{{ boton_tx }}">Reservar →</span>
                   </div>
                 </div>

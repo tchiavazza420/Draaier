@@ -35,7 +35,7 @@
               :class="listo ? 'btn-success btn-reservar-listo' : 'btn-outline-secondary'"
               :disabled="!listo">
         <span x-show="!listo">Completá tus datos para reservar</span>
-        <span x-show="listo" x-cloak>✓ Confirmar reserva · ${{ '%.2f'|format(servicio.precio) }}</span>
+        <span x-show="listo" x-cloak>✓ Confirmar reserva · {{ servicio.precio|plata }}</span>
       </button>
     </form>
   </div>

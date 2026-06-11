@@ -7,33 +7,37 @@
 </div>
 
 <form class="row g-2 align-items-end mb-4" method="get">
-  <div class="col-auto">
+  <div class="col-6 col-md-auto">
     <label class="form-label small mb-0">Desde</label>
     <input type="date" name="desde" value="{{ desde }}" class="form-control form-control-sm">
   </div>
-  <div class="col-auto">
+  <div class="col-6 col-md-auto">
     <label class="form-label small mb-0">Hasta</label>
     <input type="date" name="hasta" value="{{ hasta }}" class="form-control form-control-sm">
   </div>
-  <div class="col-auto">
-    <button class="btn btn-sm btn-primary">Ver</button>
+  <div class="col-12 col-md-auto d-flex gap-2">
+    <button class="btn btn-sm btn-primary px-4 flex-grow-1 flex-md-grow-0">Ver período</button>
     <a class="btn btn-sm btn-outline-success"
-       href="{{ url_for('reportes.export_csv', desde=desde, hasta=hasta) }}">Exportar CSV</a>
+       href="{{ url_for('reportes.export_csv', desde=desde, hasta=hasta) }}">⬇ CSV</a>
   </div>
 </form>
 
 <div class="row g-3 mb-4 stagger">
   <div class="col-6 col-md-3"><div class="card text-center h-100"><div class="card-body">
-    <div class="h3 mb-0">{{ m.total }}</div><small class="text-muted">Reservas</small>
+    <div class="small">🗓️</div>
+    <div class="h3 mb-0 stat-num">{{ m.total }}</div><small class="text-muted">Reservas</small>
   </div></div></div>
   <div class="col-6 col-md-3"><div class="card text-center h-100"><div class="card-body">
-    <div class="h3 mb-0 text-success">${{ '%.2f'|format(m.ingresos) }}</div><small class="text-muted">Ingresos</small>
+    <div class="small">💰</div>
+    <div class="h3 mb-0 stat-num text-success">{{ m.ingresos|plata }}</div><small class="text-muted">Ingresos</small>
   </div></div></div>
   <div class="col-6 col-md-3"><div class="card text-center h-100"><div class="card-body">
-    <div class="h3 mb-0">{{ m.nuevos_clientes }}</div><small class="text-muted">Nuevos clientes</small>
+    <div class="small">👤</div>
+    <div class="h3 mb-0 stat-num">{{ m.nuevos_clientes }}</div><small class="text-muted">Nuevos clientes</small>
   </div></div></div>
   <div class="col-6 col-md-3"><div class="card text-center h-100"><div class="card-body">
-    <div class="h3 mb-0">{{ m.por_estado.get('finalizado', 0) }}</div><small class="text-muted">Finalizadas</small>
+    <div class="small">✅</div>
+    <div class="h3 mb-0 stat-num">{{ m.por_estado.get('finalizado', 0) }}</div><small class="text-muted">Finalizadas</small>
   </div></div></div>
 </div>
 
@@ -41,10 +45,14 @@
   <div class="col-md-5">
     <div class="card h-100"><div class="card-body">
       <h2 class="h6 text-muted mb-3">Reservas por estado</h2>
+      {% set colores_estado = {'confirmado':'#16a34a','pendiente_pago':'#f59e0b','en_proceso':'#3b82f6',
+                               'finalizado':'#6b7280','cancelado':'#ef4444','ausente':'#ef4444','reprogramado':'#a855f7'} %}
       {% if m.por_estado %}
         {% for estado, cant in m.por_estado.items() %}
-          <div class="d-flex justify-content-between py-1 border-bottom">
-            <span>{{ estado.replace('_',' ') }}</span><strong>{{ cant }}</strong>
+          <div class="d-flex align-items-center gap-2 py-1 border-bottom">
+            <span class="rounded-circle d-inline-block"
+                  style="width:10px;height:10px;background:{{ colores_estado.get(estado, '#6b7280') }}"></span>
+            <span class="flex-grow-1 text-capitalize">{{ estado.replace('_',' ') }}</span><strong>{{ cant }}</strong>
           </div>
         {% endfor %}
       {% else %}<p class="text-muted mb-0">Sin datos.</p>{% endif %}
@@ -60,7 +68,7 @@
             <tbody>
               {% for s in m.por_servicio %}
                 <tr><td>{{ s.servicio }}</td><td class="text-end">{{ s.reservas }}</td>
-                    <td class="text-end">${{ '%.2f'|format(s.ingresos) }}</td></tr>
+                    <td class="text-end">{{ s.ingresos|plata }}</td></tr>
               {% endfor %}
             </tbody>
           </table>

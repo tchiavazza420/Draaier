@@ -351,7 +351,26 @@ a:focus-visible, .btn:focus-visible, .form-control:focus-visible {
 /* Targets táctiles más cómodos */
 @media (hover: none) {
   .btn, .form-control, .form-select, .list-group-item { min-height: 42px; }
+  /* El min-height estira la caja pero el texto quedaba arriba (Android):
+     centramos el contenido del botón con flex. */
+  .btn { display: inline-flex; align-items: center; justify-content: center; }
 }
+
+/* Flex "suave" (sin !important): convive con x-show de Alpine. */
+.flex-suave { display: flex; }
+
+/* Accesos rápidos compactos (dashboard) */
+.acceso-ico { font-size: 1.5rem; line-height: 1; }
+.acceso-card .card-body { overflow: hidden; }
+
+/* Hero de la página pública del negocio: cover + avatar superpuesto */
+.perfil-cover { height: 120px; }
+.perfil-avatar { width: 88px; height: 88px; border-radius: 50%; object-fit: cover;
+  border: 4px solid var(--bs-body-bg, #fff); box-shadow: 0 6px 18px rgba(0,0,0,.18);
+  margin-top: -44px; background: var(--bs-body-bg, #fff); }
+.perfil-avatar-letra { display: inline-flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 800; font-size: 2rem; background: var(--marca, #6d28d9); }
+@media (min-width: 768px){ .perfil-cover { height: 150px; } }
 
 /* =====================================================================
    Listas: tabla en desktop, tarjetas apiladas en mobile (look de app)

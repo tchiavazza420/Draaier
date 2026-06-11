@@ -13,7 +13,7 @@
     <div class="h3 mb-0 stat-num">{{ m.visitas }}</div><small class="text-muted">Visitas</small>
   </div></div></div>
   <div class="col-6 col-lg-3"><div class="card text-center h-100"><div class="card-body py-3">
-    <div class="h3 mb-0 stat-num text-success">${{ '{:,.0f}'.format(m.total_gastado).replace(',','.') }}</div><small class="text-muted">Total gastado</small>
+    <div class="h3 mb-0 stat-num text-success">{{ m.total_gastado|plata }}</div><small class="text-muted">Total gastado</small>
   </div></div></div>
   <div class="col-6 col-lg-3"><div class="card text-center h-100"><div class="card-body py-3">
     <div class="fw-bold">{{ m.ultima.strftime('%d/%m/%y') if m.ultima else '—' }}</div><small class="text-muted">Última visita</small>
@@ -49,7 +49,7 @@
                 <tr style="cursor:pointer" onclick="location.href='{{ url_for('reservas.detalle', reserva_id=r.id) }}'">
                   <td class="celda-principal" data-label="Fecha">{{ r.inicio.strftime('%d/%m/%Y %H:%M') }}</td>
                   <td data-label="Servicio">{{ r.servicio.nombre }}</td>
-                  <td data-label="Precio">${{ '%g'|format(r.precio or 0) }}</td>
+                  <td data-label="Precio">{{ r.precio or 0|plata }}</td>
                   <td data-label="Estado">{{ badge_estado(r.estado) }}</td>
                 </tr>
               {% endfor %}
