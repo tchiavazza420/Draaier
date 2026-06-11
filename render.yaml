@@ -175,6 +175,8 @@ services:
       - key: MAIL_DEFAULT_SENDER
         fromService: { type: web, name: reservas-web, envVarKey: MAIL_DEFAULT_SENDER }
       # --- WhatsApp (Meta Cloud API) ---
+      - key: WHATSAPP_API_VERSION
+        value: "25.0"
       - key: WHATSAPP_TOKEN
         fromService: { type: web, name: reservas-web, envVarKey: WHATSAPP_TOKEN }
       - key: WHATSAPP_PHONE_ID
