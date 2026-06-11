@@ -26,6 +26,19 @@
 <div class="card cal-card"><div class="card-body">
   <div id="calendario"></div>
 </div></div>
+
+<!-- Panel del día (se abre al tocar un día en la vista Mes) -->
+<div id="dia-sheet" class="dia-sheet" aria-hidden="true">
+  <div class="dia-sheet-backdrop" data-cerrar></div>
+  <div class="dia-sheet-card" role="dialog" aria-modal="true">
+    <div class="dia-sheet-handle" data-cerrar></div>
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h2 class="h6 mb-0 con-dot" id="dia-sheet-titulo">Día</h2>
+      <button type="button" class="btn-close" data-cerrar aria-label="Cerrar"></button>
+    </div>
+    <div id="dia-sheet-body"></div>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -61,7 +74,14 @@
       eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
       noEventsText: 'No hay turnos en este período',
       events: '{{ url_for("reservas.agenda_eventos") }}',
+      // En el MES, tocar un día (o un turno) agranda ese día en un panel.
+      dateClick: (info) => { if (cal.view.type === 'dayGridMonth') abrirDia(info.date); },
       eventClick: (info) => {
+        if (cal.view.type === 'dayGridMonth') {
+          info.jsEvent.preventDefault();
+          abrirDia(info.event.start);
+          return;
+        }
         if (info.event.url) { info.jsEvent.preventDefault(); window.location = info.event.url; }
       },
       // Render minimalista por vista.
@@ -120,6 +140,50 @@
       }
     });
     cal.render();
+
+    // ----- Panel del día (bottom sheet) -----
+    const sheet = document.getElementById('dia-sheet');
+    const sheetTit = document.getElementById('dia-sheet-titulo');
+    const sheetBody = document.getElementById('dia-sheet-body');
+    const ESTADO_COLOR = { confirmado:'#16a34a', pendiente_pago:'#f59e0b', en_proceso:'#3b82f6',
+      finalizado:'#6b7280', cancelado:'#ef4444', ausente:'#ef4444', reprogramado:'#a855f7' };
+    const mismoDia = (a, b) => a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+    const fmtHora = (d) => String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+
+    function abrirDia(date) {
+      const turnos = cal.getEvents().filter(e => e.start && mismoDia(e.start, date))
+                        .sort((a,b) => a.start - b.start);
+      sheetTit.textContent = date.toLocaleDateString('es-AR', { weekday:'long', day:'numeric', month:'long' });
+      if (!turnos.length) {
+        sheetBody.innerHTML = '<p class="text-muted small py-3 mb-2 text-center">No hay turnos este día.</p>'+
+          '<a class="btn btn-primary w-100" href="{{ url_for("reservas.nueva") }}">+ Reservar un turno</a>';
+      } else {
+        sheetBody.innerHTML = turnos.map(e => {
+          const p = e.extendedProps || {};
+          const col = e.backgroundColor || 'var(--marca)';
+          const estCol = ESTADO_COLOR[p.estado] || '#6b7280';
+          return `<a href="${e.url}" class="dia-turno">
+            <span class="dia-turno-hora">${fmtHora(e.start)}</span>
+            <span class="dia-turno-bar" style="background:${col}"></span>
+            <span class="dia-turno-info">
+              <span class="dia-turno-serv">${p.servicio || ''}</span>
+              <span class="dia-turno-cli">${p.cliente || ''}</span>
+            </span>
+            <span class="dia-turno-estado" style="color:${estCol};border-color:${estCol}">${(p.estado||'').replace('_',' ')}</span>
+          </a>`;
+        }).join('');
+      }
+      sheet.classList.add('abierto');
+      sheet.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+    function cerrarDia() {
+      sheet.classList.remove('abierto');
+      sheet.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+    sheet.querySelectorAll('[data-cerrar]').forEach(el => el.addEventListener('click', cerrarDia));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarDia(); });
 
     // Switcher de vista propio (mobile): cambia la vista y marca el activo.
     const switcher = document.getElementById('vista-switcher');

@@ -54,6 +54,15 @@ def dashboard():
     # --- Métricas del día ---
     hoy_metricas = _metricas_del_dia(negocio)
 
+    # --- Turnos por cerrar: ya pasó su horario y siguen sin finalizar ---
+    from app.models.reserva import Reserva, EstadoReservaEnum as _E
+    por_cerrar = (
+        Reserva.query.filter_by(negocio_id=negocio.id)
+        .filter(Reserva.fin < datetime.now())
+        .filter(Reserva.estado.in_([_E.CONFIRMADO, _E.EN_PROCESO]))
+        .order_by(Reserva.inicio.desc()).limit(20).all()
+    )
+
     # Saludo según la hora.
     h = hoy.hour
     saludo = "Buenos días" if h < 13 else ("Buenas tardes" if h < 20 else "Buenas noches")
@@ -65,7 +74,7 @@ def dashboard():
         wa=wa, wa_renueva=wa_renueva,
         plan_vence=negocio.vencimiento,
         onboarding=onboarding,
-        hoy=hoy_metricas, saludo=saludo,
+        hoy=hoy_metricas, saludo=saludo, por_cerrar=por_cerrar,
     )
 
 
