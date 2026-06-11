@@ -184,6 +184,56 @@ def iniciar_pago_plan(negocio, plan_key, precio):
     return pago, url
 
 
+def iniciar_pago_pack_whatsapp(negocio, cantidad, precio):
+    """
+    Crea un Pago por un PACK de mensajes de WhatsApp y devuelve (pago, url).
+    Cobra con Mercado Pago (credenciales de la plataforma); sin credenciales
+    cae a checkout simulado. El pack se acredita recién al APROBARSE el pago.
+    La cantidad viaja en plan_destino (string) para no sumar columnas.
+    """
+    if precio <= 0:
+        raise PagoError("Pack sin precio válido.")
+
+    simulado = not mercadopago.esta_configurado()
+    pago = Pago(
+        negocio_id=negocio.id, reserva_id=None,
+        concepto="whatsapp_pack", plan_destino=str(int(cantidad)),
+        monto=Decimal(str(precio)), estado=PagoEstadoEnum.PENDIENTE,
+        proveedor=ProveedorPagoEnum.SIMULADO if simulado else ProveedorPagoEnum.MERCADOPAGO,
+        es_sena=False,
+    )
+    db.session.add(pago)
+    db.session.flush()
+
+    if simulado:
+        url = url_for("pagos.checkout_simulado", pago_id=pago.id)
+    else:
+        back = current_app.config["SITE_URL"] + url_for("pagos.retorno")
+        notif = current_app.config["SITE_URL"] + url_for("pagos.webhook_mercadopago")
+        titulo = f"AgenPro · {int(cantidad)} mensajes de WhatsApp"
+        ref, checkout_url = mercadopago.crear_preferencia(pago, titulo, back, notif)
+        pago.preference_id = ref
+        pago.init_point = checkout_url
+        url = checkout_url
+
+    db.session.commit()
+    return pago, url
+
+
+def _acreditar_pack_whatsapp(pago):
+    """Acredita el pack de mensajes pagado (cantidad en plan_destino)."""
+    from app.whatsapp_creditos import comprar_pack
+    negocio = db.session.get(Negocio, pago.negocio_id)
+    if negocio is None:
+        return
+    try:
+        cantidad = int(pago.plan_destino or 0)
+    except (TypeError, ValueError):
+        return
+    if cantidad > 0:
+        comprar_pack(negocio, cantidad)
+
+
 def _activar_suscripcion(pago):
     """Activa el plan pagado en el negocio (suscripción ACTIVA por 30 días)."""
     from datetime import datetime, timezone, timedelta
@@ -209,6 +259,8 @@ def aprobar_pago(pago, external_id=None):
 
     if pago.concepto == "suscripcion":
         _activar_suscripcion(pago)
+    elif pago.concepto == "whatsapp_pack":
+        _acreditar_pack_whatsapp(pago)
     elif pago.reserva and pago.reserva.estado == EstadoReservaEnum.PENDIENTE_PAGO:
         pago.reserva.estado = EstadoReservaEnum.CONFIRMADO
     db.session.commit()

@@ -150,11 +150,14 @@ def simular(pago_id):
 
     resultado = request.form.get("resultado")
     es_suscripcion = pago.concepto == "suscripcion"
+    es_pack_wa = pago.concepto == "whatsapp_pack"
 
     if resultado == "aprobado":
         service.aprobar_pago(pago, external_id=f"SIM-{pago.id}")
         if es_suscripcion:
             flash("Pago aprobado (simulado). ¡Plan activado!", "success")
+        elif es_pack_wa:
+            flash(f"Pago aprobado (simulado). ¡Sumaste {pago.plan_destino} mensajes de WhatsApp!", "success")
         else:
             from app.notificaciones.service import (
                 notificar_reserva_confirmada, notificar_negocio_nueva_reserva,
@@ -169,6 +172,8 @@ def simular(pago_id):
     # Redirección según el concepto del pago.
     if es_suscripcion:
         return redirect(url_for("panel.plan"))
+    if es_pack_wa:
+        return redirect(url_for("panel.mensajes"))
     negocio = db.session.get(Negocio, pago.reserva.negocio_id)
     return redirect(url_for(
         "publico.reserva_confirmacion", slug=negocio.slug, codigo=pago.reserva.codigo
