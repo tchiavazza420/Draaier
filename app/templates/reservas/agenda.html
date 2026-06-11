@@ -75,11 +75,12 @@
       noEventsText: 'No hay turnos en este período',
       events: '{{ url_for("reservas.agenda_eventos") }}',
       // En el MES, tocar un día (o un turno) agranda ese día en un panel.
-      dateClick: (info) => { if (cal.view.type === 'dayGridMonth') abrirDia(info.date); },
+      dateClick: (info) => { if (cal.view.type === 'dayGridMonth') abrirDia(info.date, info.dayEl); },
       eventClick: (info) => {
         if (cal.view.type === 'dayGridMonth') {
           info.jsEvent.preventDefault();
-          abrirDia(info.event.start);
+          const cell = info.el.closest('.fc-daygrid-day');
+          abrirDia(info.event.start, cell);
           return;
         }
         if (info.event.url) { info.jsEvent.preventDefault(); window.location = info.event.url; }
@@ -141,16 +142,46 @@
     });
     cal.render();
 
-    // ----- Panel del día (bottom sheet) -----
+    // ----- Panel del día (se "proyecta" desde la celda con un zoom FLIP) -----
     const sheet = document.getElementById('dia-sheet');
+    const sheetCard = sheet.querySelector('.dia-sheet-card');
     const sheetTit = document.getElementById('dia-sheet-titulo');
     const sheetBody = document.getElementById('dia-sheet-body');
+    let origenRect = null;  // rect de la celda desde la que se proyectó (para cerrar al revés)
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Anima la tarjeta desde el rect de la celda hasta su tamaño final (proyector).
+    function proyectarDesde(rect) {
+      if (!rect || reduce) return;
+      const dest = sheetCard.getBoundingClientRect();
+      const sx = Math.max(rect.width / dest.width, 0.05);
+      const sy = Math.max(rect.height / dest.height, 0.05);
+      const dx = rect.left - dest.left;
+      const dy = rect.top - dest.top;
+      sheetCard.style.transition = 'none';
+      sheetCard.style.opacity = '0.25';
+      sheetCard.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
+      // Forzar reflow y soltar a su estado final → se "agranda" desde el día.
+      void sheetCard.offsetWidth;
+      sheetCard.style.transition = 'transform .46s cubic-bezier(.16,1,.3,1), opacity .32s ease';
+      sheetCard.style.transform = 'none';
+      sheetCard.style.opacity = '1';
+    }
     const ESTADO_COLOR = { confirmado:'#16a34a', pendiente_pago:'#f59e0b', en_proceso:'#3b82f6',
       finalizado:'#6b7280', cancelado:'#ef4444', ausente:'#ef4444', reprogramado:'#a855f7' };
     const mismoDia = (a, b) => a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
     const fmtHora = (d) => String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+    const fmtPrecio = (n) => (n == null ? '' : '$' + Number(n).toLocaleString('es-AR'));
+    const esc = (s) => String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-    function abrirDia(date) {
+    function abrirDia(date, cellEl) {
+      // Guardamos el origen y hacemos destellar la celda mientras "proyecta".
+      origenRect = cellEl ? cellEl.getBoundingClientRect() : null;
+      if (cellEl) {
+        cellEl.classList.remove('dia-zoom'); void cellEl.offsetWidth;
+        cellEl.classList.add('dia-zoom');
+        setTimeout(() => cellEl.classList.remove('dia-zoom'), 460);
+      }
       const turnos = cal.getEvents().filter(e => e.start && mismoDia(e.start, date))
                         .sort((a,b) => a.start - b.start);
       sheetTit.textContent = date.toLocaleDateString('es-AR', { weekday:'long', day:'numeric', month:'long' });
@@ -158,32 +189,71 @@
         sheetBody.innerHTML = '<p class="text-muted small py-3 mb-2 text-center">No hay turnos este día.</p>'+
           '<a class="btn btn-primary w-100" href="{{ url_for("reservas.nueva") }}">+ Reservar un turno</a>';
       } else {
-        sheetBody.innerHTML = turnos.map(e => {
-          const p = e.extendedProps || {};
-          const col = e.backgroundColor || 'var(--marca)';
-          const estCol = ESTADO_COLOR[p.estado] || '#6b7280';
-          return `<a href="${e.url}" class="dia-turno">
-            <span class="dia-turno-hora">${fmtHora(e.start)}</span>
-            <span class="dia-turno-bar" style="background:${col}"></span>
-            <span class="dia-turno-info">
-              <span class="dia-turno-serv">${p.servicio || ''}</span>
-              <span class="dia-turno-cli">${p.cliente || ''}</span>
-            </span>
-            <span class="dia-turno-estado" style="color:${estCol};border-color:${estCol}">${(p.estado||'').replace('_',' ')}</span>
-          </a>`;
-        }).join('');
+        const total = turnos.reduce((s, e) => s + (e.extendedProps && e.extendedProps.precio || 0), 0);
+        sheetBody.innerHTML =
+          `<p class="dia-sheet-resumen">${turnos.length} turno${turnos.length!==1?'s':''}` +
+          (total ? ` · ${fmtPrecio(total)} estimado` : '') + `</p>` +
+          turnos.map(e => {
+            const p = e.extendedProps || {};
+            const col = e.backgroundColor || 'var(--marca)';
+            const estCol = ESTADO_COLOR[p.estado] || '#6b7280';
+            const rango = fmtHora(e.start) + (e.end ? '–' + fmtHora(e.end) : '');
+            const meta = [];
+            if (p.recurso) meta.push(`<span>💇 ${esc(p.recurso)}</span>`);
+            if (p.telefono) meta.push(`<span>📱 ${esc(p.telefono)}</span>`);
+            if (p.precio != null) meta.push(`<span class="precio">${fmtPrecio(p.precio)}</span>`);
+            return `<a href="${e.url}" class="dia-turno">
+              <span class="dia-turno-hora">${fmtHora(e.start)}</span>
+              <span class="dia-turno-bar" style="background:${col}"></span>
+              <span class="dia-turno-info">
+                <span class="dia-turno-serv">${esc(p.servicio)}</span>
+                <span class="dia-turno-cli">${esc(p.cliente)} · ${rango}</span>
+                ${meta.length ? `<span class="dia-turno-meta">${meta.join('')}</span>` : ''}
+              </span>
+              <span class="dia-turno-estado" style="color:${estCol};border-color:${estCol}">${esc((p.estado||'').replace('_',' '))}</span>
+            </a>`;
+          }).join('');
       }
       sheet.classList.add('abierto');
       sheet.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
+      document.body.classList.add('dia-sheet-open');
+      // Proyección: la tarjeta crece desde la celda del día tocado.
+      proyectarDesde(origenRect);
     }
-    function cerrarDia() {
+    let cerrando = false;
+    function ocultarSheet() {
       sheet.classList.remove('abierto');
       sheet.setAttribute('aria-hidden', 'true');
+      sheetCard.style.transition = 'none';
+      sheetCard.style.transform = 'none';
+      sheetCard.style.opacity = '';
       document.body.style.overflow = '';
+      document.body.classList.remove('dia-sheet-open');
+      cerrando = false;
+    }
+    function cerrarDia() {
+      if (cerrando) return;
+      // Cierre al revés: la "pantalla" se encoge de vuelta hacia el día.
+      if (origenRect && !reduce) {
+        cerrando = true;
+        const dest = sheetCard.getBoundingClientRect();
+        const sx = Math.max(origenRect.width / dest.width, 0.05);
+        const sy = Math.max(origenRect.height / dest.height, 0.05);
+        const dx = origenRect.left - dest.left;
+        const dy = origenRect.top - dest.top;
+        sheet.querySelector('.dia-sheet-backdrop').style.opacity = '0';
+        sheetCard.style.transition = 'transform .3s ease, opacity .3s ease';
+        sheetCard.style.transformOrigin = 'top left';
+        sheetCard.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
+        sheetCard.style.opacity = '0';
+        setTimeout(() => { sheet.querySelector('.dia-sheet-backdrop').style.opacity = ''; ocultarSheet(); }, 300);
+      } else {
+        ocultarSheet();
+      }
     }
     sheet.querySelectorAll('[data-cerrar]').forEach(el => el.addEventListener('click', cerrarDia));
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarDia(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && sheet.classList.contains('abierto')) cerrarDia(); });
 
     // Switcher de vista propio (mobile): cambia la vista y marca el activo.
     const switcher = document.getElementById('vista-switcher');
