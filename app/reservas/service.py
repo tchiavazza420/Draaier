@@ -170,6 +170,11 @@ _TRANSICIONES = {
 }
 
 
+def transiciones_validas(estado):
+    """Estados a los que se puede pasar desde `estado` (lista, ordenada)."""
+    return sorted(_TRANSICIONES.get(estado, set()), key=lambda e: e.value)
+
+
 def cambiar_estado(reserva, nuevo_estado):
     """Aplica una transición de estado válida o lanza ReservaError."""
     if nuevo_estado == reserva.estado:

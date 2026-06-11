@@ -26,6 +26,39 @@
   </div>
 {% endif %}
 
+<!-- ===== Turnos por cerrar (ya pasó su hora y siguen sin finalizar) ===== -->
+{% if por_cerrar %}
+  <div class="card mb-4 border-warning" x-data="{ open:false }">
+    <div class="card-body">
+      <div class="d-flex align-items-center gap-2">
+        <span class="con-dot dot-amber h6 mb-0 flex-grow-1">Tenés {{ por_cerrar|length }} turno{{ 's' if por_cerrar|length != 1 }} por cerrar</span>
+        <button class="btn btn-sm btn-link text-decoration-none p-0" @click="open=!open" x-text="open ? 'Ocultar' : 'Ver'"></button>
+      </div>
+      <p class="small text-muted mb-2">Ya pasó su horario. Marcalos como atendido o ausente.</p>
+      <div x-show="open" x-cloak class="d-flex flex-column gap-2">
+        {% for r in por_cerrar %}
+          <div class="d-flex align-items-center gap-2 border rounded p-2">
+            <a class="flex-grow-1 text-decoration-none text-body" href="{{ url_for('reservas.detalle', reserva_id=r.id) }}">
+              <span class="fw-semibold">{{ r.inicio.strftime('%d/%m %H:%M') }}</span>
+              · {{ r.cliente.nombre }} <span class="text-muted small">· {{ r.servicio.nombre }}</span>
+            </a>
+            <form method="post" action="{{ url_for('reservas.estado', reserva_id=r.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="estado" value="finalizado">
+              <button class="btn btn-success btn-sm">✓ Atendido</button>
+            </form>
+            <form method="post" action="{{ url_for('reservas.estado', reserva_id=r.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="estado" value="ausente">
+              <button class="btn btn-outline-danger btn-sm">✗</button>
+            </form>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endif %}
+
 <!-- ===== Resumen del día ===== -->
 <div class="d-flex align-items-center gap-2 mb-2">
   <span class="dot-vivo"></span>

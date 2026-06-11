@@ -97,25 +97,21 @@
       </div></div>
     {% endif %}
 
-    <!-- Más cambios de estado -->
-    <div class="card"><div class="card-body" x-data="{ open:false }">
-      <div class="d-flex justify-content-between align-items-center">
-        <h2 class="h6 text-muted mb-0">Cambiar estado</h2>
-        <button class="btn btn-sm btn-link text-decoration-none" @click="open=!open" x-text="open?'Ocultar':'Ver opciones'"></button>
-      </div>
-      <div class="d-flex flex-wrap gap-2 mt-2" x-show="open" x-cloak>
-        {% for e in estados %}
-          {% if e != reserva.estado %}
+    <!-- Más cambios de estado (solo si hay transiciones posibles) -->
+    {% if transiciones %}
+      <div class="card"><div class="card-body">
+        <h2 class="h6 text-muted mb-2">Cambiar estado</h2>
+        <div class="d-flex flex-wrap gap-2">
+          {% for e in transiciones %}
             <form method="post" action="{{ url_for('reservas.estado', reserva_id=reserva.id) }}">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <input type="hidden" name="estado" value="{{ e.value }}">
               <button class="btn btn-sm btn-outline-primary">{{ e.value.replace('_',' ') }}</button>
             </form>
-          {% endif %}
-        {% endfor %}
-      </div>
-      <p class="text-muted small mt-2 mb-0">Solo se permiten transiciones válidas.</p>
-    </div></div>
+          {% endfor %}
+        </div>
+      </div></div>
+    {% endif %}
   </div>
 
   <!-- Cobros + notas -->

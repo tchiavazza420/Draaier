@@ -142,8 +142,10 @@ def detalle(reserva_id):
         "aprobados": aprobados,
         "transferencia_pendiente": transf_pendiente,
     }
+    from app.reservas.service import transiciones_validas
     return render_template(
         "reservas/detalle.html", reserva=reserva, estados=EstadoReservaEnum, pago=pago,
+        transiciones=transiciones_validas(reserva.estado),
     )
 
 
