@@ -79,3 +79,46 @@ def test_pack_vence_a_los_30_dias(crear_negocio):
 
     st = estado(neg)
     assert st["extra"] == 0 and st["disponibles"] == 0
+
+
+def test_comprar_pack_cobra_antes_de_acreditar(client, crear_negocio, login):
+    """La compra YA NO acredita gratis: crea un pago y manda al checkout.
+    Los mensajes se suman recién al aprobarse el pago."""
+    from app.models.pago import Pago, PagoEstadoEnum
+
+    neg, dueno = crear_negocio()
+    neg.plan = PlanEnum.PRO
+    db.session.commit()
+    login(dueno.email)
+
+    r = client.post("/panel/whatsapp/comprar", data={"cantidad": 300})
+    assert r.status_code == 302
+    assert "checkout-simulado" in r.headers["Location"]   # sin credenciales MP
+    db.session.refresh(neg)
+    assert neg.wa_extra == 0                              # todavía NO acreditado
+
+    pago = Pago.query.filter_by(negocio_id=neg.id, concepto="whatsapp_pack").first()
+    assert pago is not None and pago.estado == PagoEstadoEnum.PENDIENTE
+    assert pago.plan_destino == "300" and float(pago.monto) == 22000.0
+
+    # Aprobamos en el checkout simulado -> se acreditan los mensajes.
+    r2 = client.post(f"/pagos/{pago.id}/simular", data={"resultado": "aprobado"},
+                     follow_redirects=True)
+    assert r2.status_code == 200
+    db.session.refresh(neg)
+    assert neg.wa_extra == 300
+
+
+def test_comprar_pack_rechazado_no_acredita(client, crear_negocio, login):
+    from app.models.pago import Pago
+
+    neg, dueno = crear_negocio()
+    neg.plan = PlanEnum.PRO
+    db.session.commit()
+    login(dueno.email)
+
+    client.post("/panel/whatsapp/comprar", data={"cantidad": 100})
+    pago = Pago.query.filter_by(negocio_id=neg.id, concepto="whatsapp_pack").first()
+    client.post(f"/pagos/{pago.id}/simular", data={"resultado": "rechazado"})
+    db.session.refresh(neg)
+    assert neg.wa_extra == 0

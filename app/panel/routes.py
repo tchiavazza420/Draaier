@@ -360,19 +360,23 @@ def mensajes():
 @rol_required("dueno")
 def whatsapp_comprar():
     """
-    Compra un pack de mensajes de WhatsApp. El cobro real iría por la pasarela
-    de pago; en esta versión se acredita al instante (simulado).
+    Compra un pack de mensajes de WhatsApp: crea el pago y manda al checkout
+    de Mercado Pago. Los mensajes se acreditan recién cuando el pago se aprueba
+    (webhook o retorno).
     """
     from app.planes import PACKS_WHATSAPP
-    from app.whatsapp_creditos import comprar_pack
+    from app.pagos.service import iniciar_pago_pack_whatsapp, PagoError
     cantidad = request.form.get("cantidad", type=int)
-    valido = next((p for p in PACKS_WHATSAPP if p["cantidad"] == cantidad), None)
-    if valido is None:
+    pack = next((p for p in PACKS_WHATSAPP if p["cantidad"] == cantidad), None)
+    if pack is None:
         flash("Pack inválido.", "danger")
         return redirect(url_for("panel.mensajes"))
-    comprar_pack(current_user.negocio, cantidad)
-    flash(f"¡Listo! Sumaste {cantidad} mensajes de WhatsApp, válidos por 30 días (simulado).", "success")
-    return redirect(url_for("panel.mensajes"))
+    try:
+        _, url = iniciar_pago_pack_whatsapp(current_user.negocio, pack["cantidad"], pack["precio"])
+    except PagoError as exc:
+        flash(str(exc), "danger")
+        return redirect(url_for("panel.mensajes"))
+    return redirect(url)
 
 
 @panel_bp.route("/configuracion", methods=["GET", "POST"])
