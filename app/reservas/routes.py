@@ -115,6 +115,8 @@ def agenda_eventos():
                 "estado": r.estado.value,
                 "servicio": r.servicio.nombre,
                 "cliente": r.cliente.nombre,
+                "telefono": r.cliente.telefono or "",
+                "precio": float(r.precio) if r.precio is not None else None,
             },
         })
     return jsonify(eventos)

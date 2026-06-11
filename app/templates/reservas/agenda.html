@@ -75,11 +75,12 @@
       noEventsText: 'No hay turnos en este período',
       events: '{{ url_for("reservas.agenda_eventos") }}',
       // En el MES, tocar un día (o un turno) agranda ese día en un panel.
-      dateClick: (info) => { if (cal.view.type === 'dayGridMonth') abrirDia(info.date); },
+      dateClick: (info) => { if (cal.view.type === 'dayGridMonth') abrirDia(info.date, info.dayEl); },
       eventClick: (info) => {
         if (cal.view.type === 'dayGridMonth') {
           info.jsEvent.preventDefault();
-          abrirDia(info.event.start);
+          const cell = info.el.closest('.fc-daygrid-day');
+          abrirDia(info.event.start, cell);
           return;
         }
         if (info.event.url) { info.jsEvent.preventDefault(); window.location = info.event.url; }
@@ -149,8 +150,16 @@
       finalizado:'#6b7280', cancelado:'#ef4444', ausente:'#ef4444', reprogramado:'#a855f7' };
     const mismoDia = (a, b) => a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
     const fmtHora = (d) => String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+    const fmtPrecio = (n) => (n == null ? '' : '$' + Number(n).toLocaleString('es-AR'));
+    const esc = (s) => String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-    function abrirDia(date) {
+    function abrirDia(date, cellEl) {
+      // La celda del día "se agranda" con un pulse al tocarla.
+      if (cellEl) {
+        cellEl.classList.remove('dia-zoom'); void cellEl.offsetWidth;
+        cellEl.classList.add('dia-zoom');
+        setTimeout(() => cellEl.classList.remove('dia-zoom'), 460);
+      }
       const turnos = cal.getEvents().filter(e => e.start && mismoDia(e.start, date))
                         .sort((a,b) => a.start - b.start);
       sheetTit.textContent = date.toLocaleDateString('es-AR', { weekday:'long', day:'numeric', month:'long' });
@@ -158,29 +167,41 @@
         sheetBody.innerHTML = '<p class="text-muted small py-3 mb-2 text-center">No hay turnos este día.</p>'+
           '<a class="btn btn-primary w-100" href="{{ url_for("reservas.nueva") }}">+ Reservar un turno</a>';
       } else {
-        sheetBody.innerHTML = turnos.map(e => {
-          const p = e.extendedProps || {};
-          const col = e.backgroundColor || 'var(--marca)';
-          const estCol = ESTADO_COLOR[p.estado] || '#6b7280';
-          return `<a href="${e.url}" class="dia-turno">
-            <span class="dia-turno-hora">${fmtHora(e.start)}</span>
-            <span class="dia-turno-bar" style="background:${col}"></span>
-            <span class="dia-turno-info">
-              <span class="dia-turno-serv">${p.servicio || ''}</span>
-              <span class="dia-turno-cli">${p.cliente || ''}</span>
-            </span>
-            <span class="dia-turno-estado" style="color:${estCol};border-color:${estCol}">${(p.estado||'').replace('_',' ')}</span>
-          </a>`;
-        }).join('');
+        const total = turnos.reduce((s, e) => s + (e.extendedProps && e.extendedProps.precio || 0), 0);
+        sheetBody.innerHTML =
+          `<p class="dia-sheet-resumen">${turnos.length} turno${turnos.length!==1?'s':''}` +
+          (total ? ` · ${fmtPrecio(total)} estimado` : '') + `</p>` +
+          turnos.map(e => {
+            const p = e.extendedProps || {};
+            const col = e.backgroundColor || 'var(--marca)';
+            const estCol = ESTADO_COLOR[p.estado] || '#6b7280';
+            const rango = fmtHora(e.start) + (e.end ? '–' + fmtHora(e.end) : '');
+            const meta = [];
+            if (p.recurso) meta.push(`<span>💇 ${esc(p.recurso)}</span>`);
+            if (p.telefono) meta.push(`<span>📱 ${esc(p.telefono)}</span>`);
+            if (p.precio != null) meta.push(`<span class="precio">${fmtPrecio(p.precio)}</span>`);
+            return `<a href="${e.url}" class="dia-turno">
+              <span class="dia-turno-hora">${fmtHora(e.start)}</span>
+              <span class="dia-turno-bar" style="background:${col}"></span>
+              <span class="dia-turno-info">
+                <span class="dia-turno-serv">${esc(p.servicio)}</span>
+                <span class="dia-turno-cli">${esc(p.cliente)} · ${rango}</span>
+                ${meta.length ? `<span class="dia-turno-meta">${meta.join('')}</span>` : ''}
+              </span>
+              <span class="dia-turno-estado" style="color:${estCol};border-color:${estCol}">${esc((p.estado||'').replace('_',' '))}</span>
+            </a>`;
+          }).join('');
       }
       sheet.classList.add('abierto');
       sheet.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
+      document.body.classList.add('dia-sheet-open');
     }
     function cerrarDia() {
       sheet.classList.remove('abierto');
       sheet.setAttribute('aria-hidden', 'true');
       document.body.style.overflow = '';
+      document.body.classList.remove('dia-sheet-open');
     }
     sheet.querySelectorAll('[data-cerrar]').forEach(el => el.addEventListener('click', cerrarDia));
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarDia(); });
