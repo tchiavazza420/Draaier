@@ -45,14 +45,22 @@ services:
       # Cron Job de abajo (lo comparte vía fromService). Ver INTEGRACIONES.md.
       - key: CRON_TOKEN
         generateValue: true
-      # Notificaciones síncronas (sin worker). Cambiar a "false" si activás Celery.
+      # Notificaciones ASÍNCRONAS: la web encola en Redis y responde al instante;
+      # el worker (reservas-worker) hace los envíos. Para volver a síncrono,
+      # poné "true" y pausá worker + Redis.
       - key: CELERY_EAGER
-        value: "true"
+        value: "false"
       - key: SECRET_KEY
         generateValue: true
       - key: DATABASE_URL
         fromDatabase:
           name: reservas-db
+          property: connectionString
+      # Cola de tareas (broker + result backend). Internal connection string.
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: reservas-redis
           property: connectionString
 
   # --- Cron Job: recordatorios + vencimientos (diario) ---
@@ -111,48 +119,77 @@ services:
           envVarKey: CRON_TOKEN
 
 # ===========================================================================
-#  ESCALADO A ASYNC (plan pago) — descomentar y poner plan: starter
+#  ASYNC (Celery + Redis) — ACTIVO
+#  Redis = cola de tareas; worker = procesa los envíos en segundo plano.
+#  El beat NO hace falta: los recordatorios los dispara el Cron Job de arriba.
 # ===========================================================================
-#  - type: keyvalue
-#    name: reservas-redis
-#    plan: starter
-#    ipAllowList: []
-#
-#  - type: worker
-#    name: reservas-worker
-#    runtime: python
-#    plan: starter
-#    buildCommand: pip install -r requirements.txt
-#    startCommand: celery -A celery_worker.celery worker --loglevel=info
-#    envVars:
-#      - key: FLASK_APP
-#        value: run.py
-#      - key: CELERY_EAGER
-#        value: "false"
-#      - key: SECRET_KEY
-#        fromService: { type: web, name: reservas-web, envVarKey: SECRET_KEY }
-#      - key: DATABASE_URL
-#        fromDatabase: { name: reservas-db, property: connectionString }
-#      - key: REDIS_URL
-#        fromService: { type: keyvalue, name: reservas-redis, property: connectionString }
-#
-#  - type: worker
-#    name: reservas-beat
-#    runtime: python
-#    plan: starter
-#    buildCommand: pip install -r requirements.txt
-#    startCommand: celery -A celery_worker.celery beat --loglevel=info
-#    envVars:
-#      - key: FLASK_APP
-#        value: run.py
-#      - key: CELERY_EAGER
-#        value: "false"
-#      - key: SECRET_KEY
-#        fromService: { type: web, name: reservas-web, envVarKey: SECRET_KEY }
-#      - key: DATABASE_URL
-#        fromDatabase: { name: reservas-db, property: connectionString }
-#      - key: REDIS_URL
-#        fromService: { type: keyvalue, name: reservas-redis, property: connectionString }
-#
-#  En la web (para usar Redis/worker): cambiar CELERY_EAGER a "false" y agregar
-#  REDIS_URL / CELERY_BROKER_URL / CELERY_RESULT_BACKEND desde reservas-redis.
+  # --- Redis (cola de tareas) ---
+  - type: keyvalue
+    name: reservas-redis
+    plan: starter
+    # Sin acceso externo: solo lo usan la web y el worker por la red interna.
+    ipAllowList: []
+    # noeviction: nunca descarta tareas encoladas por falta de memoria.
+    maxmemoryPolicy: noeviction
+
+  # --- Worker (Celery): hace los envíos (mail / WhatsApp / push) ---
+  #  Necesita las MISMAS credenciales que la web, porque ahora es quien envía.
+  #  Las hereda con fromService(envVarKey) del servicio reservas-web, así no hay
+  #  que duplicar valores. Importante: cada key referenciada DEBE existir en la
+  #  web (si alguna no está seteada, quitá esa línea antes del Sync).
+  - type: worker
+    name: reservas-worker
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: celery -A celery_worker.celery worker --loglevel=info --concurrency=2
+    envVars:
+      - key: FLASK_APP
+        value: run.py
+      - key: FLASK_ENV
+        value: production
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: CELERY_EAGER
+        value: "false"
+      - key: REDIS_URL
+        fromService: { type: keyvalue, name: reservas-redis, property: connectionString }
+      - key: DATABASE_URL
+        fromDatabase: { name: reservas-db, property: connectionString }
+      - key: SECRET_KEY
+        fromService: { type: web, name: reservas-web, envVarKey: SECRET_KEY }
+      # --- URL pública (links de emails / back_urls) ---
+      - key: SITE_URL
+        value: https://www.agenpro.com.ar
+      # --- Email (Brevo SMTP) ---
+      - key: MAIL_SERVER
+        fromService: { type: web, name: reservas-web, envVarKey: MAIL_SERVER }
+      - key: MAIL_PORT
+        fromService: { type: web, name: reservas-web, envVarKey: MAIL_PORT }
+      - key: MAIL_USE_TLS
+        fromService: { type: web, name: reservas-web, envVarKey: MAIL_USE_TLS }
+      - key: MAIL_USERNAME
+        fromService: { type: web, name: reservas-web, envVarKey: MAIL_USERNAME }
+      - key: MAIL_PASSWORD
+        fromService: { type: web, name: reservas-web, envVarKey: MAIL_PASSWORD }
+      - key: MAIL_DEFAULT_SENDER
+        fromService: { type: web, name: reservas-web, envVarKey: MAIL_DEFAULT_SENDER }
+      # --- WhatsApp (Meta Cloud API) ---
+      - key: WHATSAPP_TOKEN
+        fromService: { type: web, name: reservas-web, envVarKey: WHATSAPP_TOKEN }
+      - key: WHATSAPP_PHONE_ID
+        fromService: { type: web, name: reservas-web, envVarKey: WHATSAPP_PHONE_ID }
+      - key: WHATSAPP_TEMPLATE_CONFIRMACION
+        fromService: { type: web, name: reservas-web, envVarKey: WHATSAPP_TEMPLATE_CONFIRMACION }
+      - key: WHATSAPP_TEMPLATE_RECORDATORIO
+        fromService: { type: web, name: reservas-web, envVarKey: WHATSAPP_TEMPLATE_RECORDATORIO }
+      # --- Imágenes (Cloudinary) ---
+      - key: CLOUDINARY_URL
+        fromService: { type: web, name: reservas-web, envVarKey: CLOUDINARY_URL }
+      # --- Push (Web Push / VAPID) ---
+      - key: VAPID_PUBLIC_KEY
+        fromService: { type: web, name: reservas-web, envVarKey: VAPID_PUBLIC_KEY }
+      - key: VAPID_PRIVATE_KEY
+        fromService: { type: web, name: reservas-web, envVarKey: VAPID_PRIVATE_KEY }
+      - key: VAPID_CLAIM_EMAIL
+        fromService: { type: web, name: reservas-web, envVarKey: VAPID_CLAIM_EMAIL }
