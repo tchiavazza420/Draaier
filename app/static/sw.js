@@ -5,7 +5,7 @@
    - Cache-first para estáticos (rápido).
    No cachea peticiones POST ni rutas de panel/pagos (datos sensibles/dinámicos).
 */
-const CACHE = "agenpro-v28";
+const CACHE = "agenpro-v29";
 const APP_SHELL = [
   "/",
   "/static/css/app.css",
@@ -85,7 +85,7 @@ self.addEventListener("push", (event) => {
   try { data = event.data ? event.data.json() : {}; } catch (e) { data = {}; }
   const title = data.title || "AgenPro";
   // ?v= alineado con CACHE: evita que la notificación muestre el ícono viejo.
-  const ic = "/static/icons/icon-192.png?v=28";
+  const ic = "/static/icons/icon-192.png?v=29";
   const options = {
     body: data.body || "",
     icon: ic,

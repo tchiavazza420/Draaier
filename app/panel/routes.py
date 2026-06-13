@@ -10,7 +10,7 @@ Se irá ampliando con reservas, recursos, agenda, etc.
 
 from datetime import datetime, timezone, timedelta
 
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_required, current_user
 
 from app.extensions import db, csrf
@@ -237,6 +237,38 @@ def disenar_pagina():
     if not recs:
         return redirect(url_for("recursos.recurso_nuevo"))
     return redirect(url_for("recursos.listar"))
+
+
+@panel_bp.route("/compartir")
+@login_required
+def compartir():
+    """
+    Material de difusión: placas personalizadas (posteo 1:1 e historia 9:16)
+    con la foto, el nombre, el link y los servicios del negocio, para que el
+    profesional las descargue y comparta con sus clientes.
+    """
+    from app.models.servicio import Servicio
+    from app.uploads import imagen_data_uri
+    from app.resenas.service import rating_negocio
+
+    negocio = current_user.negocio
+    servicios = (
+        Servicio.query.filter_by(negocio_id=negocio.id, activo=True)
+        .order_by(Servicio.nombre).limit(6).all()
+    )
+    promedio, cantidad = rating_negocio(negocio.id)
+    avatar = imagen_data_uri(negocio.logo_filename, lado=400) if negocio.logo_filename else ""
+    url_publica = current_app.config.get("SITE_URL", "").rstrip("/") + url_for(
+        "publico.perfil_negocio", slug=negocio.slug)
+    # Versión "linda" del link para mostrar en la placa (sin https://www.).
+    url_corta = url_publica.replace("https://", "").replace("http://", "").replace("www.", "")
+
+    return render_template(
+        "panel/compartir.html",
+        negocio=negocio, servicios=servicios, avatar=avatar,
+        url_publica=url_publica, url_corta=url_corta,
+        rating_promedio=promedio, rating_cantidad=cantidad,
+    )
 
 
 @panel_bp.route("/plan/cambiar", methods=["POST"])
