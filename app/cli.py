@@ -75,6 +75,55 @@ def register_commands(app):
             click.echo(f"ERROR (http_code={getattr(exc, 'http_code', '?')}): {exc}")
             click.echo("Causas típicas: CLOUDINARY_URL inválida (401) o cuota agotada (420).")
 
+    @app.cli.command("diag-whatsapp")
+    @click.argument("numero")
+    @click.option("--template", default=None,
+                  help="Nombre de la plantilla a probar (ej. el de WHATSAPP_TEMPLATE_CONFIRMACION).")
+    def diag_whatsapp(numero, template):
+        """Manda un WhatsApp de prueba a NUMERO y muestra el error real de Meta."""
+        from app.notificaciones import whatsapp as wa
+        cfg = app.config
+        click.echo(f"WHATSAPP_PHONE_ID: {cfg.get('WHATSAPP_PHONE_ID') or '(vacío)'}")
+        click.echo(f"WHATSAPP_API_VERSION: {cfg.get('WHATSAPP_API_VERSION')}")
+        click.echo(f"TOKEN cargado: {'sí' if cfg.get('WHATSAPP_TOKEN') else 'NO'}")
+        click.echo(f"Configurado (token+phone_id): {wa.esta_configurado()}")
+        click.echo(f"Plantilla confirmación: {cfg.get('WHATSAPP_TEMPLATE_CONFIRMACION') or '(no seteada)'}")
+        click.echo(f"Plantilla recordatorio: {cfg.get('WHATSAPP_TEMPLATE_RECORDATORIO') or '(no seteada)'}")
+        click.echo(f"Idioma plantillas: {cfg.get('WHATSAPP_TEMPLATE_IDIOMA')}")
+        click.echo("-" * 50)
+
+        if template:
+            # Probamos con 4 parámetros de ejemplo (los que manda la confirmación).
+            params = ["Cliente Prueba", "Servicio", "Profesional", "01/01 a las 10:00"]
+            click.echo(f"Enviando PLANTILLA '{template}' con {len(params)} parámetros…")
+            ok, detalle = wa._post({
+                "messaging_product": "whatsapp", "to": wa._normalizar(numero),
+                "type": "template",
+                "template": {"name": template,
+                             "language": {"code": cfg.get("WHATSAPP_TEMPLATE_IDIOMA", "es_AR")},
+                             "components": [{"type": "body",
+                                 "parameters": [{"type": "text", "text": p} for p in params]}]},
+            })
+        else:
+            click.echo("Enviando mensaje de TEXTO de prueba…")
+            ok, detalle = wa._post({
+                "messaging_product": "whatsapp", "to": wa._normalizar(numero),
+                "type": "text", "text": {"body": "Prueba de AgenPro ✅"},
+            })
+
+        if ok:
+            click.echo("OK: Meta aceptó el mensaje. Si no llega, revisá abajo las notas.")
+        else:
+            click.echo(f"ERROR de Meta: {detalle}")
+        click.echo("-" * 50)
+        click.echo("Notas:")
+        click.echo("- (131030) número no está en la lista de prueba → falta verificar el")
+        click.echo("  negocio en Meta y agregar medio de pago (modo dev solo manda a 5 números).")
+        click.echo("- (131047/131026) ventana de 24 h → el TEXTO libre no se entrega si el")
+        click.echo("  cliente no te escribió antes; hay que usar PLANTILLA aprobada.")
+        click.echo("- (132000/132001) parámetros de la plantilla no coinciden con los de Meta.")
+        click.echo("- (190) token vencido → regenerá el token permanente.")
+
     @app.cli.command("crear-super-admin")
     @click.argument("email")
     @click.argument("password")

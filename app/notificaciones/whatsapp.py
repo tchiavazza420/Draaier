@@ -29,10 +29,50 @@ def _normalizar(telefono):
     return re.sub(r"\D", "", telefono or "")
 
 
+class WhatsAppError(Exception):
+    """Error de la API de WhatsApp con el detalle real que devuelve Meta."""
+
+
+def _post(body):
+    """
+    Hace el POST a la API de Meta y, ante un error HTTP, registra y devuelve el
+    cuerpo del error (que explica la causa: ventana de 24 h, plantilla con
+    parámetros que no coinciden, número no habilitado, token vencido, etc.).
+    Devuelve (ok: bool, detalle: str).
+    """
+    cfg = current_app.config
+    url = f"https://graph.facebook.com/{cfg['WHATSAPP_API_VERSION']}/{cfg['WHATSAPP_PHONE_ID']}/messages"
+    headers = {"Authorization": f"Bearer {cfg['WHATSAPP_TOKEN']}", "Content-Type": "application/json"}
+    try:
+        resp = requests.post(url, json=body, headers=headers, timeout=TIMEOUT)
+    except requests.RequestException as exc:
+        current_app.logger.error("[WHATSAPP] Fallo de red: %s", exc)
+        return False, f"Fallo de red: {exc}"
+
+    if resp.status_code >= 400:
+        # El cuerpo de Meta trae error.code + error.message + error_data.details.
+        try:
+            err = resp.json().get("error", {})
+            detalle = f"({err.get('code')}) {err.get('message')}"
+            sub = (err.get("error_data") or {}).get("details")
+            if sub:
+                detalle += f" — {sub}"
+        except Exception:
+            detalle = resp.text[:300]
+        current_app.logger.error(
+            "[WHATSAPP] Meta rechazó el envío (HTTP %s): %s", resp.status_code, detalle)
+        return False, detalle
+    return True, "ok"
+
+
 def enviar_whatsapp(telefono, texto):
     """
     Envía un mensaje de texto por WhatsApp. Si no hay teléfono, no hace nada.
     Devuelve True si se envió (o se registró en la bandeja dev).
+
+    OJO: Meta solo entrega texto libre dentro de la ventana de 24 h (después de
+    que el cliente te escribió). Para mensajes proactivos hay que usar
+    enviar_whatsapp_template con una plantilla aprobada.
     """
     numero = _normalizar(telefono)
     if not numero:
@@ -43,17 +83,14 @@ def enviar_whatsapp(telefono, texto):
         current_app.logger.info("[WHATSAPP-DEV] Para %s: %s", numero, texto[:60])
         return True
 
-    cfg = current_app.config
-    url = f"https://graph.facebook.com/{cfg['WHATSAPP_API_VERSION']}/{cfg['WHATSAPP_PHONE_ID']}/messages"
-    headers = {"Authorization": f"Bearer {cfg['WHATSAPP_TOKEN']}", "Content-Type": "application/json"}
-    body = {
+    ok, detalle = _post({
         "messaging_product": "whatsapp",
         "to": numero,
         "type": "text",
         "text": {"body": texto},
-    }
-    resp = requests.post(url, json=body, headers=headers, timeout=TIMEOUT)
-    resp.raise_for_status()
+    })
+    if not ok:
+        raise WhatsAppError(detalle)
     return True
 
 
@@ -74,21 +111,22 @@ def enviar_whatsapp_template(telefono, template_name, parametros, idioma=None):
         current_app.logger.info("[WHATSAPP-DEV] Template %s para %s", template_name, numero)
         return True
 
-    url = f"https://graph.facebook.com/{cfg['WHATSAPP_API_VERSION']}/{cfg['WHATSAPP_PHONE_ID']}/messages"
-    headers = {"Authorization": f"Bearer {cfg['WHATSAPP_TOKEN']}", "Content-Type": "application/json"}
-    body = {
+    componentes = []
+    if parametros:
+        componentes.append({
+            "type": "body",
+            "parameters": [{"type": "text", "text": str(p)} for p in parametros],
+        })
+    ok, detalle = _post({
         "messaging_product": "whatsapp",
         "to": numero,
         "type": "template",
         "template": {
             "name": template_name,
             "language": {"code": idioma},
-            "components": [{
-                "type": "body",
-                "parameters": [{"type": "text", "text": str(p)} for p in parametros],
-            }],
+            "components": componentes,
         },
-    }
-    resp = requests.post(url, json=body, headers=headers, timeout=TIMEOUT)
-    resp.raise_for_status()
+    })
+    if not ok:
+        raise WhatsAppError(detalle)
     return True
