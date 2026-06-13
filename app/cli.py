@@ -79,10 +79,14 @@ def register_commands(app):
     @click.argument("numero")
     @click.option("--template", default=None,
                   help="Nombre de la plantilla a probar (ej. el de WHATSAPP_TEMPLATE_CONFIRMACION).")
-    def diag_whatsapp(numero, template):
+    @click.option("--idioma", default=None,
+                  help="Código de idioma de la plantilla a probar (ej. es, es_AR, es_MX). "
+                       "Por defecto usa WHATSAPP_TEMPLATE_IDIOMA.")
+    def diag_whatsapp(numero, template, idioma):
         """Manda un WhatsApp de prueba a NUMERO y muestra el error real de Meta."""
         from app.notificaciones import whatsapp as wa
         cfg = app.config
+        idioma = idioma or cfg.get("WHATSAPP_TEMPLATE_IDIOMA", "es_AR")
         click.echo(f"WHATSAPP_PHONE_ID: {cfg.get('WHATSAPP_PHONE_ID') or '(vacío)'}")
         click.echo(f"WHATSAPP_API_VERSION: {cfg.get('WHATSAPP_API_VERSION')}")
         click.echo(f"TOKEN cargado: {'sí' if cfg.get('WHATSAPP_TOKEN') else 'NO'}")
@@ -95,12 +99,12 @@ def register_commands(app):
         if template:
             # Probamos con 4 parámetros de ejemplo (los que manda la confirmación).
             params = ["Cliente Prueba", "Servicio", "Profesional", "01/01 a las 10:00"]
-            click.echo(f"Enviando PLANTILLA '{template}' con {len(params)} parámetros…")
+            click.echo(f"Enviando PLANTILLA '{template}' en idioma '{idioma}' con {len(params)} parámetros…")
             ok, detalle = wa._post({
                 "messaging_product": "whatsapp", "to": wa._normalizar(numero),
                 "type": "template",
                 "template": {"name": template,
-                             "language": {"code": cfg.get("WHATSAPP_TEMPLATE_IDIOMA", "es_AR")},
+                             "language": {"code": idioma},
                              "components": [{"type": "body",
                                  "parameters": [{"type": "text", "text": p} for p in params]}]},
             })
