@@ -248,16 +248,35 @@ def compartir():
     profesional las descargue y comparta con sus clientes.
     """
     from app.models.servicio import Servicio
+    from app.models.recurso import Recurso
     from app.uploads import imagen_data_uri
     from app.resenas.service import rating_negocio
 
     negocio = current_user.negocio
-    servicios = (
-        Servicio.query.filter_by(negocio_id=negocio.id, activo=True)
-        .order_by(Servicio.nombre).limit(6).all()
+    recursos = (
+        Recurso.query.filter_by(negocio_id=negocio.id, activo=True)
+        .order_by(Recurso.id).all()
     )
+    # La página pública real: con un solo profesional ES su página (recurso.html),
+    # así que el logo/nombre que ve el cliente son los del recurso, NO los del
+    # marketplace. Con varios, usamos la marca del negocio.
+    recurso = recursos[0] if len(recursos) == 1 else None
+    if recurso is not None:
+        servicios = [s for s in recurso.servicios if s.activo][:6]
+        nombre_publico = recurso.nombre
+        especialidad = recurso.especialidad
+        logo_src = recurso.foto_filename or negocio.logo_filename
+    else:
+        servicios = (
+            Servicio.query.filter_by(negocio_id=negocio.id, activo=True)
+            .order_by(Servicio.nombre).limit(6).all()
+        )
+        nombre_publico = negocio.nombre
+        especialidad = negocio.rubro.value.replace("_", " ").title() if negocio.rubro else None
+        logo_src = negocio.logo_filename
+
     promedio, cantidad = rating_negocio(negocio.id)
-    avatar = imagen_data_uri(negocio.logo_filename, lado=400) if negocio.logo_filename else ""
+    avatar = imagen_data_uri(logo_src, lado=400) if logo_src else ""
     url_publica = current_app.config.get("SITE_URL", "").rstrip("/") + url_for(
         "publico.perfil_negocio", slug=negocio.slug)
     # Versión "linda" del link para mostrar en la placa (sin https://www.).
@@ -265,7 +284,8 @@ def compartir():
 
     return render_template(
         "panel/compartir.html",
-        negocio=negocio, servicios=servicios, avatar=avatar,
+        negocio=negocio, recurso=recurso, servicios=servicios, avatar=avatar,
+        nombre_publico=nombre_publico, especialidad=especialidad,
         url_publica=url_publica, url_corta=url_corta,
         rating_promedio=promedio, rating_cantidad=cantidad,
     )
