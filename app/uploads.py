@@ -162,3 +162,36 @@ def media_url(valor, external=False):
     if valor.startswith("http://") or valor.startswith("https://"):
         return valor
     return url_for("static", filename=valor, _external=external)
+
+
+def imagen_data_uri(valor, lado=320):
+    """
+    Devuelve la imagen guardada como data URI (base64) para embeberla en HTML
+    sin pedir CORS. Lo usa el material de difusión: html-to-image solo puede
+    exportar imágenes del MISMO origen o ya embebidas. Devuelve "" si no hay
+    imagen o si falla la descarga/lectura (el front cae al avatar de letra).
+    """
+    if not valor:
+        return ""
+    import base64
+    from io import BytesIO
+    try:
+        if valor.startswith("http://") or valor.startswith("https://"):
+            import requests
+            data = requests.get(valor, timeout=10).content
+        else:
+            ruta = os.path.join(current_app.static_folder, valor)
+            with open(ruta, "rb") as f:
+                data = f.read()
+        # Recomprimimos a un WebP chico (la placa no necesita más resolución).
+        img = Image.open(BytesIO(data))
+        img = ImageOps.exif_transpose(img)
+        img = img.convert("RGB")
+        img.thumbnail((lado, lado), Image.LANCZOS)
+        out = BytesIO()
+        img.save(out, "WEBP", quality=82, method=4)
+        b64 = base64.b64encode(out.getvalue()).decode("ascii")
+        return f"data:image/webp;base64,{b64}"
+    except Exception:
+        current_app.logger.info("No se pudo embeber la imagen %s para difusión", valor)
+        return ""
