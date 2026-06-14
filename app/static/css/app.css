@@ -356,6 +356,110 @@ a:focus-visible, .btn:focus-visible, .form-control:focus-visible {
   .btn { display: inline-flex; align-items: center; justify-content: center; }
 }
 
+/* ===========================================================================
+   CAPA PREMIUM v2 — pulido de nivel experto (global, sin tocar plantillas)
+   Aurora viva, tarjetas con profundidad, inputs refinados, scrollbar y
+   selección de marca, controles segmentados, glass en menús y FAB con pulso.
+   =========================================================================== */
+:root { --sheen: rgba(255,255,255,.7); --glass: rgba(255,255,255,.82); }
+html[data-bs-theme="dark"] { --sheen: rgba(255,255,255,.05); --glass: rgba(24,27,37,.82); }
+
+/* ---- Aurora de fondo: capa fija que respira muy sutilmente ---- */
+body::before {
+  content: ''; position: fixed; inset: -25%; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(38% 38% at 12% 18%, rgba(var(--marca-rgb), .12), transparent 60%),
+    radial-gradient(32% 34% at 88% 12%, rgba(var(--oro-rgb), .14), transparent 60%),
+    radial-gradient(42% 42% at 78% 88%, rgba(var(--marca-rgb), .09), transparent 60%);
+  filter: blur(28px);
+  animation: aurora 26s ease-in-out infinite alternate;
+}
+html[data-bs-theme="dark"] body::before { opacity: .9; }
+@keyframes aurora {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  100% { transform: translate3d(-3%, 2.5%, 0) scale(1.1); }
+}
+
+/* ---- Tarjetas con más oficio: sheen superior + glow de marca al elevarse ---- */
+.card { box-shadow: var(--sombra-sm), inset 0 1px 0 var(--sheen); }
+.card.hover-lift:hover,
+.lift:hover {
+  box-shadow: var(--sombra), 0 10px 34px rgba(var(--marca-rgb), .12), inset 0 1px 0 var(--sheen);
+}
+
+/* ---- Inputs refinados: hundido sutil y foco con anillo + halo ---- */
+.form-control, .form-select {
+  box-shadow: inset 0 1px 2px rgba(var(--carbon-rgb), .04);
+}
+.form-control:focus, .form-select:focus {
+  box-shadow: 0 0 0 4px rgba(var(--marca-rgb), .15), inset 0 1px 2px rgba(var(--carbon-rgb), .03);
+}
+.input-group-text { border-color: var(--borde); background: rgba(var(--marca-rgb), .05); color: var(--tinta-suave); }
+
+/* ---- Controles segmentados (btn-group): la opción activa es una píldora de marca ---- */
+.btn-group > .btn-outline-primary.active,
+.btn-group > .btn-check:checked + .btn-outline-primary {
+  background-image: linear-gradient(135deg, var(--marca-2), var(--marca));
+  border-color: transparent; color: #fff;
+  box-shadow: 0 6px 16px rgba(var(--marca-rgb), .32);
+}
+
+/* ---- Menús y popovers con vidrio esmerilado ---- */
+.menu-pop, .notif-pop {
+  background: var(--glass);
+  backdrop-filter: blur(14px) saturate(170%);
+  -webkit-backdrop-filter: blur(14px) saturate(170%);
+}
+
+/* ---- Scrollbar de marca (fina y redondeada) ---- */
+* { scrollbar-width: thin; scrollbar-color: rgba(var(--marca-rgb), .45) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(var(--marca-2), var(--marca));
+  border-radius: 999px; border: 2px solid transparent; background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background: linear-gradient(var(--marca), var(--marca-3)); background-clip: padding-box; }
+
+/* ---- Selección de texto con tinte de marca ---- */
+::selection { background: rgba(var(--marca-rgb), .22); color: var(--tinta); }
+
+/* ---- FAB con pulso de marca (llama la atención sin molestar) ---- */
+.bottom-nav .bn-fab { animation: fabPulso 3s ease-in-out infinite; }
+@keyframes fabPulso {
+  0%, 100% { box-shadow: 0 8px 22px rgba(var(--marca-rgb), .42); }
+  50%      { box-shadow: 0 8px 22px rgba(var(--marca-rgb), .42), 0 0 0 9px rgba(var(--marca-rgb), .10); }
+}
+
+/* ---- Barra inferior: indicador animado del ítem activo ---- */
+.bottom-nav a { position: relative; }
+.bottom-nav a.active::after {
+  content: ''; position: absolute; top: 2px; left: 50%; transform: translateX(-50%);
+  width: 26px; height: 3px; border-radius: 999px;
+  background: linear-gradient(90deg, var(--marca-2), var(--marca));
+}
+
+/* ---- Utilidades de tipografía display (texto con degradé de marca) ---- */
+.titulo-gradiente {
+  background: linear-gradient(115deg, var(--tinta) 0%, var(--marca-3) 62%, var(--marca) 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.num-gradiente {
+  background: linear-gradient(135deg, var(--marca), var(--marca-3));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+/* ---- Divisores con degradé (más prolijos que un border liso) ---- */
+hr { border: none; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--borde) 20%, var(--borde) 80%, transparent); opacity: 1; }
+
+/* ---- Avatares de inicial: degradé de marca en vez de plano ---- */
+.alert { border-radius: var(--radio); }
+
+@media (prefers-reduced-motion: reduce) {
+  body::before, .bottom-nav .bn-fab { animation: none !important; }
+}
+
 /* Flex "suave" (sin !important): convive con x-show de Alpine. */
 .flex-suave { display: flex; }
 
